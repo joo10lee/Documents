@@ -2092,6 +2092,8 @@ function renderEmotionChart() {
 
         // index.html 내의 saveCheckIn 함수 수정 예시
         async function saveCheckIn(entry) {
+            // 버튼을 눌렀을 때 아이폰 화면에 알림창이 뜨게 합니다.
+            alert("서버로 보낼 주소: " + API_BASE_URL);
             console.log("Check-in entry type:", typeof entry);
             if (typeof entry === 'string') {
                 console.error("🚨 에러 발견: entry가 객체가 아니라 문자열입니다!");
@@ -2350,12 +2352,24 @@ function renderEmotionChart() {
         function backToStrategies() { stopAllExercises(); goToScreen(4, 'Helpful Strategies'); }
 
         function finishCheckIn() {
-            saveCheckIn(currentEmotion.name, currentEmotion.emoji, currentEmotion.intensity, usedStrategies);
+            // 1. 서버와 로컬 저장소가 기대하는 '객체' 형태로 묶습니다.
+            const entry = {
+                emotion: currentEmotion.name,
+                emoji: currentEmotion.emoji,
+                intensity: currentEmotion.intensity,
+                strategies: usedStrategies,
+                timestamp: new Date().toISOString()
+            };
+        
+            // 2. 이제 묶인 객체(entry) 하나만 전달합니다.
+            saveCheckIn(entry);
+        
             const stats = getStats();
-            document.getElementById('finalMessage').textContent = stats.streak >= 3 ? `🔥 ${stats.streak} day streak!` : stats.total === 1 ? "Great first check-in!" : "You're doing great!";
+            document.getElementById('finalMessage').textContent = 
+                stats.streak >= 3 ? `🔥 ${stats.streak} day streak!` : 
+                stats.total === 1 ? "Great first check-in!" : "You're doing great!";
             goToScreen(5, 'You Did It!');
         }
-
         function startOver() { stopAllExercises(); usedStrategies = []; updateStreakBanner(); goHome(); }
 
         function goHome() {
