@@ -7,7 +7,7 @@
     
     <script>
         // ngrok 주소를 여기에 넣으세요. (마지막에 /api는 빼고 넣는 것이 범용성이 좋습니다.)
-        const API_BASE_URL = 'https://ungainable-sonja-bewailingly.ngrok-free.dev/api';
+        const API_BASE_URL = 'https://ungainable-sonja-bewailingly.ngrok-free.dev';
         
         console.log("Backend API Base URL initialized: ", API_BASE_URL);
     </script>
@@ -2108,7 +2108,7 @@ function renderEmotionChart() {
             // 2. 서버 DB로 전송 (API_BASE_URL 변수 활용)
             try {
                 // 백틱(`)을 사용하여 API_BASE_URL 변수와 경로를 합칩니다.
-                const response = await fetch(`${API_BASE_URL}/emotions`, {
+                const response = await fetch(`${API_BASE_URL}/api/emotions`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(entry)
