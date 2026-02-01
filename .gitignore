@@ -10,7 +10,9 @@ Documents/
 .vscode/
 
 # 언어별 빌드 결과물이나 라이브러리 (예: Python, Node.js 등)
+node_modules
 node_modules/
+NODE_MODULES/
 __pycache__/
 *.exe
 *.bin

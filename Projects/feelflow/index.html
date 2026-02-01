@@ -2092,6 +2092,12 @@ function renderEmotionChart() {
 
         // index.html 내의 saveCheckIn 함수 수정 예시
         async function saveCheckIn(entry) {
+            console.log("Check-in entry type:", typeof entry);
+            if (typeof entry === 'string') {
+                console.error("🚨 에러 발견: entry가 객체가 아니라 문자열입니다!");
+                entry = JSON.parse(entry); // 임시 방편으로 객체로 복구
+            }
+
             // 1. 기존 로컬 저장 (서버 장애 시 백업용)
             const history = JSON.parse(localStorage.getItem('emotionHistory') || '[]');
             history.unshift(entry);
