@@ -1578,12 +1578,11 @@
         /**
  * 감정 데이터를 가져와 최근 7일 차트를 렌더링합니다.
  */
-async function renderEmotionChart() {
+ async function renderEmotionChart() {
     const canvas = document.getElementById('emotionChart');
     if (!canvas) return;
 
     try {
-        // 1. 데이터 페칭
         const response = await fetch(`${API_BASE_URL}/api/emotions`, {
             headers: { 'ngrok-skip-browser-warning': 'true' }
         });
@@ -1591,22 +1590,72 @@ async function renderEmotionChart() {
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         const rawData = await response.json();
 
-        // 2. 7일 데이터 가공 로직 분리
-        const { labels, dataPoints } = processWeeklyData(rawData);
+        // 7일 데이터 가공 로직
+        const labels = [];
+        const dataPoints = [];
+        const today = new Date();
 
-        // 3. 차트 렌더링
-        drawChart(canvas, labels, dataPoints);
+        for (let i = 6; i >= 0; i--) {
+            const d = new Date(today);
+            d.setDate(today.getDate() - i);
+            const dateString = d.toLocaleDateString();
+            labels.push(d.toLocaleDateString('en-US', { weekday: 'short' }));
+
+            const dayEntries = rawData.filter(item => {
+                const itemDate = new Date(item.timestamp || item.createdAt);
+                return itemDate.toLocaleDateString() === dateString;
+            });
+
+            if (dayEntries.length > 0) {
+                const sum = dayEntries.reduce((acc, cur) => acc + (cur.intensity || 0), 0);
+                const avg = sum / dayEntries.length;
+                dataPoints.push(Number(avg.toFixed(1)));
+            } else {
+                dataPoints.push(null); 
+            }
+        }
+
+        // 차트 그리기 (중복 인스턴스 파괴 로직 포함)
+        const ctx = canvas.getContext('2d');
+        if (window.emotionChartInstance) {
+            window.emotionChartInstance.destroy();
+        }
+
+        window.emotionChartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Intensity',
+                    data: dataPoints,
+                    borderColor: '#7c3aed',
+                    backgroundColor: 'rgba(124, 58, 237, 0.05)',
+                    borderWidth: 3,
+                    pointRadius: 4,
+                    tension: 0.4,
+                    spanGaps: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { min: 0, max: 10, beginAtZero: true, ticks: { stepSize: 2 } },
+                    x: { grid: { display: false } }
+                },
+                plugins: { legend: { display: false } }
+            }
+        });
         
     } catch (error) {
-        console.error("차트 데이터 로드 중 오류 발생:", error);
-        // 사용자에게 오류 표시 (선택 사항)
+        console.error("차트 로드 실패:", error);
     }
 }
 
 /**
  * 최근 7일간의 데이터를 요일별 평균으로 계산합니다.
  */
-function processWeeklyData(rawData) {
+ function processWeeklyData(rawData) {
     const labels = [];
     const dataPoints = [];
     const today = new Date();
@@ -1614,13 +1663,9 @@ function processWeeklyData(rawData) {
     for (let i = 6; i >= 0; i--) {
         const d = new Date(today);
         d.setDate(today.getDate() - i);
-        
-        // 비교용 로컬 날짜 문자열 (예: "2024. 5. 20.")
         const dateString = d.toLocaleDateString();
-        // 라벨용 요일 (예: "Mon")
         labels.push(d.toLocaleDateString('en-US', { weekday: 'short' }));
 
-        // 해당 날짜 데이터 필터링
         const dayEntries = rawData.filter(item => {
             const itemDate = new Date(item.timestamp || item.createdAt);
             return itemDate.toLocaleDateString() === dateString;
@@ -1640,17 +1685,15 @@ function processWeeklyData(rawData) {
 /**
  * Chart.js 인스턴스 생성 및 업데이트
  */
-let emotionChart = null; // 전역 또는 클로저 변수로 관리
 
-function drawChart(canvas, labels, dataPoints) {
+ function drawChart(canvas, labels, dataPoints) {
     const ctx = canvas.getContext('2d');
-    
-    // 기존 차트 파괴 (메모리 누수 방지)
-    if (emotionChart) {
-        emotionChart.destroy();
+    // window 객체에 저장된 인스턴스를 찾아 파괴해야 안전합니다.
+    if (window.emotionChartInstance) {
+        window.emotionChartInstance.destroy();
     }
 
-    emotionChart = new Chart(ctx, {
+    window.emotionChartInstance = new Chart(ctx, {
         type: 'line',
         data: {
             labels: labels,
@@ -1658,7 +1701,7 @@ function drawChart(canvas, labels, dataPoints) {
                 label: 'Emotion Intensity',
                 data: dataPoints,
                 borderColor: '#7c3aed',
-                backgroundColor: 'rgba(124, 58, 237, 0.05)', // 배경 농도 살짝 조절
+                backgroundColor: 'rgba(124, 58, 237, 0.05)',
                 borderWidth: 3,
                 pointRadius: 4,
                 pointHoverRadius: 6,
@@ -1666,48 +1709,24 @@ function drawChart(canvas, labels, dataPoints) {
                 pointBorderColor: '#fff',
                 pointBorderWidth: 2,
                 tension: 0.4,
-                spanGaps: true // 데이터가 없는 날도 선을 이어줌
+                spanGaps: true
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            interaction: {
-                intersect: false,
-                mode: 'index',
-            },
+            interaction: { intersect: false, mode: 'index' },
             scales: {
                 y: {
-                    min: 0,
-                    max: 10,
-                    beginAtZero: true,
-                    ticks: { 
-                        stepSize: 2,
-                        font: { size: 10, family: 'Inter, sans-serif' },
-                        color: '#94a3b8'
-                    },
+                    min: 0, max: 10, beginAtZero: true,
+                    ticks: { stepSize: 2, font: { size: 10 }, color: '#94a3b8' },
                     grid: { color: 'rgba(0,0,0,0.05)' }
                 },
-                x: { 
-                    grid: { display: false },
-                    ticks: { 
-                        font: { size: 10, family: 'Inter, sans-serif' },
-                        color: '#94a3b8'
-                    }
-                }
+                x: { grid: { display: false }, ticks: { font: { size: 10 }, color: '#94a3b8' } }
             },
             plugins: {
                 legend: { display: false },
-                tooltip: {
-                    backgroundColor: '#1e293b',
-                    titleFont: { size: 12 },
-                    bodyFont: { size: 12 },
-                    padding: 10,
-                    displayColors: false,
-                    callbacks: {
-                        label: (context) => ` Intensity: ${context.parsed.y}`
-                    }
-                }
+                tooltip: { backgroundColor: '#1e293b', padding: 10, displayColors: false }
             }
         }
     });
@@ -1719,6 +1738,15 @@ function drawChart(canvas, labels, dataPoints) {
         function getSettings() {
             const data = localStorage.getItem('feelflow_settings');
             return data ? JSON.parse(data) : { name: '', age: '', city: '', lat: null, lon: null };
+        }
+    
+        function updateGreeting() {
+            const settings = getSettings();
+            const greeting = document.getElementById('greeting');
+            if(!greeting) return;
+            const hour = new Date().getHours();
+            let timeGreeting = hour >= 5 && hour < 12 ? 'Good morning' : hour >= 12 && hour < 18 ? 'Good afternoon' : 'Good evening';
+            greeting.textContent = settings.name ? `${timeGreeting}, ${settings.name}!` : `${timeGreeting}!`;
         }
 
         function saveSettings() {
@@ -1786,39 +1814,6 @@ function drawChart(canvas, labels, dataPoints) {
             updateGreeting();
         }
 
-        function updateGreeting() {
-            const settings = getSettings();
-            const greeting = document.getElementById('greeting');
-            const hour = new Date().getHours();
-            let timeGreeting = hour >= 5 && hour < 12 ? 'Good morning' : hour >= 12 && hour < 18 ? 'Good afternoon' : 'Good evening';
-            greeting.textContent = settings.name ? `${timeGreeting}, ${settings.name}!` : `${timeGreeting}!`;
-        }
-
-        function requestLocation() {
-            const statusEl = document.getElementById('locationStatus');
-            if (!navigator.geolocation) {
-                statusEl.textContent = '❌ Location not supported';
-                statusEl.className = 'location-status error';
-                return;
-            }
-            statusEl.textContent = '📍 Getting location...';
-            statusEl.className = 'location-status';
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    const settings = getSettings();
-                    settings.lat = position.coords.latitude;
-                    settings.lon = position.coords.longitude;
-                    localStorage.setItem('feelflow_settings', JSON.stringify(settings));
-                    statusEl.textContent = '✓ Location saved!';
-                    statusEl.className = 'location-status success';
-                    fetchWeatherByCoords(settings.lat, settings.lon);
-                },
-                () => {
-                    statusEl.textContent = '❌ Could not get location';
-                    statusEl.className = 'location-status error';
-                }
-            );
-        }
 
         function clearAllData() {
             if (confirm('Delete ALL data including check-ins, tracker, and settings?')) {
@@ -2916,7 +2911,7 @@ function drawChart(canvas, labels, dataPoints) {
 
         async function saveToBackend(entry) {
             try {
-                const response = await fetch(`${API_BASE_URL}/emotions`, {
+                const response = await fetch(`${API_BASE_URL}/api/emotions`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(entry)
@@ -2927,7 +2922,19 @@ function drawChart(canvas, labels, dataPoints) {
                 console.error("Failed to sync. Keeping local only. ⚠️", error);
             }
         }
-
+        window.onload = function() {
+            updateStreakBanner();
+            updateGreeting();
+            initWeather();
+            // 알림 권한 요청
+            if ("Notification" in window && Notification.permission !== "granted") {
+                Notification.requestPermission();
+            }
+            // 서비스 워커 등록
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('sw.js').catch(err => console.log('SW fail:', err));
+            }
+        };
     </script>
 
 </body>
