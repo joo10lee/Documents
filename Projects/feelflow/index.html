@@ -2256,14 +2256,17 @@ function renderEmotionChart() {
             const historyList = document.getElementById('historyList');
             if (!historyList) return;
         
-            // 현재 호출하려는 주소를 콘솔에 찍어봅니다. (아이폰 디버깅용)
             const targetUrl = `${API_BASE_URL}/api/emotions`;
             console.log("Fetching history from:", targetUrl);
         
             try {
-                const response = await fetch(targetUrl);
+                const response = await fetch(targetUrl, {
+                    // ✅ ngrok의 보안 경고 페이지를 코드로 강제 통과시키는 핵심 헤더입니다.
+                    headers: {
+                        'ngrok-skip-browser-warning': 'true'
+                    }
+                });
                 
-                // 만약 서버 응답이 200(OK)이 아니면 에러로 던집니다.
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                 
                 const data = await response.json();
@@ -2304,8 +2307,16 @@ function renderEmotionChart() {
                 `).join('');
             } catch (error) {
                 console.error("Failed to fetch history:", error);
-                // 에러 발생 시 시도했던 주소를 화면에 살짝 띄워 확인해봅니다.
-                historyList.innerHTML = `<p style="text-align:center; padding:20px; color:red;">Connection to MacBook lost<br><small style="color:#ccc;">${targetUrl}</small></p>`;
+                // 사용자에게 현재 시도 중인 실제 주소를 보여주어 설정 오류를 점검하게 합니다.
+                historyList.innerHTML = `
+                    <div style="text-align:center; padding:20px; color:red;">
+                        <p>Connection to MacBook lost</p>
+                        <div style="margin-top:10px; padding:10px; background:#fff; border-radius:8px; font-size:0.7rem; color:#666; word-break:break-all; border:1px solid #eee;">
+                            <strong>Tried URL:</strong><br>${targetUrl}
+                        </div>
+                        <button onclick="renderHistory()" style="margin-top:15px; padding:8px 16px; border-radius:8px; border:none; background:#7c3aed; color:white; font-weight:600;">Retry</button>
+                    </div>
+                `;
             }
         }
 
