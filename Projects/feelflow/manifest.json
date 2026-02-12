@@ -1,0 +1,21 @@
+{
+    "name": "FeelFlow - Emotion Helper",
+    "short_name": "FeelFlow",
+    "description": "A helper app for emotion regulation and life skills.",
+    "start_url": "index.html",
+    "display": "standalone",
+    "background_color": "#f5f7fa",
+    "theme_color": "#7c3aed",
+    "icons": [
+      {
+        "src": "https://www.gstatic.com/images/branding/product/2x/keep_2020q4_48dp.png",
+        "sizes": "96x96",
+        "type": "image/png"
+      },
+      {
+        "src": "https://www.gstatic.com/images/branding/product/2x/keep_2020q4_512dp.png",
+        "sizes": "512x512",
+        "type": "image/png"
+      }
+    ]
+  }
