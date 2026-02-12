@@ -83,7 +83,8 @@ const EmotionManager = {
 
 // 카메라 및 인앱 액션 관리 객체
 const EmotionActions = {
-    stream: null,
+    // 내부 변수
+    activeStream: null, 
     capturedPhoto: null,
 
     // 1. 카메라 시작
@@ -93,20 +94,26 @@ const EmotionActions = {
         const cameraBtn = document.getElementById('cameraBtn');
 
         try {
-            this.stream = await navigator.mediaDevices.getUserMedia({ 
+            // 카메라 중복 실행 방지
+            if (this.activeStream) this.stopCamera();
+
+            const stream = await navigator.mediaDevices.getUserMedia({ 
                 video: { facingMode: "environment" }, 
                 audio: false 
             });
-            video.srcObject = this.stream;
+            
+            this.activeStream = stream; // 변수에 스트림 저장
+            video.srcObject = stream;
+            
             container.style.display = 'block';
             cameraBtn.style.display = 'none';
+            console.log("📸 카메라 시작됨");
         } catch (err) {
-            alert("카메라를 켤 수 없습니다. 권한을 확인해주세요.");
-            console.error(err);
+            alert("카메라를 켤 수 없습니다: " + err.message);
         }
     },
 
-    // 2. 사진 촬영
+    // 2. 사진 촬영 및 종료
     takePhoto() {
         const video = document.getElementById('videoElement');
         const canvas = document.getElementById('hiddenCanvas');
@@ -114,36 +121,55 @@ const EmotionActions = {
         const previewContainer = document.getElementById('photoPreviewContainer');
         const videoContainer = document.getElementById('videoContainer');
 
+        if (!video.videoWidth) return; // 비디오 로드 확인
+
+        // 캔버스에 그리기
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
         canvas.getContext('2d').drawImage(video, 0, 0);
 
-        // 사진을 Base64 문자열로 저장
+        // 데이터 저장
         this.capturedPhoto = canvas.toDataURL('image/jpeg', 0.7);
         previewImg.src = this.capturedPhoto;
         
+        // UI 전환
         previewContainer.style.display = 'block';
         videoContainer.style.display = 'none';
         
+        // ✅ 여기서 카메라를 확실히 끕니다.
         this.stopCamera();
+        console.log("✅ 촬영 완료 및 카메라 종료");
     },
 
-    // 3. 카메라 종료
+    // 3. 카메라 엔진 끄기 (핵심 로직)
     stopCamera() {
-        if (this.stream) {
-            this.stream.getTracks().forEach(track => track.stop());
-            this.stream = null;
+        if (this.activeStream) {
+            const tracks = this.activeStream.getTracks();
+            tracks.forEach(track => {
+                track.stop(); // 트랙 정지
+                console.log(`🚫 ${track.kind} 트랙 정지됨`);
+            });
+            this.activeStream = null;
         }
+        
+        const video = document.getElementById('videoElement');
+        if (video) video.srcObject = null; // 비디오 연결 해제
     },
 
-    // 4. 리셋
+    // 4. 리셋 (다시 찍기 버튼용)
     reset() {
         this.capturedPhoto = null;
         this.stopCamera();
+        
         const preview = document.getElementById('photoPreviewContainer');
         if (preview) preview.style.display = 'none';
+        
         const cameraBtn = document.getElementById('cameraBtn');
         if (cameraBtn) cameraBtn.style.display = 'block';
+        
+        const videoContainer = document.getElementById('videoContainer');
+        if (videoContainer) videoContainer.style.display = 'none';
+
         const actionNote = document.getElementById('actionNote');
         if (actionNote) actionNote.value = '';
     }
