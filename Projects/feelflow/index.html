@@ -2144,19 +2144,23 @@ function renderEmotionChart() {
                 try {
                     const response = await fetch(`${API_BASE_URL}/api/emotions`, {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            // ✅ ngrok의 보안 경고 페이지를 코드로 우회하는 필수 헤더
+                            'ngrok-skip-browser-warning': 'true' 
+                        },
                         body: JSON.stringify(item)
                     });
         
                     if (response.ok) {
                         console.log("✅ 서버 전송 성공:", item.emotion);
-                        // 성공하면 remainingQueue에 넣지 않음 (자동 삭제 효과)
+                        // 성공 시 remainingQueue에 담지 않아 대기열에서 삭제됨
                     } else {
-                        throw new Error('Server Busy');
+                        throw new Error(`Server Error: ${response.status}`);
                     }
                 } catch (error) {
-                    console.warn("⚠️ 전송 실패 (오프라인/서버꺼짐): 대기열 유지");
-                    remainingQueue.push(item); // 실패한 것만 다시 담기
+                    console.warn("⚠️ 전송 실패 (오프라인/서버꺼짐): 대기열 유지", error);
+                    remainingQueue.push(item); // 실패 시 나중에 재시도하기 위해 보관
                 }
             }
         
