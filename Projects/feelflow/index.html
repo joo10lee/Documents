@@ -2112,18 +2112,24 @@ function renderEmotionChart() {
         async function saveCheckIn(entry) {
             console.log("🚀 저장 프로세스 시작:", entry.emotion);
         
-            // 1. 대기열(Queue)에 먼저 추가 (서버가 꺼져 있어도 일단 로컬에 확보)
+            // 1. 서버 동기화를 위한 대기열(Queue) 관리
             let queue = JSON.parse(localStorage.getItem('emotionQueue') || '[]');
             queue.push(entry);
             localStorage.setItem('emotionQueue', JSON.stringify(queue));
         
-            // 2. 기존 로컬 히스토리에도 즉시 반영 (UI 업데이트용)
-            const history = JSON.parse(localStorage.getItem('emotionHistory') || '[]');
-            history.unshift(entry);
-            localStorage.setItem('emotionHistory', JSON.stringify(history));
+            // 2. [수정] 키값 통일 및 저장 순서 정정
+            // feelflow_history라는 이름으로 통일하여 관리합니다.
+            const history = JSON.parse(localStorage.getItem('feelflow_history') || '[]');
+            history.unshift(entry); // 새 기록을 배열 맨 앞에 추가
+            localStorage.setItem('feelflow_history', JSON.stringify(history));
         
-            // 3. 서버와 동기화 시도
+            // 3. 서버와 실시간 동기화 시도
             await syncQueueWithServer();
+            
+            // 4. [추가] 기록 후 히스토리 화면 즉시 갱신
+            if (typeof renderHistory === 'function') {
+                renderHistory(); 
+            }
         }
 
         async function syncQueueWithServer() {
@@ -2245,36 +2251,57 @@ function renderEmotionChart() {
         }
 
         // index.html 내의 renderHistory 함수를 찾아 아래처럼 업데이트하세요.
-        function renderHistory(data) {
+        async function renderHistory() {
             const historyList = document.getElementById('historyList');
+            if (!historyList) return;
+        
+            let data = [];
+        
+            try {
+                // 1. 맥북 서버에서 전체 히스토리(메모 포함) 가져오기
+                const response = await fetch(`${API_BASE_URL}/api/emotions`);
+                if (response.ok) {
+                    data = await response.json();
+                    // 최신 서버 데이터를 로컬에도 백업
+                    localStorage.setItem('feelflow_history', JSON.stringify(data));
+                } else {
+                    throw new Error('Server response not ok');
+                }
+            } catch (error) {
+                console.warn("⚠️ 서버 연결 실패, 로컬 데이터를 불러옵니다.");
+                // 2. 오프라인이거나 서버 오류 시 로컬 데이터 활용
+                data = JSON.parse(localStorage.getItem('feelflow_history') || '[]');
+            }
+        
+            // 데이터가 없는 경우 처리
             if (!data || data.length === 0) {
                 historyList.innerHTML = '<p style="text-align:center; padding:20px; color:#a0aec0;">No records yet!</p>';
                 return;
             }
-
-            // 날짜별로 그룹화하는 로직 (기존 로직 유지)
+        
+            // 날짜별 그룹화 로직
             const grouped = data.reduce((acc, item) => {
                 const date = new Date(item.timestamp).toLocaleDateString();
                 if (!acc[date]) acc[date] = [];
                 acc[date].push(item);
                 return acc;
             }, {});
-
+        
+            // 화면 렌더링 (메모 필드 포함)
             historyList.innerHTML = Object.entries(grouped).map(([date, items]) => `
                 <div class="history-date-group">
-                    <div class="history-date-label" style="font-weight:bold; margin:15px 0 10px; color:#2d3748;">${date}</div>
+                    <div class="history-date-label">${date}</div>
                     ${items.map(item => `
-                        <div class="history-item" style="background:white; border-radius:12px; padding:15px; margin-bottom:10px; box-shadow:0 2px 4px rgba(0,0,0,0.05); display:flex; align-items:center;">
-                            <div class="history-emoji" style="font-size:1.5rem; margin-right:15px;">${item.emoji}</div>
-                            <div class="history-details" style="flex:1;">
+                        <div class="history-item">
+                            <div class="history-emoji">${item.emoji}</div>
+                            <div class="history-details">
                                 <div style="display:flex; justify-content:space-between;">
                                     <span class="history-emotion" style="font-weight:600;">${item.emotion}</span>
-                                    <span class="history-level" style="font-size:0.85rem; color:#718096;">Lvl ${item.intensity}</span>
+                                    <span class="history-level">Lvl ${item.intensity}</span>
                                 </div>
-                                <div class="history-meta" style="font-size:0.8rem; color:#a0aec0;">${new Date(item.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
-                                
+                                <div class="history-meta">${new Date(item.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
                                 ${item.note ? `
-                                    <div class="history-note" style="margin-top:8px; padding-top:8px; border-top:1px dashed #edf2f7; font-style:italic; color:#4a5568; font-size:0.9rem;">
+                                    <div class="history-note" style="margin-top:8px; font-style:italic; color:#4a5568; font-size:0.9rem;">
                                         "${item.note}"
                                     </div>
                                 ` : ''}
@@ -2427,8 +2454,11 @@ function renderEmotionChart() {
         function goToHistory() {
             document.getElementById('weatherHeader').style.display = 'none';
             document.getElementById('greeting').style.display = 'none';
-            renderHistory();
-            renderEmotionChart(); // 이 줄을 추가!
+            
+            // [수정] 인자 없이 호출하여 내부에서 서버 데이터를 가져오게 함
+            renderHistory(); 
+            
+            renderEmotionChart();
             goToScreen('History', 'My Check-ins');
             updateNavActive('navHistory');
         }
