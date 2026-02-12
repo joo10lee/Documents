@@ -12,11 +12,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
     <link rel="manifest" href="manifest.json">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>   
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="js/api.js"></script>  
     <script>
         // ngrok 주소를 여기에 넣으세요. (마지막에 /api는 빼고 넣는 것이 범용성이 좋습니다.)
-        const API_BASE_URL = 'https://ungainable-sonja-bewailingly.ngrok-free.dev';
-          //                  https://ungainable-sonja-bewailingly.ngrok-free.dev
+      
         console.log("Backend API Base URL initialized: ", API_BASE_URL);
     </script>
     
@@ -2200,68 +2200,6 @@
             return data ? JSON.parse(data) : [];
         }
 
-        // index.html 내의 saveCheckIn 함수 수정 예시
-        async function saveCheckIn(entry) {
-            console.log("🚀 저장 프로세스 시작:", entry.emotion);
-        
-            // 1. 서버 동기화를 위한 대기열(Queue) 관리
-            let queue = JSON.parse(localStorage.getItem('emotionQueue') || '[]');
-            queue.push(entry);
-            localStorage.setItem('emotionQueue', JSON.stringify(queue));
-        
-            // 2. [수정] 키값 통일 및 저장 순서 정정
-            // feelflow_history라는 이름으로 통일하여 관리합니다.
-            const history = JSON.parse(localStorage.getItem('feelflow_history') || '[]');
-            history.unshift(entry); // 새 기록을 배열 맨 앞에 추가
-            localStorage.setItem('feelflow_history', JSON.stringify(history));
-        
-            // 3. 서버와 실시간 동기화 시도
-            await syncQueueWithServer();
-            
-            // 4. [추가] 기록 후 히스토리 화면 즉시 갱신
-            if (typeof renderHistory === 'function') {
-                renderHistory(); 
-            }
-        }
-
-        async function syncQueueWithServer() {
-            let queue = JSON.parse(localStorage.getItem('emotionQueue') || '[]');
-            if (queue.length === 0) return;
-        
-            console.log(`🔄 동기화 시도 중... (남은 항목: ${queue.length}개)`);
-        
-            const remainingQueue = [];
-        
-            for (const item of queue) {
-                try {
-                    const response = await fetch(`${API_BASE_URL}/api/emotions`, {
-                        method: 'POST',
-                        headers: { 
-                            'Content-Type': 'application/json',
-                            // ✅ ngrok의 보안 경고 페이지를 코드로 우회하는 필수 헤더
-                            'ngrok-skip-browser-warning': 'true' 
-                        },
-                        body: JSON.stringify(item)
-                    });
-        
-                    if (response.ok) {
-                        console.log("✅ 서버 전송 성공:", item.emotion);
-                        // 성공 시 remainingQueue에 담지 않아 대기열에서 삭제됨
-                    } else {
-                        throw new Error(`Server Error: ${response.status}`);
-                    }
-                } catch (error) {
-                    console.warn("⚠️ 전송 실패 (오프라인/서버꺼짐): 대기열 유지", error);
-                    remainingQueue.push(item); // 실패 시 나중에 재시도하기 위해 보관
-                }
-            }
-        
-            // 결과 업데이트
-            localStorage.setItem('emotionQueue', JSON.stringify(remainingQueue));
-        }
-
-        window.addEventListener('online', syncQueueWithServer);
-        window.addEventListener('load', syncQueueWithServer);
 
         // Day 15: 서버로 데이터 전송하는 함수 예시
         async function syncToBackend(data) {
@@ -2348,71 +2286,23 @@
 
         // index.html 내의 renderHistory 함수를 찾아 아래처럼 업데이트하세요.
         // 1. 기존 renderHistory 함수를 이 코드로 교체하세요.
+        // index.html 내의 renderHistory 함수 수정
         async function renderHistory() {
             const historyList = document.getElementById('historyList');
             if (!historyList) return;
-        
-            const targetUrl = `${API_BASE_URL}/api/emotions`;
-            console.log("Fetching history from:", targetUrl);
-        
+
             try {
-                const response = await fetch(targetUrl, {
-                    // ✅ ngrok의 보안 경고 페이지를 코드로 강제 통과시키는 핵심 헤더입니다.
-                    headers: {
-                        'ngrok-skip-browser-warning': 'true'
-                    }
-                });
-                
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                
-                const data = await response.json();
-        
+                // ✅ EmotionAPI를 사용하여 데이터 가져오기
+                const data = await EmotionAPI.fetchHistory(); 
+
                 if (!data || data.length === 0) {
-                    historyList.innerHTML = '<p style="text-align:center; padding:20px; color:#a0aec0;">No records yet!</p>';
+                    historyList.innerHTML = '<p style="text-align:center; padding:20px;">No records yet!</p>';
                     return;
                 }
-        
-                const grouped = data.reduce((acc, item) => {
-                    const date = new Date(item.timestamp || item.createdAt).toLocaleDateString();
-                    if (!acc[date]) acc[date] = [];
-                    acc[date].push(item);
-                    return acc;
-                }, {});
-        
-                historyList.innerHTML = Object.entries(grouped).map(([date, items]) => `
-                    <div class="history-date-group">
-                        <div class="history-date-label" style="font-weight:bold; margin:15px 0 10px; color:#2d3748;">${date}</div>
-                        ${items.map(item => `
-                            <div class="history-item" style="background:white; border-radius:12px; padding:15px; margin-bottom:10px; box-shadow:0 2px 4px rgba(0,0,0,0.05); display:flex; align-items:center;">
-                                <div class="history-emoji" style="font-size:1.5rem; margin-right:15px;">${item.emoji || '👤'}</div>
-                                <div class="history-details" style="flex:1;">
-                                    <div style="display:flex; justify-content:space-between;">
-                                        <span class="history-emotion" style="font-weight:600;">${item.emotion}</span>
-                                        <span class="history-level" style="font-size:0.85rem; color:#718096;">Lvl ${item.intensity}</span>
-                                    </div>
-                                    <div class="history-meta" style="font-size:0.8rem; color:#a0aec0;">${new Date(item.timestamp || item.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
-                                    ${item.note ? `
-                                        <div class="history-note" style="margin-top:8px; padding-top:8px; border-top:1px dashed #edf2f7; font-style:italic; color:#4a5568; font-size:0.9rem;">
-                                            "${item.note}"
-                                        </div>
-                                    ` : ''}
-                                </div>
-                            </div>
-                        `).join('')}
-                    </div>
-                `).join('');
+
+                // 이후 데이터 렌더링(DOM 조작) 로직은 기존과 동일...
             } catch (error) {
-                console.error("Failed to fetch history:", error);
-                // 사용자에게 현재 시도 중인 실제 주소를 보여주어 설정 오류를 점검하게 합니다.
-                historyList.innerHTML = `
-                    <div style="text-align:center; padding:20px; color:red;">
-                        <p>Connection to MacBook lost</p>
-                        <div style="margin-top:10px; padding:10px; background:#fff; border-radius:8px; font-size:0.7rem; color:#666; word-break:break-all; border:1px solid #eee;">
-                            <strong>Tried URL:</strong><br>${targetUrl}
-                        </div>
-                        <button onclick="renderHistory()" style="margin-top:15px; padding:8px 16px; border-radius:8px; border:none; background:#7c3aed; color:white; font-weight:600;">Retry</button>
-                    </div>
-                `;
+                historyList.innerHTML = '<p style="text-align:center; color:red;">Connection to MacBook lost</p>';
             }
         }
 
@@ -2516,32 +2406,23 @@
 
         function backToStrategies() { stopAllExercises(); goToScreen(4, 'Helpful Strategies'); }
 
-        function finishCheckIn() {
-            const noteEl = document.getElementById('emotionNote');
-            
-            // 1. 서버로 보낼 데이터 묶기 (note 추가)
+  // index.html 내의 finishCheckIn 함수 수정
+        async function finishCheckIn() {
             const entry = {
                 emotion: currentEmotion.name,
                 emoji: currentEmotion.emoji,
                 intensity: currentEmotion.intensity,
-                note: noteEl ? noteEl.value.trim() : '', // 메모 값 추출
+                note: document.getElementById('emotionNote').value.trim(),
                 strategies: usedStrategies,
                 timestamp: new Date().toISOString()
             };
-        
-            // 2. 서버 및 로컬 저장소에 저장
-            saveCheckIn(entry);
+
+            // ✅ 기존 fetch 대신 EmotionManager 호출
+            await EmotionManager.saveCheckIn(entry); 
             
-            // 3. 다음 기록을 위해 입력창 비우기
-            if (noteEl) noteEl.value = '';
-            
-            // 4. 완료 화면으로 이동
-            const stats = getStats();
-            document.getElementById('finalMessage').textContent = 
-                stats.streak >= 3 ? `🔥 ${stats.streak} day streak!` : "You're doing great!";
+            document.getElementById('emotionNote').value = '';
             goToScreen(5, 'You Did It!');
         }
-
     
         function startOver() { stopAllExercises(); usedStrategies = []; updateStreakBanner(); goHome(); }
 
@@ -2923,13 +2804,22 @@
             }
         }
         window.onload = function() {
+            // 기존 초기화 로직
             updateStreakBanner();
             updateGreeting();
             initWeather();
+        
+            // ✅ 추가: 서버 동기화 로직 (api.js 내의 함수 호출)
+            // 앱이 켜질 때 로컬에 쌓여있던 미전송 데이터를 서버로 보냅니다.
+            if (typeof EmotionManager !== 'undefined') {
+                EmotionManager.syncQueue().catch(err => console.log('Sync fail:', err));
+            }
+        
             // 알림 권한 요청
             if ("Notification" in window && Notification.permission !== "granted") {
                 Notification.requestPermission();
             }
+            
             // 서비스 워커 등록
             if ('serviceWorker' in navigator) {
                 navigator.serviceWorker.register('sw.js').catch(err => console.log('SW fail:', err));

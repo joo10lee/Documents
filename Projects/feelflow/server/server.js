@@ -50,12 +50,13 @@ app.post('/api/emotions', async (req, res) => {
     }
 });
 
-app.get('/api/emotions', async (req, res) => {
+// server.js의 이 부분을 확인하세요
+app.get('/api/emotions', async (req, res) => {  // <--- 이 경로와 주소창의 경로가 일치해야 합니다.
     try {
-        // findAll()은 모든 컬럼(note 포함)을 가져옵니다.
-        const emotions = await Emotion.findAll({ order: [['timestamp', 'DESC']] });
+        const emotions = await Emotion.findAll({ order: [['createdAt', 'DESC']] });
         res.json(emotions);
     } catch (error) {
+        console.error("❌ 데이터 불러오기 에러:", error);
         res.status(500).json({ error: error.message });
     }
 });
