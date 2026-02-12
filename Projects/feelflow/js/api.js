@@ -80,3 +80,71 @@ const EmotionManager = {
         localStorage.setItem('emotionQueue', JSON.stringify(remainingQueue));
     }
 };
+
+// 카메라 및 인앱 액션 관리 객체
+const EmotionActions = {
+    stream: null,
+    capturedPhoto: null,
+
+    // 1. 카메라 시작
+    async startCamera() {
+        const video = document.getElementById('videoElement');
+        const container = document.getElementById('videoContainer');
+        const cameraBtn = document.getElementById('cameraBtn');
+
+        try {
+            this.stream = await navigator.mediaDevices.getUserMedia({ 
+                video: { facingMode: "environment" }, 
+                audio: false 
+            });
+            video.srcObject = this.stream;
+            container.style.display = 'block';
+            cameraBtn.style.display = 'none';
+        } catch (err) {
+            alert("카메라를 켤 수 없습니다. 권한을 확인해주세요.");
+            console.error(err);
+        }
+    },
+
+    // 2. 사진 촬영
+    takePhoto() {
+        const video = document.getElementById('videoElement');
+        const canvas = document.getElementById('hiddenCanvas');
+        const previewImg = document.getElementById('capturedPhoto');
+        const previewContainer = document.getElementById('photoPreviewContainer');
+        const videoContainer = document.getElementById('videoContainer');
+
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        canvas.getContext('2d').drawImage(video, 0, 0);
+
+        // 사진을 Base64 문자열로 저장
+        this.capturedPhoto = canvas.toDataURL('image/jpeg', 0.7);
+        previewImg.src = this.capturedPhoto;
+        
+        previewContainer.style.display = 'block';
+        videoContainer.style.display = 'none';
+        
+        this.stopCamera();
+    },
+
+    // 3. 카메라 종료
+    stopCamera() {
+        if (this.stream) {
+            this.stream.getTracks().forEach(track => track.stop());
+            this.stream = null;
+        }
+    },
+
+    // 4. 리셋
+    reset() {
+        this.capturedPhoto = null;
+        this.stopCamera();
+        const preview = document.getElementById('photoPreviewContainer');
+        if (preview) preview.style.display = 'none';
+        const cameraBtn = document.getElementById('cameraBtn');
+        if (cameraBtn) cameraBtn.style.display = 'block';
+        const actionNote = document.getElementById('actionNote');
+        if (actionNote) actionNote.value = '';
+    }
+};

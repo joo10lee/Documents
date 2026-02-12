@@ -1481,7 +1481,26 @@
                 <div class="activity-title" id="activityTitle">Comfort Object</div>
                 <div class="activity-steps" id="activitySteps"></div>
                 <div class="activity-timer" id="activityTimer"></div>
-            </div>
+    
+                <div id="inAppActionArea" style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 20px; display: none;">
+                    <p style="font-weight: 600; color: #4a5568; margin-bottom: 10px;" id="actionQuestion">🧸 무엇이 당신을 위로해 주나요?</p>
+                    <textarea id="actionNote" placeholder="기록을 남겨보세요..." 
+                           style="width: 100%; height: 60px; padding: 12px; border: 2px solid #e2e8f0; border-radius: 12px; margin-bottom: 15px; font-family: inherit; resize: none; outline: none;"></textarea>
+                    
+                    <div id="photoPreviewContainer" style="display: none; margin-bottom: 15px;">
+                        <img id="capturedPhoto" src="" style="width: 100%; border-radius: 12px; border: 2px solid #7c3aed;">
+                        <button onclick="resetPhoto()" style="background: none; border: none; color: #ef4444; font-size: 0.8rem; margin-top: 5px; cursor: pointer;">✕ 사진 다시 찍기</button>
+                    </div>
+    
+                    <button onclick="startInAppCamera()" id="cameraBtn" class="btn-secondary" style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 12px;">📸 사진 찍기</button>
+                    
+                    <div id="videoContainer" style="display: none; margin-top: 10px;">
+                        <video id="videoElement" width="100%" autoplay playsinline style="border-radius: 12px; background: #000;"></video>
+                        <button onclick="takePhoto()" class="btn-primary" style="width: 100%; margin-top: 10px;">📷 촬영하기</button>
+                        <canvas id="hiddenCanvas" style="display: none;"></canvas>
+                    </div>
+                </div>
+                </div>
             <button class="btn btn-primary" id="activityBtn" onclick="startActivity()">Start</button>
             <button class="btn btn-secondary" onclick="backToStrategies()">← Back</button>
         </div>
@@ -2570,8 +2589,17 @@
             document.getElementById('activityTimer').textContent = '';
             document.getElementById('activityBtn').textContent = 'Start Timer';
             document.getElementById('activityBtn').onclick = () => startActivityTimer(a.timerSeconds);
+        
+            // ✅ EmotionActions 객체를 사용하여 카메라 영역 초기화
+            const actionArea = document.getElementById('inAppActionArea');
+            if (actionArea) {
+                actionArea.style.display = 'block'; 
+                // api.js에 정의된 EmotionActions를 호출합니다.
+                if (window.EmotionActions) {
+                    window.EmotionActions.reset(); 
+                }
+            }
         }
-
         function startActivityTimer(secs) {
             // 1. 시작 소리 재생
             playStartSound(); 
