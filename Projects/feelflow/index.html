@@ -2251,66 +2251,58 @@ function renderEmotionChart() {
         }
 
         // index.html 내의 renderHistory 함수를 찾아 아래처럼 업데이트하세요.
-        async function renderHistory() {
-            const historyList = document.getElementById('historyList');
-            if (!historyList) return;
-        
-            let data = [];
-        
-            try {
-                // 1. 맥북 서버에서 전체 히스토리(메모 포함) 가져오기
-                const response = await fetch(`${API_BASE_URL}/api/emotions`);
-                if (response.ok) {
-                    data = await response.json();
-                    // 최신 서버 데이터를 로컬에도 백업
-                    localStorage.setItem('feelflow_history', JSON.stringify(data));
-                } else {
-                    throw new Error('Server response not ok');
-                }
-            } catch (error) {
-                console.warn("⚠️ 서버 연결 실패, 로컬 데이터를 불러옵니다.");
-                // 2. 오프라인이거나 서버 오류 시 로컬 데이터 활용
-                data = JSON.parse(localStorage.getItem('feelflow_history') || '[]');
-            }
-        
-            // 데이터가 없는 경우 처리
-            if (!data || data.length === 0) {
-                historyList.innerHTML = '<p style="text-align:center; padding:20px; color:#a0aec0;">No records yet!</p>';
-                return;
-            }
-        
-            // 날짜별 그룹화 로직
-            const grouped = data.reduce((acc, item) => {
-                const date = new Date(item.timestamp).toLocaleDateString();
-                if (!acc[date]) acc[date] = [];
-                acc[date].push(item);
-                return acc;
-            }, {});
-        
-            // 화면 렌더링 (메모 필드 포함)
-            historyList.innerHTML = Object.entries(grouped).map(([date, items]) => `
-                <div class="history-date-group">
-                    <div class="history-date-label">${date}</div>
-                    ${items.map(item => `
-                        <div class="history-item">
-                            <div class="history-emoji">${item.emoji}</div>
-                            <div class="history-details">
-                                <div style="display:flex; justify-content:space-between;">
-                                    <span class="history-emotion" style="font-weight:600;">${item.emotion}</span>
-                                    <span class="history-level">Lvl ${item.intensity}</span>
-                                </div>
-                                <div class="history-meta">${new Date(item.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
-                                ${item.note ? `
-                                    <div class="history-note" style="margin-top:8px; font-style:italic; color:#4a5568; font-size:0.9rem;">
-                                        "${item.note}"
-                                    </div>
-                                ` : ''}
-                            </div>
-                        </div>
-                    `).join('')}
-                </div>
-            `).join('');
+        // 1. 기존 renderHistory 함수를 이 코드로 교체하세요.
+async function renderHistory() {
+    const historyList = document.getElementById('historyList');
+    if (!historyList) return;
+
+    try {
+        // 맥북 서버에서 메모(note)가 포함된 진짜 데이터를 가져옵니다.
+        const response = await fetch(`${API_BASE_URL}/api/emotions`);
+        const data = await response.json();
+
+        if (!data || data.length === 0) {
+            historyList.innerHTML = '<p style="text-align:center; padding:20px; color:#a0aec0;">No records yet!</p>';
+            return;
         }
+
+        // 날짜별 그룹화
+        const grouped = data.reduce((acc, item) => {
+            const date = new Date(item.timestamp || item.createdAt).toLocaleDateString();
+            if (!acc[date]) acc[date] = [];
+            acc[date].push(item);
+            return acc;
+        }, {});
+
+        // 화면 렌더링 (메모 필드 포함)
+        historyList.innerHTML = Object.entries(grouped).map(([date, items]) => `
+            <div class="history-date-group">
+                <div class="history-date-label" style="font-weight:bold; margin:15px 0 10px; color:#2d3748;">${date}</div>
+                ${items.map(item => `
+                    <div class="history-item" style="background:white; border-radius:12px; padding:15px; margin-bottom:10px; box-shadow:0 2px 4px rgba(0,0,0,0.05); display:flex; align-items:center;">
+                        <div class="history-emoji" style="font-size:1.5rem; margin-right:15px;">${item.emoji || '👤'}</div>
+                        <div class="history-details" style="flex:1;">
+                            <div style="display:flex; justify-content:space-between;">
+                                <span class="history-emotion" style="font-weight:600;">${item.emotion}</span>
+                                <span class="history-level" style="font-size:0.85rem; color:#718096;">Lvl ${item.intensity}</span>
+                            </div>
+                            <div class="history-meta" style="font-size:0.8rem; color:#a0aec0;">${new Date(item.timestamp || item.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
+                            
+                            ${item.note ? `
+                                <div class="history-note" style="margin-top:8px; padding-top:8px; border-top:1px dashed #edf2f7; font-style:italic; color:#4a5568; font-size:0.9rem;">
+                                    "${item.note}"
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        `).join('');
+    } catch (error) {
+        console.error("Failed to fetch history:", error);
+        historyList.innerHTML = '<p style="text-align:center; padding:20px; color:red;">Connection to MacBook lost</p>';
+    }
+}
 
         // ===== STRATEGIES =====
         const strategies = {
