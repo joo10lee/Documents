@@ -2307,23 +2307,36 @@
         // index.html 내의 renderHistory 함수를 찾아 아래처럼 업데이트하세요.
         // 1. 기존 renderHistory 함수를 이 코드로 교체하세요.
         // index.html 내의 renderHistory 함수 수정
-        async function renderHistory() {
-            const historyList = document.getElementById('historyList');
-            if (!historyList) return;
-
-            try {
-                // ✅ EmotionAPI를 사용하여 데이터 가져오기
-                const data = await EmotionAPI.fetchHistory(); 
-
-                if (!data || data.length === 0) {
-                    historyList.innerHTML = '<p style="text-align:center; padding:20px;">No records yet!</p>';
-                    return;
-                }
-
-                // 이후 데이터 렌더링(DOM 조작) 로직은 기존과 동일...
-            } catch (error) {
-                historyList.innerHTML = '<p style="text-align:center; color:red;">Connection to MacBook lost</p>';
+        function renderHistory(history) {
+            const container = document.getElementById('historyList');
+            if (!container) return;
+        
+            if (!history || history.length === 0) {
+                container.innerHTML = '<div class="empty-state">No check-ins yet.</div>';
+                return;
             }
+        
+            container.innerHTML = history.map(entry => {
+                const date = new Date(entry.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                
+                // 사진 데이터가 있을 경우 이미지 태그 생성
+                const photoHtml = entry.photo 
+                    ? `<div class="history-photo"><img src="${entry.photo}" style="width:100%; border-radius:8px; margin-top:8px;"></div>` 
+                    : '';
+        
+                return `
+                    <div class="history-card">
+                        <div class="history-header">
+                            <span class="history-emoji">${entry.emoji}</span>
+                            <div class="history-info">
+                                <div class="history-emotion">${entry.emotion} (Lv.${entry.intensity})</div>
+                                <div class="history-time">${date}</div>
+                            </div>
+                        </div>
+                        ${entry.note ? `<div class="history-note">${entry.note}</div>` : ''}
+                        ${photoHtml} </div>
+                `;
+            }).join('');
         }
 
         // ===== STRATEGIES =====
@@ -2428,19 +2441,32 @@
 
   // index.html 내의 finishCheckIn 함수 수정
         async function finishCheckIn() {
+            // ... 데이터 준비 로직 (이전과 동일) ...
+
             const entry = {
                 emotion: currentEmotion.name,
                 emoji: currentEmotion.emoji,
                 intensity: currentEmotion.intensity,
-                note: document.getElementById('emotionNote').value.trim(),
-                strategies: usedStrategies,
+                note: document.getElementById('emotionNote').value + (actionNote ? ` | Action: ${actionNote}` : ''),
+                photo: EmotionActions.capturedPhoto, 
                 timestamp: new Date().toISOString()
             };
 
-            // ✅ 기존 fetch 대신 EmotionManager 호출
+            // 1. 서버/로컬 저장
             await EmotionManager.saveCheckIn(entry); 
             
-            document.getElementById('emotionNote').value = '';
+            // 2. 초기화
+            EmotionActions.reset();
+            
+            // 3. 목록 새로고침 (이 부분이 있어야 Recent Check-in이 바로 업데이트됩니다)
+            if (typeof loadHistory === 'function') {
+                loadHistory(); 
+            } else {
+                // 또는 API에서 직접 다시 가져오기
+                const updatedHistory = await EmotionAPI.fetchHistory();
+                renderHistory(updatedHistory);
+            }
+            
             goToScreen(5, 'You Did It!');
         }
     
