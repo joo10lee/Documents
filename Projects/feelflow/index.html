@@ -2244,43 +2244,41 @@ function renderEmotionChart() {
                 : '';
         }
 
-        function renderHistory() {
-            const history = getHistory();
-            const stats = getStats();
-
-            document.getElementById('statsGrid').innerHTML = `
-                <div class="stat-card"><div class="stat-value">${stats.thisWeek}</div><div class="stat-label">This Week</div></div>
-                <div class="stat-card"><div class="stat-value">${stats.total}</div><div class="stat-label">Total Check-ins</div></div>
-                ${stats.topEmotion ? `<div class="stat-card wide"><div class="stat-label" style="margin-bottom:8px">Most Frequent</div><div class="top-emotion"><span class="top-emotion-emoji">${stats.topEmotion.emoji}</span><span class="top-emotion-name">${stats.topEmotion.name}</span></div></div>` : ''}
-                ${stats.streak >= 2 ? `<div class="stat-card wide" style="background:linear-gradient(135deg,#fef3c7,#fde68a)"><div class="stat-value">🔥 ${stats.streak}</div><div class="stat-label">Day Streak</div></div>` : ''}
-            `;
-
-            if (!history.length) {
-                document.getElementById('historyList').innerHTML = '<div class="empty-history"><div class="empty-history-icon">📝</div><div class="empty-history-text">No check-ins yet</div></div>';
+        // index.html 내의 renderHistory 함수를 찾아 아래처럼 업데이트하세요.
+        function renderHistory(data) {
+            const historyList = document.getElementById('historyList');
+            if (!data || data.length === 0) {
+                historyList.innerHTML = '<p style="text-align:center; padding:20px; color:#a0aec0;">No records yet!</p>';
                 return;
             }
 
-            const grouped = {};
-            history.forEach(item => {
-                const date = new Date(item.timestamp);
-                const today = new Date().toDateString();
-                const yesterday = new Date(Date.now() - 86400000).toDateString();
-                let label = date.toDateString() === today ? 'Today' : date.toDateString() === yesterday ? 'Yesterday' : date.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
-                if (!grouped[label]) grouped[label] = [];
-                grouped[label].push(item);
-            });
+            // 날짜별로 그룹화하는 로직 (기존 로직 유지)
+            const grouped = data.reduce((acc, item) => {
+                const date = new Date(item.timestamp).toLocaleDateString();
+                if (!acc[date]) acc[date] = [];
+                acc[date].push(item);
+                return acc;
+            }, {});
 
-            document.getElementById('historyList').innerHTML = Object.entries(grouped).map(([date, items]) => `
+            historyList.innerHTML = Object.entries(grouped).map(([date, items]) => `
                 <div class="history-date-group">
-                    <div class="history-date-label">${date}</div>
+                    <div class="history-date-label" style="font-weight:bold; margin:15px 0 10px; color:#2d3748;">${date}</div>
                     ${items.map(item => `
-                        <div class="history-item">
-                            <div class="history-emoji">${item.emoji}</div>
-                            <div class="history-details">
-                                <div class="history-emotion">${item.emotion}</div>
-                                <div class="history-meta">${new Date(item.timestamp).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}${item.strategies?.length ? ' • ' + item.strategies.join(', ') : ''}</div>
+                        <div class="history-item" style="background:white; border-radius:12px; padding:15px; margin-bottom:10px; box-shadow:0 2px 4px rgba(0,0,0,0.05); display:flex; align-items:center;">
+                            <div class="history-emoji" style="font-size:1.5rem; margin-right:15px;">${item.emoji}</div>
+                            <div class="history-details" style="flex:1;">
+                                <div style="display:flex; justify-content:space-between;">
+                                    <span class="history-emotion" style="font-weight:600;">${item.emotion}</span>
+                                    <span class="history-level" style="font-size:0.85rem; color:#718096;">Lvl ${item.intensity}</span>
+                                </div>
+                                <div class="history-meta" style="font-size:0.8rem; color:#a0aec0;">${new Date(item.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
+                                
+                                ${item.note ? `
+                                    <div class="history-note" style="margin-top:8px; padding-top:8px; border-top:1px dashed #edf2f7; font-style:italic; color:#4a5568; font-size:0.9rem;">
+                                        "${item.note}"
+                                    </div>
+                                ` : ''}
                             </div>
-                            <div class="history-level">Lvl ${item.intensity}</div>
                         </div>
                     `).join('')}
                 </div>

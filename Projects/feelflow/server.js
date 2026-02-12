@@ -13,42 +13,52 @@ const sequelize = new Sequelize({
     logging: false
 });
 
+// [수정] 모델 정의에 note 컬럼을 추가합니다.
 const Emotion = sequelize.define('Emotion', {
     emotion: DataTypes.STRING,
     emoji: DataTypes.STRING,
     intensity: DataTypes.INTEGER,
-    timestamp: DataTypes.DATE
+    note: DataTypes.TEXT, // <--- 메모 필드 추가
+    timestamp: {
+        type: DataTypes.DATE,
+        defaultValue: Sequelize.NOW
+    }
 });
 
 app.use(cors());
 app.use(bodyParser.json());
 
+// [수정] Sequelize 방식으로 저장 로직 변경
 app.post('/api/emotions', async (req, res) => {
-    console.log("----------------------------");
-    console.log("📦 아이폰 신호 포착:", req.body);
-    
     try {
-        // DB에 저장 시도
-        const newRecord = await Emotion.create({
-            emotion: req.body.emotion,
-            emoji: req.body.emoji,
-            intensity: req.body.intensity,
-            timestamp: new Date() // 타임스탬프 추가
+        const { emotion, emoji, intensity, note, timestamp } = req.body;
+
+        // Sequelize의 create 메소드를 사용합니다.
+        const newEntry = await Emotion.create({
+            emotion,
+            emoji,
+            intensity,
+            note: note || '',
+            timestamp: timestamp || new Date()
         });
-        
-        console.log("✅ DB 저장 성공!");
-        res.status(201).json(newRecord);
-    } catch (err) {
-        console.error("❌ DB 저장 실패:", err.message);
-        res.status(400).json({ error: err.message });
+
+        console.log(`📦 신규 데이터 저장 완료 (ID: ${newEntry.id}) - 메모: ${note || '없음'}`);
+        res.status(201).json(newEntry);
+    } catch (error) {
+        console.error("❌ DB 저장 에러:", error.message);
+        res.status(500).json({ error: error.message });
     }
-    console.log("----------------------------");
 });
 
-
-app.get('/api/health', (req, res) => {
-    res.json({ status: 'FeelFlow Server is Running! 🚀' });
-}); // <--- 여기서 중괄호와 소괄호를 닫아줘야 합니다!
+app.get('/api/emotions', async (req, res) => {
+    try {
+        // findAll()은 모든 컬럼(note 포함)을 가져옵니다.
+        const emotions = await Emotion.findAll({ order: [['timestamp', 'DESC']] });
+        res.json(emotions);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
 
 // 서버 실행 및 DB 동기화
 console.log("🛠️ DB 연결 시도 중...");
@@ -56,12 +66,13 @@ console.log("🛠️ DB 연결 시도 중...");
 sequelize.authenticate()
     .then(() => {
         console.log("✅ 1. DB 연결 자체는 성공했습니다.");
+        // alter: true 설정으로 인해 note 컬럼이 자동으로 테이블에 반영됩니다.
         return sequelize.sync({ alter: true });
     })
     .then(() => {
         console.log("✅ 2. 테이블 생성/동기화 완료");
-        app.listen(3000, '0.0.0.0', () => {
-            console.log("🚀 3. 서버가 드디어 3000번에서 대기 중입니다!");
+        app.listen(PORT, '0.0.0.0', () => {
+            console.log(`🚀 3. 서버가 드디어 ${PORT}번에서 대기 중입니다!`);
         });
     })
     .catch(err => {
