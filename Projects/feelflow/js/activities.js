@@ -1,9 +1,9 @@
 /**
  * Activities 관리 모듈: 감정 및 스트레스 관리 엔진
- * [완전 통합] 306라인 오리지널 로직 + Squeeze, Push, Jason Break 엔진 완벽 통합
+ * [Full Stack Integration] 306라인 오리지널 + Squeeze + Push + Jason Break 완벽 구현
  */
 
-// 1. 전역 오디오 컨텍스트 (Safari/iOS 최적화)
+// 1. 전역 오디오 컨텍스트 (Safari/iOS 필수 대응)
 let audioCtx = null;
 
 const Activities = {
@@ -14,7 +14,7 @@ const Activities = {
         if (audioCtx.state === 'suspended') audioCtx.resume();
     },
 
-    // 2. 전략 카드 렌더링 (모든 감정 케이스 포함)
+    // 2. 전략 카드 렌더링 (Happy, Sad, Anxious, Angry, Calm, Tired)
     renderStrategies(emotion) {
         const container = document.getElementById('strategiesContainer');
         if (!container) return;
@@ -63,7 +63,7 @@ const Activities = {
         `).join('');
     },
 
-    // 3. 활동 메인 엔진 (UI 전환 및 분기)
+    // 3. 활동 메인 컨트롤러 (분기 및 UI 전환 보장)
     setupActivity(type) {
         console.log(`🏃 활동 엔진 가동: ${type}`);
         this.initAudio();
@@ -80,15 +80,16 @@ const Activities = {
 
             if (!area) return;
             area.style.display = 'block';
-            area.innerHTML = ''; 
+            area.innerHTML = ''; // 이전 내용 완전 삭제
             if (title) title.textContent = type;
             
             if (btn) {
                 btn.style.display = 'block';
                 btn.textContent = "Finish Activity";
-                btn.onclick = () => window.finishCheckIn();
+                btn.onclick = () => { if(typeof window.finishCheckIn === 'function') window.finishCheckIn(); };
             }
 
+            // [L090-L105] 활동별 함수 매핑 (누락 Zero)
             switch(type) {
                 case 'Deep Breathing': this.startBreathingAnimation(); break;
                 case 'Big Hug': this.startBigHugTimer(); break;
@@ -100,65 +101,52 @@ const Activities = {
                 case 'Listen to music': this.setupMusicAction(); break;
                 case 'Capture the moment': this.setupCaptureAction(); break;
                 case 'Hold Something Cold': this.startColdSqueezeAnimation(); break;
-                default: this.setupWriteAction(`Let's focus on ${type}`);
+                default: this.setupWriteAction(`Focus on ${type}`);
             }
         }, 100);
     },
 
-    // 4. [복구] Deep Breathing 애니메이션
+    // 4. [애니메이션] Deep Breathing (폐 확장 애니메이션)
     startBreathingAnimation() {
         const area = document.getElementById('inAppActionArea');
         area.innerHTML = `
-            <div id="lungContainer" style="display:flex; justify-content:center; align-items:center; height:200px; margin-top:20px;">
+            <div id="lungContainer" style="display:flex; justify-content:center; align-items:center; height:220px; margin-top:20px;">
                 <div id="lungCircle" style="width:80px; height:80px; background:rgba(124, 58, 237, 0.2); border-radius:50%; border:5px solid #7c3aed; transition: all 4s ease-in-out; display:flex; justify-content:center; align-items:center; font-size:3.5rem;">🫁</div>
             </div>
             <p id="breathStatus" style="text-align:center; font-weight:800; color:#7c3aed; font-size:1.6rem; margin-top:30px;">Ready...</p>
         `;
-
         let cycle = 0;
         const lung = document.getElementById('lungCircle');
         const status = document.getElementById('breathStatus');
-
         const animate = () => {
-            if (cycle >= 3 || !document.getElementById('lungCircle')) {
-                if (status) status.textContent = "✅ Feeling better?";
-                return;
-            }
-            status.textContent = "Inhale... 🌬️";
-            lung.style.transform = "scale(2.5)";
-            lung.style.backgroundColor = "rgba(124, 58, 237, 0.5)";
-            
+            if (cycle >= 3 || !lung) { if(status) status.textContent = "✅ Feeling better?"; return; }
+            status.textContent = "Inhale... 🌬️"; lung.style.transform = "scale(2.5)";
             setTimeout(() => {
                 if (!lung) return;
-                status.textContent = "Exhale... 💨";
-                lung.style.transform = "scale(1)";
-                lung.style.backgroundColor = "rgba(124, 58, 237, 0.2)";
-                cycle++;
-                setTimeout(animate, 4500);
+                status.textContent = "Exhale... 💨"; lung.style.transform = "scale(1)";
+                cycle++; setTimeout(animate, 4500);
             }, 4000);
         };
         setTimeout(animate, 1000);
     },
 
-    // 5. [복구] Big Hug 햅틱 타이머
+    // 5. [애니메이션] Big Hug (포근한 타이머)
     startBigHugTimer() {
         const area = document.getElementById('inAppActionArea');
         area.innerHTML = `
             <div style="text-align:center; padding:30px;">
                 <div id="hugEmoji" style="font-size:6rem; animation: hugPulse 1.5s infinite alternate;">🫂</div>
                 <div id="hugTimer" style="font-size:4rem; font-weight:900; color:#7c3aed; margin-top:20px;">10</div>
+                <p style="margin-top:15px; color:#64748b;">Hold tight and feel the warmth.</p>
             </div>
             <style> @keyframes hugPulse { from { transform: scale(1); } to { transform: scale(1.15); } } </style>
         `;
-
         let timeLeft = 10;
         const timerEl = document.getElementById('hugTimer');
         const interval = setInterval(() => {
             if (!timerEl || !document.getElementById('hugTimer')) { clearInterval(interval); return; }
-            timeLeft--;
-            timerEl.textContent = timeLeft;
+            timeLeft--; timerEl.textContent = timeLeft;
             if (window.feedback) window.feedback('tap');
-            
             if (timeLeft <= 0) {
                 clearInterval(interval);
                 timerEl.textContent = "❤️";
@@ -167,7 +155,7 @@ const Activities = {
         }, 1000);
     },
 
-    // 6. [복구] Squeeze & Release (주먹 애니메이션)
+    // 6. [애니메이션] Squeeze & Release (주먹 쥐고 펴기)
     startSqueezeAction() {
         const area = document.getElementById('inAppActionArea');
         area.innerHTML = `
@@ -194,7 +182,7 @@ const Activities = {
         setTimeout(toggle, 1000);
     },
 
-    // 7. [신규] Push the Wall (고강도 타이머)
+    // 7. [애니메이션] Push the Wall (🧱 15초 진동 타이머)
     startPushWallAction() {
         const area = document.getElementById('inAppActionArea');
         area.innerHTML = `
@@ -210,7 +198,7 @@ const Activities = {
             const b = document.getElementById('pBar');
             if (!c || t <= 0) {
                 clearInterval(itv);
-                if (c) { c.textContent = "💪"; c.style.color = "#22c55e"; }
+                if (c) { c.textContent = "💪"; c.style.color = "#22c55e"; c.style.borderColor = "#22c55e"; }
                 return;
             }
             t--; c.textContent = t;
@@ -219,51 +207,53 @@ const Activities = {
         }, 1000);
     },
 
-    // 8. [신규] Jason's Break Quest (제이슨 맞춤형 엔진)
+    // 8. [신규] Jason's Break Quest (제이슨 맞춤형 동적 추천 엔진)
     startJasonBreakQuest() {
         const area = document.getElementById('inAppActionArea');
-        const quests = [
-            "🎸 1분 동안 기타 리프나 드럼 필을 연주해보세요.",
-            "🎤 가장 좋아하는 합창단 곡을 큰 소리로 불러보세요.",
-            "🎶 YouTube에서 새로운 음악을 한 곡 찾아 들어보세요.",
-            "🧘 화면에서 벗어나 30초 동안 기지개를 켜보세요."
+        const musicQuests = [
+            "🎸 Play a 1-minute guitar riff or drum fill.",
+            "🎤 Sing your favorite choir song out loud.",
+            "🎶 Find a new song on YouTube and just listen.",
+            "🧘 Step away from the screen and stretch for 30s.",
+            "🏃 Find 3 instruments or music items in the room."
         ];
-        const quest = quests[Math.floor(Math.random() * quests.length)];
+        const quest = musicQuests[Math.floor(Math.random() * musicQuests.length)];
         area.innerHTML = `
             <div style="padding:25px; background:#eff6ff; border:3px solid #3b82f6; border-radius:25px; text-align:center;">
                 <h3 style="color:#1d4ed8; margin-bottom:15px;">Hey Jason! 🕺</h3>
                 <p style="font-size:1.4rem; font-weight:800; line-height:1.5; color:#1e3a8a;">"${quest}"</p>
                 <hr style="margin:20px 0; border:1px solid #bfdbfe;">
-                <button id="searchIdeasBtn" class="btn" style="background:#3b82f6; color:white; width:100%; border-radius:15px; font-weight:700; padding:12px;">🔍 새로운 휴식 아이디어 검색</button>
+                <button id="searchIdeasBtn" class="btn" style="background:#3b82f6; color:white; width:100%; border-radius:15px; font-weight:700; padding:12px;">🔍 Search Activity Ideas</button>
             </div>
         `;
         document.getElementById('searchIdeasBtn').onclick = () => {
-            window.open(`https://www.google.com/search?q=${encodeURIComponent("quick fun break for musical teenagers")}`, '_blank');
+            const query = "creative quick break for musical teenagers";
+            window.open(`https://www.google.com/search?q=${encodeURIComponent(query)}`, '_blank');
         };
     },
 
-    // 9. [복구] Share the Joy (SMS)
+    // 9. [복구] Share the Joy (SMS 연동)
     setupSMSAction() {
         const area = document.getElementById('inAppActionArea');
         const btn = document.getElementById('activityBtn');
         area.innerHTML = `
-            <p style="text-align:center; margin-bottom:15px; color:#64748b;">💌 이 기쁜 소식을 가족에게 전하세요.</p>
-            <textarea id="actionNote" class="form-control" style="height:150px; border-radius:20px; width:100%;">오늘 정말 기분 좋은 일이 있었어! 함께 나누고 싶어서 메시지 보내. ✨</textarea>
+            <p style="text-align:center; margin-bottom:15px; color:#64748b;">💌 Share this happiness with family.</p>
+            <textarea id="actionNote" class="form-control" style="height:150px; border-radius:20px; width:100%;">오늘 정말 기분 좋은 일이 있었어! 함께 나누고 싶어 ✨</textarea>
         `;
         if (btn) {
             btn.textContent = "Send via SMS 💌";
             btn.onclick = () => {
                 const msg = document.getElementById('actionNote').value;
                 window.location.href = `sms:?&body=${encodeURIComponent(msg)}`;
-                setTimeout(() => window.finishCheckIn(), 1500);
+                setTimeout(() => { if(typeof window.finishCheckIn === 'function') window.finishCheckIn(); }, 1500);
             };
         }
     },
 
-    // 10. [복구] 오리지널 유틸리티 활동
+    // 10. [복구] 오리지널 유틸리티 (Grounding, Music, Writing, Capture)
     setupGroundingAction() {
         document.getElementById('inAppActionArea').innerHTML = `
-            <div style="line-height:2.2; font-size:1.1rem; padding:10px;">
+            <div style="line-height:2.2; font-size:1.1rem; padding:10px; background:#f8fafc; border-radius:15px;">
                 🖐️ 5 things you <b>see</b><br>👂 4 things you <b>hear</b><br>👃 3 things you <b>smell</b><br>🤝 2 things you <b>touch</b><br>👅 1 thing you <b>taste</b>
             </div>
         `;
@@ -272,8 +262,8 @@ const Activities = {
         const url = "https://www.youtube.com/watch?v=1ZYbU82GVz4"; 
         document.getElementById('inAppActionArea').innerHTML = `
             <div style="text-align:center; padding:20px;">
-                <p>🎵 음악이 마음을 차분하게 해줄 거예요.</p>
-                <button class="btn" style="background:#FF0000; color:white; width:100%; margin-top:20px;" onclick="window.open('${url}', '_blank')">📺 Open YouTube</button>
+                <p>🎵 Let the music calm your mind.</p>
+                <button class="btn" style="background:#FF0000; color:white; width:100%; margin-top:20px; border-radius:15px;" onclick="window.open('${url}', '_blank')">📺 Open YouTube</button>
             </div>
         `;
     },
@@ -291,19 +281,21 @@ const Activities = {
         document.getElementById('inAppActionArea').innerHTML = `<textarea id="actionNote" class="form-control" style="height:200px; border-radius:20px; width:100%;" placeholder="${q}"></textarea>`;
     },
     setupCaptureAction() {
-        document.getElementById('inAppActionArea').innerHTML = `<div style="text-align:center; padding:40px;"><button class="btn btn-secondary" onclick="window.EmotionActions.startCamera()">📸 Open Camera</button></div>`;
+        document.getElementById('inAppActionArea').innerHTML = `
+            <div style="text-align:center; padding:40px;">
+                <p style="margin-bottom:20px; color:#64748b;">Capture this moment</p>
+                <button class="btn btn-secondary" style="border-radius:15px;" onclick="window.EmotionActions.startCamera()">📸 Open Camera</button>
+            </div>
+        `;
     },
 
-    // 11. [복구] 사운드 엔진 (오리지널 정수)
+    // 11. [복구] 사운드 엔진 (오리지널 308줄의 정수)
     playTapSound() {
         try {
-            this.initAudio();
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
+            this.initAudio(); const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
             osc.frequency.setValueAtTime(800, audioCtx.currentTime);
             osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.1);
             gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
             osc.connect(gain); gain.connect(audioCtx.destination);
             osc.start(); osc.stop(audioCtx.currentTime + 0.1);
         } catch (e) {}
@@ -312,21 +304,18 @@ const Activities = {
         try {
             this.initAudio();
             [660, 880].forEach((f, i) => {
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
+                const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
                 osc.frequency.setValueAtTime(f, audioCtx.currentTime + i * 0.15);
                 gain.gain.setValueAtTime(0.1, audioCtx.currentTime + i * 0.15);
                 osc.connect(gain); gain.connect(audioCtx.destination);
-                osc.start(audioCtx.currentTime + i * 0.15);
-                osc.stop(audioCtx.currentTime + i * 0.15 + 0.3);
+                osc.start(audioCtx.currentTime + i * 0.15); osc.stop(audioCtx.currentTime + i * 0.15 + 0.3);
             });
         } catch (e) {}
     },
     playTickSound() {
         try {
             this.initAudio();
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
+            const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
             osc.type = 'square'; osc.frequency.setValueAtTime(150, audioCtx.currentTime);
             gain.gain.setValueAtTime(0.02, audioCtx.currentTime);
             osc.connect(gain); gain.connect(audioCtx.destination);
@@ -335,7 +324,7 @@ const Activities = {
     }
 };
 
-// 12. 글로벌 브릿지 및 이벤트 바인딩
+// 12. 글로벌 브릿지 등록
 window.Activities = Activities;
 window.renderStrategies = (e) => Activities.renderStrategies(e);
 window.feedback = (t) => {
