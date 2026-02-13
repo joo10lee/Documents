@@ -124,39 +124,35 @@ function goToSettings() {
 
 // 5. 체크인 완료 및 데이터 저장
 // js/app.js 내 finishCheckIn 함수 수정
+// js/app.js 내 수정
 async function finishCheckIn() {
-    console.log("💾 데이터 저장 및 체크인 마무리...");
+    console.log("💾 데이터 저장 중...");
 
-    // 1. 데이터 수집 (기존 로직)
     const note = document.getElementById('actionNote') ? document.getElementById('actionNote').value : '';
     const photo = document.getElementById('capturedPhoto') ? document.getElementById('capturedPhoto').src : null;
 
     const entry = {
-        emotion: currentEmotion,
-        emoji: currentEmoji,
-        intensity: currentIntensity,
+        emotion: typeof currentEmotion !== 'undefined' ? currentEmotion : "Feeling",
+        emoji: typeof currentEmoji !== 'undefined' ? currentEmoji : "✨",
+        intensity: typeof currentIntensity !== 'undefined' ? currentIntensity : 5,
         note: note,
         photo: photo,
         timestamp: new Date().toISOString()
     };
 
     try {
-        // 2. API를 통한 데이터 저장
         await EmotionAPI.saveCheckIn(entry);
 
-        // 3. ✅ 핵심 수정: 히스토리 대신 '성공 화면(Screen 5)'으로 이동
-        // UI.goToScreen(4)는 index.html의 5번째 메인 요소인 screen5를 의미합니다.
-        UI.goToScreen(4, "Check-in Complete!"); 
+        // 💡 핵심: 저장 성공 후 '성공 화면(Screen 5)'으로 보냅니다.
+        // UI.goToScreen(4)는 index.html의 5번째 스크린인 screen5를 의미합니다.
+        UI.goToScreen(4, "Great Job!");
 
-        // 4. 성공 메시지 업데이트 (선택 사항)
-        const finalMsg = document.getElementById('finalMessage');
-        if (finalMsg) {
-            finalMsg.textContent = "Great job, Joo! Your reflection has been saved.";
-        }
-
+        // 입력값 초기화
+        if (document.getElementById('actionNote')) document.getElementById('actionNote').value = '';
+        if (typeof EmotionActions !== 'undefined') EmotionActions.reset();
+        
     } catch (error) {
-        console.error("❌ 저장 실패:", error);
-        alert("저장 중 오류가 발생했습니다.");
+        console.error("저장 실패:", error);
     }
 }
 

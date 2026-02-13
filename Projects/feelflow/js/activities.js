@@ -121,42 +121,30 @@ setupSMSAction(type) {
     const actionArea = document.getElementById('inAppActionArea');
     const actionQuestion = document.getElementById('actionQuestion');
     const actionNote = document.getElementById('actionNote');
-    const cameraBtn = document.getElementById('cameraBtn');
     
     if (!actionArea) return;
 
-    // UI 설정
     actionArea.style.display = 'block';
-    if (cameraBtn) cameraBtn.style.display = 'none';
+    if (actionQuestion) actionQuestion.textContent = "💌 누구에게 이 기쁨을 전할까요?";
     if (actionNote) {
-        actionNote.style.display = 'block';
         actionNote.placeholder = "가족이나 친구에게 보낼 메시지를 적어보세요...";
-    }
-    
-    if (actionQuestion) {
-        actionQuestion.textContent = "💌 누구에게 이 기쁨을 전할까요?";
+        actionNote.value = "오늘 정말 기분 좋은 일이 있었어! 함께 나누고 싶어 ✨"; 
     }
 
-    // 💡 동적 SMS 전송 버튼 생성 (기존 Save 버튼 옆이나 위에 추가)
-    let smsBtn = document.getElementById('smsSendBtn');
-    if (!smsBtn) {
-        smsBtn = document.createElement('button');
-        smsBtn.id = 'smsSendBtn';
-        smsBtn.className = 'btn btn-primary';
-        smsBtn.style.backgroundColor = '#22c55e'; // 초록색 메시지 느낌
-        smsBtn.style.marginTop = '10px';
-        actionArea.appendChild(smsBtn);
+    // 💡 저장 버튼(Save & Finish) 대신 SMS 전송 버튼으로 역할을 바꿉니다.
+    const activityBtn = document.getElementById('activityBtn');
+    if (activityBtn) {
+        activityBtn.textContent = "Send via SMS 💌";
+        activityBtn.onclick = () => {
+            const msg = actionNote.value;
+            // 아이폰 iMessage를 즉시 깨우는 마법의 주소
+            window.location.href = `sms:&body=${encodeURIComponent(msg)}`;
+            
+            // 전송 시도 후 1초 뒤에 체크인 마무리 함수 실행
+            setTimeout(() => finishCheckIn(), 1000); 
+        };
     }
-    
-    smsBtn.textContent = "전송하기 (SMS)";
-    smsBtn.onclick = () => {
-        const message = actionNote.value || "오늘 정말 기분 좋은 일이 있었어! 함께 나누고 싶어 ✨";
-        // 💡 아이폰/안드로이드 공용 SMS 프로토콜
-        // 특정 번호를 지정하려면 "sms:01012345678&body=..." 형식을 사용합니다.
-        window.location.href = `sms:?&body=${encodeURIComponent(message)}`;
-    };
 },
-
     // 5. 유튜브 음악 연결
     setupMusicAction() {
         document.getElementById('actionQuestion').textContent = "🎵 Let's listen to some calming music.";
