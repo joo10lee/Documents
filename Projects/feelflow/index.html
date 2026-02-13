@@ -2481,29 +2481,33 @@
         }
 
         async function goToHistory() {
-            try {
-                console.log("📅 History 이동 시도...");
-                feedback('tap'); // 소리/진동 피드백
-                
-                // 화면 전환부터 확실히 실행
-                goToScreen('History', 'My Check-ins');
-                updateNavActive('navHistory');
+            // 1. UI 초기화
+            document.getElementById('weatherHeader').style.display = 'none';
+            document.getElementById('greeting').style.display = 'none';
+            
+            // 2. 화면 전환
+            goToScreen('History', 'My Check-ins');
+            updateNavActive('navHistory');
         
-                // 데이터 가져오기 및 렌더링
-                const historyData = await EmotionAPI.fetchHistory();
-                renderHistory(historyData);
+            try {
+                // 3. 데이터 가져오기 (비동기 함수이므로 여기서 에러를 잡아야 합니다)
+                const historyData = await EmotionAPI.fetchHistory(); 
                 
-                // 차트 업데이트 (0.1초 뒤 실행하여 캔버스 크기 확보)
+                // 4. 화면에 그리기 (일반 함수이므로 뒤에 .catch를 붙이지 않습니다)
+                renderHistory(historyData); 
+        
+                // 5. 차트 그리기
                 setTimeout(() => {
-                    if (typeof renderEmotionChart === 'function') renderEmotionChart();
-                }, 100);
+                    renderEmotionChart(); 
+                }, 150);
             } catch (error) {
-                console.error("History 로드 실패:", error);
-                document.getElementById('historyList').innerHTML = 
-                    '<p style="text-align:center; color:red; padding:20px;">서버와 연결할 수 없습니다.</p>';
+                // 비동기 통신 에러는 여기서 통합 관리합니다.
+                console.error("History 로드 중 에러 발생:", error);
+                const list = document.getElementById('historyList');
+                if (list) list.innerHTML = '<p style="text-align:center; color:red; padding:20px;">서버 연결 실패</p>';
             }
         }
-
+        
         function goToTracker() {
             document.getElementById('weatherHeader').style.display = 'none';
             document.getElementById('greeting').style.display = 'none';
