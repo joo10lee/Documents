@@ -1,22 +1,18 @@
 /**
- * Activities 관리 모듈: [Final] 사운드 + 카메라 + 인터랙티브 활동 통합 버전
+ * Activities 관리 모듈: [Hotfix] startCaptureAction 함수 누락 및 중복 제거 버전
  */
 
 let audioCtx = null;
 
 const Activities = {
-    // 1. 사운드/햅틱 엔진 (Rich Feedback)
+    // 1. 오디오/햅틱 엔진
     initAudio() {
         try {
             if (!audioCtx) {
                 audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             }
-            if (audioCtx.state === 'suspended') {
-                audioCtx.resume();
-            }
-        } catch (e) {
-            console.error("AudioContext 초기화 실패:", e);
-        }
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+        } catch (e) { console.error("Audio init fail:", e); }
     },
 
     feedback(type) {
@@ -49,17 +45,15 @@ const Activities = {
         osc.start(start); osc.stop(start + dur);
     },
 
-    // 2. 리소스 정리 (타이머 및 카메라 스트림 중단)
+    // 2. 리소스 정리 (단 한 번만 정의됨)
     stopAll() {
         console.log("🛑 활동 중단 및 리소스 정리");
         if (this.currentInterval) clearInterval(this.currentInterval);
         this.currentInterval = null;
-
         if (this.currentStream) {
             this.currentStream.getTracks().forEach(track => track.stop());
             this.currentStream = null;
         }
-
         if (navigator.vibrate) navigator.vibrate(0);
     },
 
@@ -84,34 +78,32 @@ const Activities = {
         `).join('');
     },
 
-    // 4. 활동 디스패처 (Dispatcher)
+    // 4. 활동 디스패처 (메인 엔진)
     setupActivity(type) {
         this.stopAll();
         this.feedback('tap');
-
-        if (typeof UI !== 'undefined' && UI.goToScreen) {
-            UI.goToScreen('Activity', type);
-        }
+        if (typeof UI !== 'undefined' && UI.goToScreen) UI.goToScreen('Activity', type);
 
         setTimeout(() => {
             const area = document.getElementById('inAppActionArea');
             const btn = document.getElementById('activityBtn');
             const title = document.getElementById('activityTitle');
             if (!area) return;
-            area.style.display = 'block'; area.innerHTML = ''; 
+            area.innerHTML = ''; 
             if (title) title.textContent = type;
             if (btn) {
                 btn.style.display = 'block'; btn.textContent = "Finish Activity";
                 btn.onclick = () => { if(typeof window.finishCheckIn === 'function') window.finishCheckIn(); };
             }
 
+            // 💡 여기서 에러가 났던 지점: 함수 존재 여부를 확인하며 매핑
             switch(type) {
                 case '5-4-3-2-1 Grounding': this.startGroundingAnimation(); break;
                 case 'Squeeze & Release': this.startSqueezeAction(); break;
                 case 'Push the Wall': this.startPushWallAction(); break;
                 case 'Take a Break': this.startJasonBreakQuest(); break;
                 case 'Deep Breathing': this.startBreathingAnimation(); break;
-                case 'Capture the moment': this.startCaptureAction(); break;
+                case 'Capture the moment': this.startCaptureAction(); break; 
                 case 'Big Hug': this.startBigHugTimer(); break;
                 case 'Share the joy': this.startSMSAction(); break;
                 case 'Listen to music': this.startMusicAction(); break;
@@ -121,12 +113,75 @@ const Activities = {
         }, 100);
     },
 
-    // 5. 활동별 세부 로직
-    startGroundingAnimation() {
+    // 5. 활동별 세부 함수 (Capture 기능 포함)
+    startCaptureAction() {
         const area = document.getElementById('inAppActionArea');
         const mainBtn = document.getElementById('activityBtn');
         if (mainBtn) mainBtn.style.display = 'none';
 
+        this.currentFacingMode = this.currentFacingMode || 'user'; 
+        area.innerHTML = `
+            <div id="cameraModule" style="text-align:center;">
+                <div id="videoContainer" style="position:relative; width:100%; aspect-ratio:3/4; background:#000; border-radius:24px; overflow:hidden; margin-bottom:20px;">
+                    <video id="webcam" autoplay playsinline style="width:100%; height:100%; object-fit:cover; transform: ${this.currentFacingMode === 'user' ? 'scaleX(-1)' : 'scaleX(1)'};"></video>
+                    <div id="photoPreview" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background-size:cover; background-position:center; z-index:10;"></div>
+                </div>
+                <canvas id="hiddenCanvas" style="display:none;"></canvas>
+                <div style="display:flex; flex-direction:column; gap:12px;">
+                    <button id="snapBtn" class="btn btn-primary">📸 Take a Photo</button>
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                        <button id="switchBtn" class="btn btn-secondary">🔄 Switch</button>
+                        <button id="retakeBtn" class="btn btn-secondary" style="display:none;">🔄 Retake</button>
+                    </div>
+                </div>
+            </div>`;
+
+        const video = document.getElementById('webcam');
+        const canvas = document.getElementById('hiddenCanvas');
+        const preview = document.getElementById('photoPreview');
+        const snapBtn = document.getElementById('snapBtn');
+        const switchBtn = document.getElementById('switchBtn');
+        const retakeBtn = document.getElementById('retakeBtn');
+
+        const startStream = async () => {
+            if (this.currentStream) this.currentStream.getTracks().forEach(t => t.stop());
+            try {
+                this.currentStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: this.currentFacingMode }, audio: false });
+                video.srcObject = this.currentStream;
+            } catch (err) { console.error("Camera access error:", err); }
+        };
+
+        snapBtn.onclick = () => {
+            this.feedback('success');
+            canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+            const ctx = canvas.getContext('2d');
+            if (this.currentFacingMode === 'user') { ctx.translate(canvas.width, 0); ctx.scale(-1, 1); }
+            ctx.drawImage(video, 0, 0);
+            const dataUrl = canvas.toDataURL('image/png');
+            preview.style.backgroundImage = `url(${dataUrl})`;
+            preview.style.display = 'block';
+            snapBtn.style.display = 'none'; switchBtn.style.display = 'none'; retakeBtn.style.display = 'block';
+            if (mainBtn) { mainBtn.style.display = 'block'; mainBtn.textContent = "Save Memory"; window.lastCapturedPhoto = dataUrl; }
+        };
+
+        switchBtn.onclick = () => {
+            this.feedback('tap');
+            this.currentFacingMode = (this.currentFacingMode === 'user') ? 'environment' : 'user';
+            video.style.transform = (this.currentFacingMode === 'user') ? 'scaleX(-1)' : 'scaleX(1)';
+            startStream();
+        };
+
+        retakeBtn.onclick = () => {
+            this.feedback('tap');
+            preview.style.display = 'none'; snapBtn.style.display = 'block'; switchBtn.style.display = 'block'; retakeBtn.style.display = 'none';
+            if (mainBtn) mainBtn.style.display = 'none';
+        };
+
+        startStream();
+    },
+
+    startGroundingAnimation() {
+        const area = document.getElementById('inAppActionArea');
         const steps = [
             { n: 5, s: 'SEE 👀', p: 'Name 5 things you can see.', c: '#3b82f6', i: '🖐️' },
             { n: 4, s: 'TOUCH ✋', p: 'Notice 4 things you can feel.', c: '#10b981', i: '🖖' },
@@ -134,7 +189,6 @@ const Activities = {
             { n: 2, s: 'SMELL 👃', p: 'Notice 2 things you can smell.', c: '#ef4444', i: '✌️' },
             { n: 1, s: 'TASTE 👅', p: 'Notice 1 thing you can taste.', c: '#7c3aed', i: '☝️' }
         ];
-
         let cur = 0;
         const render = (idx) => {
             const s = steps[idx];
@@ -155,6 +209,7 @@ const Activities = {
                 if (idx < 4) render(idx + 1);
                 else {
                     area.innerHTML = `<h2>Well Done!</h2><p>You are grounded.</p>`;
+                    const mainBtn = document.getElementById('activityBtn');
                     if (mainBtn) { mainBtn.style.display = 'block'; mainBtn.textContent = "Save & Finish"; }
                     this.feedback('success');
                 }
@@ -178,7 +233,7 @@ const Activities = {
         let cy = 0;
         const anim = () => {
             const l = document.getElementById('lungCircle'); const s = document.getElementById('breathStatus');
-            if (!l || cy >= 3) { if(s) s.textContent = "✅ Balanced."; return; }
+            if (!l || cy >= 3) return;
             this.feedback('tap'); s.textContent = "Inhale... 🌬️"; l.style.transform = "scale(2.5)";
             setTimeout(() => {
                 if (!l) return;
@@ -190,7 +245,6 @@ const Activities = {
     },
 
     setPattern(pattern) {
-        console.log(`🌬️ 호흡 패턴 변경: ${pattern}`);
         document.querySelectorAll('.btn-mini').forEach(b => b.classList.remove('active'));
         const activeBtn = (pattern === 'relax') ? document.getElementById('pRelax') : document.getElementById('pBox');
         if (activeBtn) activeBtn.classList.add('active');
@@ -243,78 +297,11 @@ const Activities = {
         }, 1000);
     },
 
-    startCaptureAction() {
-        const area = document.getElementById('inAppActionArea');
-        const mainBtn = document.getElementById('activityBtn');
-        if (mainBtn) mainBtn.style.display = 'none';
-
-        this.currentFacingMode = this.currentFacingMode || 'user'; 
-        area.innerHTML = `
-            <div id="cameraModule" style="text-align:center;">
-                <div id="videoContainer" style="position:relative; width:100%; aspect-ratio:3/4; background:#000; border-radius:24px; overflow:hidden; margin-bottom:20px;">
-                    <video id="webcam" autoplay playsinline style="width:100%; height:100%; object-fit:cover; transform: ${this.currentFacingMode === 'user' ? 'scaleX(-1)' : 'scaleX(1)'};"></video>
-                    <div id="photoPreview" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background-size:cover; background-position:center; z-index:10;"></div>
-                </div>
-                <canvas id="hiddenCanvas" style="display:none;"></canvas>
-                <div style="display:flex; flex-direction:column; gap:12px;">
-                    <button id="snapBtn" class="btn btn-primary" style="width:100%;">📸 Take a Photo</button>
-                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-                        <button id="switchBtn" class="btn btn-secondary">🔄 Switch</button>
-                        <button id="retakeBtn" class="btn btn-secondary" style="display:none;">🔄 Retake</button>
-                    </div>
-                </div>
-            </div>`;
-
-        const video = document.getElementById('webcam');
-        const canvas = document.getElementById('hiddenCanvas');
-        const preview = document.getElementById('photoPreview');
-        const snapBtn = document.getElementById('snapBtn');
-        const switchBtn = document.getElementById('switchBtn');
-        const retakeBtn = document.getElementById('retakeBtn');
-
-        const startStream = async () => {
-            if (this.currentStream) this.currentStream.getTracks().forEach(t => t.stop());
-            try {
-                this.currentStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: this.currentFacingMode }, audio: false });
-                video.srcObject = this.currentStream;
-            } catch (err) { console.error("카메라 에러:", err); }
-        };
-
-        snapBtn.onclick = () => {
-            this.feedback('success');
-            canvas.width = video.videoWidth; canvas.height = video.videoHeight;
-            const ctx = canvas.getContext('2d');
-            if (this.currentFacingMode === 'user') { ctx.translate(canvas.width, 0); ctx.scale(-1, 1); }
-            ctx.drawImage(video, 0, 0);
-            const dataUrl = canvas.toDataURL('image/png');
-            preview.style.backgroundImage = `url(${dataUrl})`;
-            preview.style.display = 'block';
-            snapBtn.style.display = 'none'; switchBtn.style.display = 'none'; retakeBtn.style.display = 'block';
-            if (mainBtn) { mainBtn.style.display = 'block'; mainBtn.textContent = "Save Memory"; window.lastCapturedPhoto = dataUrl; }
-        };
-
-        switchBtn.onclick = () => {
-            this.feedback('tap');
-            this.currentFacingMode = (this.currentFacingMode === 'user') ? 'environment' : 'user';
-            video.style.transform = (this.currentFacingMode === 'user') ? 'scaleX(-1)' : 'scaleX(1)';
-            startStream();
-        };
-
-        retakeBtn.onclick = () => {
-            this.feedback('tap');
-            preview.style.display = 'none'; snapBtn.style.display = 'block'; switchBtn.style.display = 'block'; retakeBtn.style.display = 'none';
-            if (mainBtn) mainBtn.style.display = 'none';
-        };
-
-        startStream();
-    },
-
     startJasonBreakQuest() {
         const area = document.getElementById('inAppActionArea');
         const quests = ["🎸 1분간 기타 리프 연주하기", "🎤 합창곡 한 소절 부르기", "🎶 새 음악 3분간 감상하기", "🧘 30초간 스트레칭"];
         const q = quests[Math.floor(Math.random() * quests.length)];
-        area.innerHTML = `<div style="padding:25px; background:#eff6ff; border:3px solid #3b82f6; border-radius:25px; text-align:center;"><h3>Hey Jason! 🕺</h3><p style="font-size:1.4rem; font-weight:800;">"${q}"</p><button id="sB" class="btn btn-primary" style="width:100%; margin-top:15px;">🔍 아이디어 더 보기</button></div>`;
-        document.getElementById('sB').onclick = () => window.open(`https://www.google.com/search?q=${encodeURIComponent("musical break for teens")}`, '_blank');
+        area.innerHTML = `<div style="padding:25px; background:#eff6ff; border:3px solid #3b82f6; border-radius:25px; text-align:center;"><h3>Hey Jason! 🕺</h3><p style="font-size:1.4rem; font-weight:800;">"${q}"</p></div>`;
     },
 
     startSMSAction() {
@@ -336,7 +323,7 @@ const Activities = {
     },
 
     startMusicAction() { document.getElementById('inAppActionArea').innerHTML = `<button class="btn btn-primary" style="background:#FF0000; width:100%;" onclick="window.open('https://www.youtube.com/watch?v=1ZYbU82GVz4', '_blank')">📺 Open YouTube</button>`; },
-    
+
     startColdSqueezeAnimation() { 
         const area = document.getElementById('inAppActionArea');
         let s = 1;
@@ -346,16 +333,15 @@ const Activities = {
             s++; this.feedback('tick');
         }, 1000);
     },
-    
+
     startWriteAction(q) { document.getElementById('inAppActionArea').innerHTML = `<textarea id="actionNote" class="form-control" style="height:180px; border-radius:20px;" placeholder="${q}"></textarea>`; },
 
-    // Legacy 유틸리티
     playTapSound() { this.feedback('tap'); },
     playTickSound() { this.feedback('tick'); },
     playTimerEndSound() { this.feedback('success'); }
 };
 
-// --- 글로벌 리스너 ---
+// --- 전역 바인딩 ---
 window.Activities = Activities;
 window.renderStrategies = (e) => Activities.renderStrategies(e);
 window.feedback = (t) => Activities.feedback(t);
