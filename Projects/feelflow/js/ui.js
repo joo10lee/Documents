@@ -2,24 +2,36 @@
  * UI 관리 모듈: 화면 전환, 네비게이션, 날씨 및 히스토리 렌더링 담당
  */
 const UI = {
-    // 1. 화면 전환 함수
-    // 1. 화면 전환 함수 (중복 방지를 위해 screenTitle 타겟팅 수정)
-    goToScreen(screenIndex, title = "") {
-        console.log(`🎬 Screen 전환: ${screenIndex}`);
-        const screens = document.querySelectorAll('.screen');
-        screens.forEach(s => s.classList.remove('active'));
+  
+   // 화면 전환 함수
+   goToScreen(screenId, title) {
+    console.log(`🎬 Screen 전환 시도: ${screenId}`);
+    
+    // 1. 모든 스크린에서 'active' 클래스 제거
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
 
-        const target = typeof screenIndex === 'number' ? screens[screenIndex] : document.getElementById(`screen${screenIndex}`);
-        if (target) target.classList.add('active');
+    // 2. 대상 스크린 결정
+    let targetScreen;
+    if (typeof screenId === 'number') {
+        // 숫자인 경우: 순서대로 찾음 (예: UI.goToScreen(0))
+        targetScreen = document.querySelectorAll('.screen')[screenId];
+    } else {
+        // 문자열인 경우: index.html의 id="screenActivity" 등을 찾음
+        // 💡 팁: 'Activity'가 들어오면 'screenActivity'로 변환하여 검색합니다.
+        targetScreen = document.getElementById('screen' + screenId);
+    }
 
-        // ✅ 수정 포인트: .app-title 대신 id="screenTitle"을 업데이트합니다.
-        const screenTitle = document.getElementById('screenTitle');
-        if (screenTitle) {
-            screenTitle.textContent = title;
+    // 3. 대상 스크린 활성화 및 제목 업데이트
+    if (targetScreen) {
+        targetScreen.classList.add('active');
+        if (title) {
+            const titleEl = document.getElementById('screenTitle');
+            if (titleEl) titleEl.textContent = title;
         }
-
-        window.scrollTo(0, 0);
-    },
+    } else {
+        console.error(`❌ 스크린을 찾을 수 없습니다: screen${screenId}`);
+    }
+},
 
     // 2. 하단 네비게이션 활성화
     updateNavActive(navId) {
