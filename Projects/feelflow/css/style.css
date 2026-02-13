@@ -1,108 +1,123 @@
 /* * FeelFlow Premium UI Stack 
- * Build: Ver.0213-1500 (Clean Layout & Optimized)
+ * Build: Ver.0213-1600 (Full Integration)
+ * Target: Gen-Z (13-18y) Premium Aesthetic
  */
 
  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;850&display=swap');
 
+ /* 1. 전역 리셋 및 아이폰 최적화 */
  * {
      margin: 0;
      padding: 0;
      box-sizing: border-box;
-     -webkit-tap-highlight-color: transparent;
+     -webkit-tap-highlight-color: transparent; /* 터치 시 하이라이트 제거 */
  }
  
  body {
-     font-family: 'Inter', -apple-system, sans-serif;
+     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
      background: linear-gradient(180deg, #F8FAFC 0%, #E2E8F0 100%);
      height: 100vh;
-     overflow: hidden; /* 아이폰 한 화면 고정 필수 */
+     width: 100vw;
+     overflow: hidden; /* 전역 스크롤 방지: 아이폰 한 화면 고정 */
      display: flex;
      flex-direction: column;
      color: #1e293b;
  }
  
- /* ===== SLIM HEADER (No Weather/Location) ===== */
+ /* 2. 슬림 헤더 시스템 */
  .app-header {
-     padding: 60px 24px 10px;
-     width: 100%;
+     padding: 50px 24px 10px;
+     flex-shrink: 0;
  }
  
  .header-status {
      display: flex;
-     justify-content: flex-end; /* 위치 정보 삭제로 버전을 우측 끝으로 */
-     margin-bottom: 12px;
+     justify-content: space-between;
+     align-items: center;
+     margin-bottom: 8px;
+ }
+ 
+ .location-chip {
+     background: rgba(255, 255, 255, 0.5);
+     padding: 4px 12px;
+     border-radius: 20px;
+     font-size: 0.7rem;
+     font-weight: 700;
+     color: #64748b;
  }
  
  .build-tag {
      font-family: 'SF Mono', monospace;
-     font-size: 0.65rem;
+     font-size: 0.6rem;
      color: #94a3b8;
-     background: rgba(255, 255, 255, 0.4);
-     padding: 4px 10px;
-     border-radius: 10px;
+     background: rgba(255, 255, 255, 0.5);
+     padding: 2px 8px;
+     border-radius: 6px;
  }
  
  .greeting {
-     font-size: 1.8rem;
+     font-size: 1.7rem;
      font-weight: 850;
      line-height: 1.1;
-     letter-spacing: -1.2px;
+     letter-spacing: -1px;
  }
  
- /* ===== COMPACT BENTO GRID ===== */
+ /* 3. 스크린 시스템 (화면 전환 제어) */
  .screen {
      display: none;
      flex: 1;
      flex-direction: column;
      width: 100%;
-     padding-bottom: 120px; /* 네비게이션 공간 */
+     height: 100%;
  }
  
  .screen.active {
      display: flex;
  }
  
+ /* Screen 1 (Home): 절대 스크롤 불가 */
+ #screen1 {
+     overflow: hidden;
+     justify-content: space-between;
+     padding-bottom: 110px;
+ }
+ 
+ /* 서브 화면들: 내부 콘텐츠가 길어질 경우만 부드러운 스크롤 허용 */
+ #screen2, #screen3, #screen4, #screen5, 
+ #screenHistory, #screenTracker, #screenSettings, #screenActivity {
+     overflow-y: auto;
+     padding-bottom: 130px;
+     -webkit-overflow-scrolling: touch;
+ }
+ 
+ /* 4. 감정 벤토 그리드 (Home) */
  .emotion-bento {
      display: grid;
      grid-template-columns: 1fr 1fr;
      grid-template-rows: repeat(3, 1fr);
      gap: 12px;
-     padding: 20px 24px;
-     height: 55vh; /* 화면 중앙 집중형 배치 */
+     padding: 10px 24px;
+     flex: 1;
  }
  
  .bento-card {
-     background: rgba(255, 255, 255, 0.6);
+     background: rgba(255, 255, 255, 0.65);
      backdrop-filter: blur(10px);
      -webkit-backdrop-filter: blur(10px);
      border: 1px solid rgba(255, 255, 255, 0.4);
-     border-radius: 28px;
+     border-radius: 24px;
      display: flex;
      flex-direction: column;
      align-items: center;
      justify-content: center;
      transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-     cursor: pointer;
-     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
  }
  
- .bento-card:active {
-     transform: scale(0.94);
- }
+ .bento-card:active { transform: scale(0.94); } /* 터치 피드백 */
+ .bento-card .emoji { font-size: 2.2rem; margin-bottom: 4px; }
+ .bento-card .label { font-weight: 700; font-size: 0.9rem; color: #475569; }
  
- /* 6개 감정 아이콘 사이즈 최적화 */
- .bento-card .emoji {
-     font-size: 2.2rem; 
-     margin-bottom: 6px;
- }
- 
- .bento-card .label {
-     font-weight: 700;
-     font-size: 0.95rem;
-     color: #475569;
- }
- 
- /* 젠더 중립적 컬러 포인트 */
+ /* 감정별 은은한 프리미엄 컬러셋 */
  .happy { background: rgba(255, 217, 61, 0.1); }
  .sad { background: rgba(108, 180, 238, 0.1); }
  .anxious { background: rgba(160, 132, 232, 0.1); }
@@ -110,103 +125,69 @@
  .calm { background: rgba(107, 203, 119, 0.1); }
  .tired { background: rgba(149, 165, 166, 0.1); }
  
- /* ===== PREMIUM COMPONENTS ===== */
- .btn-primary {
-     background: #1e293b;
-     color: white;
-     padding: 16px 32px;
-     border-radius: 20px;
-     font-weight: 700;
-     border: none;
-     width: calc(100% - 48px);
-     margin: 20px 24px;
-     font-size: 1.1rem;
- }
- 
- /* 프리미엄 슬라이더 (Screen 2) */
- .intensity-card {
+ /* 5. 프리미엄 카드 UI (Intensity, Result, Tracker 등) */
+ .intensity-card, .result-card, .progress-card, .history-card {
      background: white;
-     padding: 30px;
+     margin: 10px 24px;
+     padding: 24px 20px;
      border-radius: 32px;
-     margin: 0 24px;
-     box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+     text-align: center;
+     box-shadow: 0 10px 30px rgba(0,0,0,0.03);
  }
  
+ .intensity-display { font-size: 4rem; font-weight: 850; margin: 15px 0; color: #1e293b; }
+ 
+ /* 커스텀 프리미엄 슬라이더 */
  .intensity-slider {
-     width: 100%;
-     height: 40px;
-     -webkit-appearance: none;
-     background: transparent;
+     width: 100%; height: 40px; -webkit-appearance: none; background: transparent;
  }
- 
- .intensity-slider::-webkit-slider-runnable-track {
-     height: 8px;
-     background: #E2E8F0;
-     border-radius: 4px;
- }
- 
+ .intensity-slider::-webkit-slider-runnable-track { height: 10px; background: #E2E8F0; border-radius: 5px; }
  .intensity-slider::-webkit-slider-thumb {
-     -webkit-appearance: none;
-     height: 28px;
-     width: 28px;
-     border-radius: 50%;
-     background: #1e293b;
-     margin-top: -10px;
-     box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+     -webkit-appearance: none; height: 30px; width: 30px; border-radius: 50%;
+     background: #1e293b; margin-top: -10px; box-shadow: 0 4px 10px rgba(0,0,0,0.2);
  }
  
- /* ===== FLOATING BOTTOM NAV ===== */
+ /* 6. 전략 및 태스크 리스트 (Tracker, History) */
+ .section-title { font-size: 1.1rem; font-weight: 850; margin: 20px 24px 12px; color: #1e293b; }
+ 
+ .strategy-card, .task-item, .history-item {
+     background: white; margin: 0 24px 10px; padding: 18px; border-radius: 20px;
+     display: flex; align-items: center; gap: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+ }
+ 
+ .task-checkbox { width: 26px; height: 26px; border: 2.5px solid #CBD5E1; border-radius: 50%; transition: 0.2s; }
+ .task-item.completed .task-checkbox { background: #10B981; border-color: #10B981; }
+ 
+ /* 7. 플로팅 바텀 네비게이션 (Glassmorphism) */
  .bottom-nav {
-     position: fixed;
-     bottom: 35px;
-     left: 24px;
-     right: 24px;
-     background: rgba(255, 255, 255, 0.85);
-     backdrop-filter: blur(20px);
-     -webkit-backdrop-filter: blur(20px);
-     display: flex;
-     justify-content: space-around;
-     padding: 14px;
-     border-radius: 28px;
-     border: 1px solid rgba(255, 255, 255, 0.5);
-     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
-     z-index: 1000;
+     position: fixed; bottom: 30px; left: 24px; right: 24px;
+     background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+     display: flex; justify-content: space-around; padding: 12px; border-radius: 28px;
+     border: 1px solid rgba(255, 255, 255, 0.5); box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+     z-index: 2000;
  }
  
- .nav-btn {
-     display: flex;
-     flex-direction: column;
-     align-items: center;
-     background: none;
-     border: none;
-     color: #94a3b8;
-     gap: 4px;
-     flex: 1;
- }
- 
+ .nav-btn { display: flex; flex-direction: column; align-items: center; background: none; border: none; color: #94a3b8; gap: 4px; flex: 1; }
  .nav-btn.active { color: #7c3aed; }
  .nav-icon { font-size: 1.4rem; }
- .nav-label { font-size: 0.7rem; font-weight: 700; }
+ .nav-label { font-size: 0.65rem; font-weight: 700; }
  
- /* 활동 기록 카드 (History) */
- .history-item {
-     background: white;
-     margin: 0 24px 12px;
-     padding: 16px;
-     border-radius: 20px;
-     display: flex;
-     align-items: center;
-     gap: 16px;
+ /* 8. 기타 공통 요소 */
+ .btn-primary {
+     background: #1e293b; color: white; padding: 18px; border-radius: 20px;
+     font-weight: 700; border: none; width: calc(100% - 48px); margin: 10px 24px; font-size: 1rem;
  }
  
- /* 공통 입력창 스타일 */
  textarea {
-     width: calc(100% - 48px);
-     margin: 10px 24px;
-     padding: 18px;
-     border-radius: 20px;
-     border: 2px solid #E2E8F0;
-     font-family: inherit;
-     resize: none;
-     outline: none;
+     width: calc(100% - 48px); margin: 10px 24px; padding: 15px;
+     border-radius: 18px; border: 2px solid #E2E8F0; font-family: inherit; outline: none;
+ }
+ 
+ /* 스티커 그리드 복구 */
+ .sticker-grid {
+     display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; margin: 10px 24px;
+ }
+ .sticker-slot {
+     aspect-ratio: 1; background: #F1F5F9; border-radius: 10px;
+     display: flex; align-items: center; justify-content: center; font-size: 1.2rem;
  }
