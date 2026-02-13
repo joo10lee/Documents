@@ -22,16 +22,34 @@ async function initApp() {
 }
 
 // 3. 감정 및 강도 제어
+/**
+ * 감정 선택 처리 함수
+ * 1. 사운드 엔진 잠금 해제
+ * 2. 선택 데이터 저장
+ * 3. 히스토리 기반 화면 전환
+ */
 function selectEmotion(name, emoji, color) {
+    // 💡 [핵심 1] 사운드/햅틱 엔진 기상 (Browser Autoplay Policy 해제)
+    if (window.Activities) {
+        window.Activities.initAudio();
+        window.Activities.feedback('tap'); // 즉각적인 햅틱 피드백
+    }
+
+    // 💡 데이터 저장 (color 값도 저장해두면 나중에 UI 테마 스티칭 시 유용합니다)
     currentEmotion.name = name;
     currentEmotion.emoji = emoji;
+    currentEmotion.color = color; 
     
+    // Screen 2(Intensity)를 위한 UI 업데이트
     const emojiDisplay = document.getElementById('selectedEmoji');
     const nameDisplay = document.getElementById('selectedName');
     if (emojiDisplay) emojiDisplay.textContent = emoji;
     if (nameDisplay) nameDisplay.textContent = name;
     
-    UI.goToScreen(1, "How strong is it?");
+    // 💡 [핵심 2] 하드코딩된 숫자(1) 대신 문자열 ID 사용 (UI.js의 pushState와 연동)
+    if (window.UI) {
+        window.UI.goToScreen('2', "How strong is it?");
+    }
 }
 
 function updateIntensity(val) {

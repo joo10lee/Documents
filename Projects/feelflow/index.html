@@ -75,7 +75,7 @@
         font-size: 0.65rem; 
         font-family: monospace;
         z-index: 100;
-    ">Ver.0213-1300</span>
+    ">Ver.0213-1317</span>
 
     <p class="app-title">FEELFLOW</p>
     <p class="greeting" id="greeting">Good evening, Joo!</p>
@@ -86,27 +86,27 @@
     <main class="screen active" id="screen1">
         <div id="streakBanner"></div>
         <div class="emotion-container">
-            <button class="emotion-btn happy" onclick="selectEmotion('Happy', '😊', '#fcd34d')">
+            <button class="emotion-btn happy" onclick="Activities.initAudio(); selectEmotion('Happy', '😊', '#fcd34d')">
                 <span class="emoji">😊</span>
                 <span class="emotion-text">Happy</span>
             </button>
-            <button class="emotion-btn sad" onclick="selectEmotion('Sad', '😢', '#93c5fd')">
+            <button class="emotion-btn sad" onclick="Activities.initAudio(); selectEmotion('Sad', '😢', '#93c5fd')">
                 <span class="emoji">😢</span>
                 <span class="emotion-text">Sad</span>
             </button>
-            <button class="emotion-btn anxious" onclick="selectEmotion('Anxious', '😰', '#c4b5fd')">
+            <button class="emotion-btn anxious" onclick="Activities.initAudio(); selectEmotion('Anxious', '😰', '#c4b5fd')">
                 <span class="emoji">😰</span>
                 <span class="emotion-text">Anxious</span>
             </button>
-            <button class="emotion-btn angry" onclick="selectEmotion('Angry', '😠', '#fca5a5')">
+            <button class="emotion-btn angry" onclick="Activities.initAudio(); selectEmotion('Angry', '😠', '#fca5a5')">
                 <span class="emoji">😠</span>
                 <span class="emotion-text">Angry</span>
             </button>
-            <button class="emotion-btn calm" onclick="selectEmotion('Calm', '😌', '#6ee7b7')">
+            <button class="emotion-btn calm" onclick="Activities.initAudio(); selectEmotion('Calm', '😌', '#6ee7b7')">
                 <span class="emoji">😌</span>
                 <span class="emotion-text">Calm</span>
             </button>
-            <button class="emotion-btn tired" onclick="selectEmotion('Tired', '😫', '#9ca3af')">
+            <button class="emotion-btn tired" onclick="Activities.initAudio(); selectEmotion('Tired', '😫', '#9ca3af')">
                 <span class="emoji">😫</span>
                 <span class="emotion-text">Tired</span>
             </button>
@@ -260,36 +260,6 @@
         </div>
     </main>
 
-    <!-- Activity Screen -->
-    <main class="screen" id="screenActivity">
-        <div class="activity-container">
-            <div class="activity-card">
-                <div class="activity-icon" id="activityIcon">🧸</div>
-                <div class="activity-title" id="activityTitle">Comfort Object</div>
-                <div class="activity-steps" id="activitySteps"></div>
-                <div class="activity-timer" id="activityTimer"></div>
-    
-                <div id="inAppActionArea" style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 20px; display: none;">
-                    <p style="font-weight: 600; color: #4a5568; margin-bottom: 10px;" id="actionQuestion">🧸 What brings you comfort right now?</p>
-                    <textarea id="actionNote" placeholder="기록을 남겨보세요..." 
-                           style="width: 100%; height: 60px; padding: 12px; border: 2px solid #e2e8f0; border-radius: 12px; margin-bottom: 15px; font-family: inherit; resize: none; outline: none;"></textarea>
-                    
-                    <div id="photoPreviewContainer" style="display: none; margin-bottom: 15px;">
-                        <img id="capturedPhoto" src="" style="width: 100%; border-radius: 12px; border: 2px solid #7c3aed;">
-                        <button onclick="EmotionActions.reset()" style="background: none; border: none; color: #ef4444; font-size: 0.8rem; margin-top: 5px; cursor: pointer;">✕ 사진 다시 찍기</button>
-                    </div>
-                
-                    <button onclick="EmotionActions.startCamera()" id="cameraBtn" class="btn-secondary" style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 12px;">📸 사진 찍기</button>
-                    
-                    <div id="videoContainer" style="display: none; margin-top: 10px;">
-                        <video id="videoElement" width="100%" autoplay playsinline style="border-radius: 12px; background: #000;"></video>
-                        <button onclick="EmotionActions.takePhoto()" class="btn-primary" style="width: 100%; margin-top: 10px;">📷 Take a photo! </button>
-                        <canvas id="hiddenCanvas" style="display: none;"></canvas>
-                    </div>
-                </div>
-            </div> <button class="btn btn-primary" id="activityBtn" onclick="finishCheckIn()">Save & Finish</button>
-            <button class="btn btn-secondary" onclick="UI.back()">← Back</button>
-        </div> </main>
         
     <!-- Bottom Navigation -->
     <nav class="bottom-nav">

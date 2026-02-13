@@ -6,68 +6,89 @@
 let audioCtx = null;
 
 const Activities = {
- // 💡 1. 오디오/햅틱 피드백 엔진 (iOS/안드로이드 호환성 강화)
- initAudio() {
-    if (!audioCtx) {
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    }
-    // 사용자의 터치 없이 재생되는 것을 막는 브라우저 정책 대응
-    if (audioCtx.state === 'suspended') audioCtx.resume();
-},
-
-feedback(type) {
-    this.initAudio();
-    const sounds = {
-        tap: { freq: 880, dur: 0.1, vib: 15 },
-        tick: { freq: 440, dur: 0.05, vib: 8 },
-        success: { freq: [523.25, 659.25, 783.99], dur: 0.5, vib: [50, 100, 50] }
-    };
-    const cfg = sounds[type];
-    if (!cfg) return;
-
-    // 💡 오디오 컨텍스트가 활성화된 상태인지 한 번 더 확인
-    if (audioCtx.state === 'running') {
-        if (Array.isArray(cfg.freq)) {
-            cfg.freq.forEach((f, i) => {
-                // 코드(Chord) 재생 시 타이밍 오프셋을 더 정밀하게 계산
-                this.playTone(f, cfg.dur, audioCtx.currentTime + (i * 0.1) + 0.05);
-            });
-        } else {
-            // 일반 비프음 재생 시에도 50ms의 여유를 주어 끊김 방지
-            this.playTone(cfg.freq, cfg.dur, audioCtx.currentTime + 0.05);
+    initAudio() {
+        try {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            // 💡 resume은 비동기(Promise)이므로 상태에 상관없이 호출해둡니다.
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        } catch (e) {
+            console.error("AudioContext 초기화 실패:", e);
         }
-    }
-    
-    if (navigator.vibrate) navigator.vibrate(cfg.vib);
-},
+    },
 
-playTone(freq, dur, startTime) {
-    // 💡 시작 시간이 현재보다 과거가 되지 않도록 안전장치 마련
-    const start = Math.max(startTime, audioCtx.currentTime + 0.02);
-    
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    
-    osc.type = 'sine'; // 부드러운 소리를 위해 사인파 유지
-    osc.frequency.setValueAtTime(freq, start);
-    
-    // 볼륨 설정: 시작은 0.1, 끝은 0.001로 감쇄 (지수 방식)
-    gain.gain.setValueAtTime(0.1, start);
-    gain.gain.exponentialRampToValueAtTime(0.001, start + dur);
-    
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-    
-    osc.start(start);
-    osc.stop(start + dur);
-},
+    feedback(type) {
+        this.initAudio();
+        
+        const sounds = {
+            tap: { freq: 880, dur: 0.1, vib: 15 },
+            tick: { freq: 440, dur: 0.05, vib: 8 },
+            success: { freq: [523.25, 659.25, 783.99], dur: 0.5, vib: [50, 100, 50] }
+        };
+        const cfg = sounds[type];
+        if (!cfg || !audioCtx) return;
+
+        // 💡 [수정] state check를 제거하거나 비동기 대응을 합니다.
+        // 브라우저는 resume()이 호출된 직후의 play 명령을 큐에 쌓아두었다가 
+        // 컨텍스트가 활성화되는 즉시 재생합니다.
+        if (Array.isArray(cfg.freq)) {
+            cfg.freq.forEach((f, i) => this.playTone(f, cfg.dur, audioCtx.currentTime + (i * 0.1)));
+        } else {
+            this.playTone(cfg.freq, cfg.dur, audioCtx.currentTime);
+        }
+
+        if (navigator.vibrate) navigator.vibrate(cfg.vib);
+    },
+
+    playTone(freq, dur, startTime) {
+        // 💡 스케줄링 버퍼: 현재 시간보다 최소 0.05초 뒤에 재생되도록 보정
+        const start = Math.max(startTime, audioCtx.currentTime + 0.05);
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, start);
+
+        // 볼륨 설정: 0.1에서 0.001까지 부드럽게 감소
+        gain.gain.setValueAtTime(0.1, start);
+        gain.gain.exponentialRampToValueAtTime(0.001, start + dur);
+
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        osc.start(start);
+        osc.stop(start + dur);
+    },
+
+    // 💡 startBreathingAnimation에서 참조하는 setPattern 함수 누락 보강
+    setPattern(pattern) {
+        console.log(`🌬️ 호흡 패턴 변경: ${pattern}`);
+        document.querySelectorAll('.btn-mini').forEach(b => b.classList.remove('active'));
+        const activeBtn = pattern === 'relax' ? document.getElementById('pRelax') : document.getElementById('pBox');
+        if (activeBtn) activeBtn.classList.add('active');
+        // 여기서 패턴별 타이밍 조절 로직을 추가할 수 있습니다.
+    },
 
     // 💡 2. 자원 정리 (Navigation Cleanup)
+// activities.js 내 stopAll 보강
     stopAll() {
         console.log("🛑 활동 중단 및 리소스 정리");
+        
+        // 1. 타이머 중단
         if (this.currentInterval) clearInterval(this.currentInterval);
-        if (navigator.vibrate) navigator.vibrate(0);
         this.currentInterval = null;
+
+        // 2. 카메라 스트림 중단 💡 (추가된 부분)
+        if (this.currentStream) {
+            this.currentStream.getTracks().forEach(track => track.stop());
+            this.currentStream = null;
+        }
+
+        // 3. 진동 중단
+        if (navigator.vibrate) navigator.vibrate(0);
     },
 
     // 3. 전략 카드 렌더링
@@ -282,7 +303,24 @@ playTone(freq, dur, startTime) {
         let s = 1; const i = setInterval(() => { const b = document.getElementById('anB'); if (!b || s > 5) { clearInterval(i); return; } b.textContent = "❄️".repeat(s); s++; this.feedback('tick'); }, 2000);
     },
     startWriteAction(q) { document.getElementById('inAppActionArea').innerHTML = `<textarea id="actionNote" class="form-control" style="height:180px; border-radius:20px;" placeholder="${q}"></textarea>`; },
-    startCaptureAction() { document.getElementById('inAppActionArea').innerHTML = `<div style="text-align:center; padding:30px;"><button class="btn btn-secondary" onclick="window.EmotionActions.startCamera()">📸 Open Camera</button></div>`; },
+    // 📸 Capture the Moment 활동 (Camera Stitching)
+// activities.js 내 stopAll 보강
+stopAll() {
+    console.log("🛑 활동 중단 및 리소스 정리");
+    
+    // 1. 타이머 중단
+    if (this.currentInterval) clearInterval(this.currentInterval);
+    this.currentInterval = null;
+
+    // 2. 카메라 스트림 중단 💡 (추가된 부분)
+    if (this.currentStream) {
+        this.currentStream.getTracks().forEach(track => track.stop());
+        this.currentStream = null;
+    }
+
+    // 3. 진동 중단
+    if (navigator.vibrate) navigator.vibrate(0);
+},
 
     // 💡 Legacy Sounds (For compatibility)
     playTapSound() { this.feedback('tap'); },
@@ -295,3 +333,5 @@ window.Activities = Activities;
 window.renderStrategies = (e) => Activities.renderStrategies(e);
 window.feedback = (t) => Activities.feedback(t);
 window.addEventListener('touchstart', () => Activities.initAudio(), { once: true });
+window.addEventListener('click', () => Activities.initAudio(), { once: false });
+window.addEventListener('touchstart', () => Activities.initAudio(), { once: false });
