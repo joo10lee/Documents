@@ -65,84 +65,92 @@ const Activities = {
         `).join('');
     },
 
-    // 3. 활동별 동적 UI 설정 (SMS 및 기타 활동 분기 추가)
+    // 3. [수정] 활동별 동적 UI 설정 (지연 실행 및 버튼 리셋 로직 추가)
     setupActivity(type) {
         console.log(`🏃 활동 시작: ${type}`);
         this.initAudio();
         if (window.feedback) window.feedback('tap');
 
-        // 1단계: 활동 화면으로 이동
+        // 1단계: 먼저 활동 화면으로 즉시 이동
         if (typeof UI !== 'undefined' && UI.goToScreen) {
             UI.goToScreen('Activity', type);
         }
 
-        const actionArea = document.getElementById('inAppActionArea');
-        const actionQuestion = document.getElementById('actionQuestion');
-        const actionNote = document.getElementById('actionNote');
-        const cameraBtn = document.getElementById('cameraBtn');
-        const activityIcon = document.getElementById('activityIcon');
-        const activityTitle = document.getElementById('activityTitle');
+        // 💡 2단계: 화면이 완전히 그려진 후 요소를 조작하기 위해 미세한 지연(100ms)을 줍니다.
+        setTimeout(() => {
+            const actionArea = document.getElementById('inAppActionArea');
+            const actionQuestion = document.getElementById('actionQuestion');
+            const actionNote = document.getElementById('actionNote');
+            const cameraBtn = document.getElementById('cameraBtn');
+            const activityIcon = document.getElementById('activityIcon');
+            const activityTitle = document.getElementById('activityTitle');
+            const activityBtn = document.getElementById('activityBtn'); // 하단 공통 버튼
 
-        if (!actionArea) return;
+            if (!actionArea) return;
 
-        // 2단계: 공통 UI 초기화 (모두 숨김)
-        actionArea.style.display = 'block';
-        if (activityTitle) activityTitle.textContent = type;
-        if (actionNote) {
-            actionNote.style.display = 'none';
-            actionNote.value = '';
-            actionNote.placeholder = "내용을 입력하세요...";
-        }
-        if (cameraBtn) cameraBtn.style.display = 'none';
-        
-        // 아이콘 매칭
-        const iconMap = { 
-            'Write it down': '✍️', 
-            'Capture the moment': '📸', 
-            'Share the joy': '🎉',
-            'Listen to music': '🎵',
-            'Hold Something Cold': '❄️'
-        };
-        if (activityIcon && iconMap[type]) activityIcon.textContent = iconMap[type];
+            // UI 공통 초기화
+            actionArea.style.display = 'block';
+            if (activityTitle) activityTitle.textContent = type;
+            if (actionNote) {
+                actionNote.style.display = 'none';
+                actionNote.value = '';
+                actionNote.placeholder = "내용을 입력하세요...";
+            }
+            if (cameraBtn) cameraBtn.style.display = 'none';
 
-        // 💡 3단계: 활동별 분기 처리 (여기에 Share the joy 추가)
-        switch(type) {
-            case 'Write it down':
-                if (actionQuestion) actionQuestion.textContent = "✍️ What made you happy?";
-                if (actionNote) actionNote.style.display = 'block';
-                // 일반 저장 버튼으로 복구
-                if (window.setupActivityButton) window.setupActivityButton('write');
-                break;
+            // 💡 3단계: 버튼 이벤트 리셋 (이전 활동의 영향 제거)
+            if (activityBtn) {
+                activityBtn.textContent = "Save & Finish";
+                activityBtn.onclick = () => {
+                    if (typeof window.finishCheckIn === 'function') window.finishCheckIn();
+                };
+            }
+            
+            // 아이콘 매칭
+            const iconMap = { 
+                'Write it down': '✍️', 
+                'Capture the moment': '📸', 
+                'Share the joy': '🎉',
+                'Listen to music': '🎵',
+                'Hold Something Cold': '❄️'
+            };
+            if (activityIcon && iconMap[type]) activityIcon.textContent = iconMap[type];
 
-            case 'Capture the moment':
-                if (actionQuestion) actionQuestion.textContent = "📸 Capture this happy moment!";
-                if (cameraBtn) cameraBtn.style.display = 'block';
-                // 일반 저장 버튼으로 복구
-                if (window.setupActivityButton) window.setupActivityButton('write');
-                break;
+            // 4단계: 활동별 구체적 UI 설정
+            switch(type) {
+                case 'Write it down':
+                    if (actionQuestion) actionQuestion.textContent = "✍️ What made you happy?";
+                    if (actionNote) actionNote.style.display = 'block';
+                    break;
 
-            case 'Share the joy':
-                // 💡 문자 보내기 전용 UI 설정 호출
-                this.setupSMSAction(type);
-                break;
+                case 'Capture the moment':
+                    if (actionQuestion) actionQuestion.textContent = "📸 Capture this happy moment!";
+                    if (cameraBtn) cameraBtn.style.display = 'block';
+                    break;
 
-            case 'Listen to music':
-                this.setupMusicAction();
-                break;
+                case 'Share the joy':
+                    // 💡 SMS 전용 로직 호출
+                    this.setupSMSAction();
+                    break;
 
-            case 'Hold Something Cold':
-                this.startColdSqueezeAnimation();
-                break;
+                case 'Listen to music':
+                    this.setupMusicAction();
+                    break;
 
-            default:
-                if (actionQuestion) actionQuestion.textContent = `Let's try ${type}!`;
-                if (actionNote) actionNote.style.display = 'block';
-                break;
-        }
+                case 'Hold Something Cold':
+                    this.startColdSqueezeAnimation();
+                    break;
+
+                default:
+                    if (actionQuestion) actionQuestion.textContent = `Let's try ${type}!`;
+                    if (actionNote) actionNote.style.display = 'block';
+                    break;
+            }
+        }, 100); // 100ms 지연으로 DOM 안정성 확보
     },
 
-    // 4. 문자 메시지(SMS) 전용 UI 및 버튼 설정
-    setupSMSAction(type) {
+    // 4. [수정] 문자 메시지(SMS) 전용 UI 및 버튼 설정
+    setupSMSAction() {
         const actionQuestion = document.getElementById('actionQuestion');
         const actionNote = document.getElementById('actionNote');
         const activityBtn = document.getElementById('activityBtn');
@@ -154,17 +162,19 @@ const Activities = {
             actionNote.value = `오늘 기분이 정말 좋아! 이 기쁨을 나누고 싶어서 메시지 보내. ✨`;
         }
 
-        // 💡 하단 버튼을 SMS 전송용으로 교체
+        // 💡 하단 버튼을 SMS 전송용으로 교체 및 이벤트 바인딩
         if (activityBtn) {
             activityBtn.textContent = "Send via SMS 💌";
-            activityBtn.onclick = () => {
-                const msg = actionNote ? actionNote.value : "";
+            activityBtn.onclick = (e) => {
+                e.preventDefault(); // 기본 동작 방지
+                const msg = actionNote ? actionNote.value : "오늘 정말 기분 좋은 일이 있었어! 함께 나누고 싶어 ✨";
+                
                 // 아이폰/안드로이드 SMS 앱 호출
                 window.location.href = `sms:?&body=${encodeURIComponent(msg)}`;
                 
-                // 메시지 앱 오픈 후 1.5초 뒤 저장 및 성공 화면 이동
+                // 전송 시도 후 1.5초 뒤 저장 및 성공 화면 이동
                 setTimeout(() => {
-                    if (typeof finishCheckIn === 'function') finishCheckIn();
+                    if (typeof window.finishCheckIn === 'function') window.finishCheckIn();
                 }, 1500);
             };
         }
@@ -195,7 +205,7 @@ const Activities = {
         };
     },
 
-    // 6. 차가운 것 쥐기 애니메이션
+    // 6. 차가운 것 쥐기 애니메이션 (기존 로직 유지)
     startColdSqueezeAnimation() {
         const question = document.getElementById('actionQuestion');
         const area = document.getElementById('inAppActionArea');
@@ -227,7 +237,7 @@ const Activities = {
         updateStep();
     },
 
-    // --- 사운드 엔진 메서드 ---
+    // --- 사운드 엔진 (생략 가능하나 유지함) ---
     playTapSound() {
         try {
             this.initAudio();
