@@ -116,34 +116,31 @@ const Activities = {
     },
 
     // 4. 문자 메시지(SMS) 전송 설정
-    // js/activities.js 내 추가/수정
+   // js/activities.js 내 setupSMSAction 함수 수정
 setupSMSAction(type) {
     const actionArea = document.getElementById('inAppActionArea');
-    const actionQuestion = document.getElementById('actionQuestion');
     const actionNote = document.getElementById('actionNote');
+    const activityBtn = document.getElementById('activityBtn');
     
-    if (!actionArea) return;
+    if (!actionArea || !activityBtn) return;
 
     actionArea.style.display = 'block';
-    if (actionQuestion) actionQuestion.textContent = "💌 누구에게 이 기쁨을 전할까요?";
     if (actionNote) {
-        actionNote.placeholder = "가족이나 친구에게 보낼 메시지를 적어보세요...";
-        actionNote.value = "오늘 정말 기분 좋은 일이 있었어! 함께 나누고 싶어 ✨"; 
+        actionNote.value = `오늘 기분이 정말 좋아! 이 기쁨을 나누고 싶어서 메시지 보내. ✨`;
     }
 
-    // 💡 저장 버튼(Save & Finish) 대신 SMS 전송 버튼으로 역할을 바꿉니다.
-    const activityBtn = document.getElementById('activityBtn');
-    if (activityBtn) {
-        activityBtn.textContent = "Send via SMS 💌";
-        activityBtn.onclick = () => {
-            const msg = actionNote.value;
-            // 아이폰 iMessage를 즉시 깨우는 마법의 주소
-            window.location.href = `sms:&body=${encodeURIComponent(msg)}`;
-            
-            // 전송 시도 후 1초 뒤에 체크인 마무리 함수 실행
-            setTimeout(() => finishCheckIn(), 1000); 
-        };
-    }
+    // 💡 버튼을 SMS 전송용으로 교체
+    activityBtn.textContent = "Send via SMS 💌";
+    activityBtn.onclick = function() {
+        const msg = actionNote.value;
+        // 💡 아이폰 메시지 앱 호출
+        window.location.href = `sms:&body=${encodeURIComponent(msg)}`;
+        
+        // 메시지 앱이 열린 후, 데이터를 저장하고 성공 화면으로 보냅니다.
+        setTimeout(() => {
+            finishCheckIn();
+        }, 1500);
+    };
 },
     // 5. 유튜브 음악 연결
     setupMusicAction() {

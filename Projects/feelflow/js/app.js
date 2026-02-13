@@ -22,20 +22,24 @@ async function initApp() {
 }
 
 // 3. 감정 선택 및 흐름 제어 (에러 해결 포인트)
-function selectEmotion(name, emoji) {
-    if (typeof feedback === 'function') feedback('tap');
+function selectEmotion(name, emoji, color) {
+    // 💡 객체 내부에 값을 할당합니다.
     currentEmotion.name = name;
     currentEmotion.emoji = emoji;
     
-    document.getElementById('selectedEmoji').textContent = emoji;
-    document.getElementById('selectedName').textContent = name;
+    const emojiDisplay = document.getElementById('selectedEmoji');
+    const nameDisplay = document.getElementById('selectedName');
+    if (emojiDisplay) emojiDisplay.textContent = emoji;
+    if (nameDisplay) nameDisplay.textContent = name;
     
     UI.goToScreen(1, "How strong is it?");
 }
 
-function updateIntensity(value) {
-    currentEmotion.intensity = parseInt(value);
-    document.getElementById('intensityDisplay').textContent = value;
+// 3. 강도 업데이트
+function updateIntensity(val) {
+    currentEmotion.intensity = parseInt(val);
+    const display = document.getElementById('intensityDisplay');
+    if (display) display.textContent = val;
 }
 
 // [에러 해결] index.html의 Next 버튼이 찾는 함수
@@ -125,16 +129,18 @@ function goToSettings() {
 // 5. 체크인 완료 및 데이터 저장
 // js/app.js 내 finishCheckIn 함수 수정
 // js/app.js 내 수정
+// 4. 저장 및 완료 함수
 async function finishCheckIn() {
-    console.log("💾 데이터 저장 중...");
+    console.log("💾 데이터 저장 프로세스 시작...");
 
-    const note = document.getElementById('actionNote') ? document.getElementById('actionNote').value : '';
-    const photo = document.getElementById('capturedPhoto') ? document.getElementById('capturedPhoto').src : null;
+    const note = document.getElementById('actionNote')?.value || "";
+    const photo = document.getElementById('capturedPhoto')?.src || null;
 
+    // 💡 호출 시 currentEmotion 객체의 속성을 사용합니다.
     const entry = {
-        emotion: typeof currentEmotion !== 'undefined' ? currentEmotion : "Feeling",
-        emoji: typeof currentEmoji !== 'undefined' ? currentEmoji : "✨",
-        intensity: typeof currentIntensity !== 'undefined' ? currentIntensity : 5,
+        emotion: currentEmotion.name || "Feeling",
+        emoji: currentEmotion.emoji || "✨",
+        intensity: currentEmotion.intensity,
         note: note,
         photo: photo,
         timestamp: new Date().toISOString()
@@ -142,18 +148,19 @@ async function finishCheckIn() {
 
     try {
         await EmotionAPI.saveCheckIn(entry);
-
-        // 💡 핵심: 저장 성공 후 '성공 화면(Screen 5)'으로 보냅니다.
-        // UI.goToScreen(4)는 index.html의 5번째 스크린인 screen5를 의미합니다.
-        UI.goToScreen(4, "Great Job!");
-
-        // 입력값 초기화
-        if (document.getElementById('actionNote')) document.getElementById('actionNote').value = '';
-        if (typeof EmotionActions !== 'undefined') EmotionActions.reset();
-        
+        UI.goToScreen(4, "Check-in Complete!");
     } catch (error) {
-        console.error("저장 실패:", error);
+        console.error("❌ 저장 실패:", error);
     }
+}
+
+// 5. 다시 시작 (상태 초기화)
+function startOver() {
+    // 객체 초기화
+    currentEmotion = { name: '', emoji: '', intensity: 5 };
+    
+    UI.goToScreen(0, "How are you feeling today?");
+    UI.updateNavActive('navHome');
 }
 
 function resetAppInput() {
