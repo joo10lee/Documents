@@ -66,29 +66,37 @@ const Activities = {
     },
 
     // 3. 활동별 동적 UI 설정
+    // 3. 활동별 동적 UI 설정 (스크롤 및 가시성 보강)
     setupActivity(type) {
         console.log(`🏃 활동 시작: ${type}`);
         this.initAudio();
-        
+        if (window.feedback) window.feedback('tap'); // 소리 확인용
+
         const actionArea = document.getElementById('inAppActionArea');
         const actionQuestion = document.getElementById('actionQuestion');
         const actionNote = document.getElementById('actionNote');
         const cameraBtn = document.getElementById('cameraBtn');
 
-        if (!actionArea) return;
+        if (!actionArea) {
+            console.error("❌ 'inAppActionArea' 요소를 찾을 수 없습니다.");
+            return;
+        }
+
+        // 1단계: 영역 표시 (모든 화면 요소 초기화)
         actionArea.style.display = 'block';
-        
+        if (actionNote) actionNote.style.display = 'none';
+        if (cameraBtn) cameraBtn.style.display = 'none';
+
         if (window.EmotionActions) window.EmotionActions.reset();
 
+        // 2단계: 활동별 UI 상세 분기
         switch(type) {
             case 'Write it down':
                 actionQuestion.textContent = "✍️ What made you happy?";
                 if (actionNote) actionNote.style.display = 'block';
-                if (cameraBtn) cameraBtn.style.display = 'none';
                 break;
             case 'Capture the moment':
                 actionQuestion.textContent = "📸 Capture this happy moment!";
-                if (actionNote) actionNote.style.display = 'none';
                 if (cameraBtn) cameraBtn.style.display = 'block';
                 break;
             case 'Share the joy':
@@ -101,8 +109,10 @@ const Activities = {
             case 'Hold Something Cold':
                 this.startColdSqueezeAnimation();
                 break;
-            // 추가 활동들에 대한 분기는 필요에 따라 UI 모듈에서 직접 제어 가능합니다.
         }
+
+        // 3단계: 💡 사용자가 바로 볼 수 있게 스크롤을 아래로 이동
+        actionArea.scrollIntoView({ behavior: 'smooth', block: 'start' });
     },
 
     // 4. 문자 메시지(SMS) 전송 설정
