@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
-    
+
     <meta name="apple-mobile-web-app-title" content="FeelFlow">
     
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -76,7 +76,7 @@
         font-size: 0.65rem; 
         font-family: monospace;
         z-index: 100;
-    ">Ver.0213-0014</span>
+    ">Ver.0213-0024</span>
 
     <p class="app-title">FEELFLOW</p>
     <p class="greeting" id="greeting">Good evening, Joo!</p>
@@ -370,13 +370,10 @@
                         <canvas id="hiddenCanvas" style="display: none;"></canvas>
                     </div>
                 </div>
-                </div>
-                </div>
-                <button class="btn btn-primary" id="activityBtn" onclick="startActivity()">Start</button>
-                <button class="btn btn-primary" id="activityBtn" onclick="finishCheckIn()">Save & Finish</button>
-        </div>
-    </main>
-
+            </div> <button class="btn btn-primary" id="activityBtn" onclick="finishCheckIn()">Save & Finish</button>
+            <button class="btn btn-secondary" onclick="backToStrategies()">← Back</button>
+        </div> </main>
+        
     <!-- Bottom Navigation -->
     <nav class="bottom-nav">
         <button class="nav-btn active" id="navHome" onclick="goHome()">

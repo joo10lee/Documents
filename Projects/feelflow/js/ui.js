@@ -1,46 +1,97 @@
 /**
- * UI 관리 모듈: 화면 전환, 네비게이션, 날씨 및 히스토리 렌더링 담당
+ * UI 관리 모듈: 화면 전환, 네비게이션, 날씨 및 히스토리/차트 렌더링 담당
  */
 const UI = {
   
-   // 화면 전환 함수
-   goToScreen(screenId, title) {
-    console.log(`🎬 Screen 전환 시도: ${screenId}`);
-    
-    // 1. 모든 스크린에서 'active' 클래스 제거
-    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    // 1. 화면 전환 함수 (문자열 ID 및 인덱스 숫자 모두 지원)
+    goToScreen(screenId, title) {
+        console.log(`🎬 Screen 전환 시도: ${screenId}`);
+        
+        // 모든 스크린 비활성화
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
 
-    // 2. 대상 스크린 결정
-    let targetScreen;
-    if (typeof screenId === 'number') {
-        // 숫자인 경우: 순서대로 찾음 (예: UI.goToScreen(0))
-        targetScreen = document.querySelectorAll('.screen')[screenId];
-    } else {
-        // 문자열인 경우: index.html의 id="screenActivity" 등을 찾음
-        // 💡 팁: 'Activity'가 들어오면 'screenActivity'로 변환하여 검색합니다.
-        targetScreen = document.getElementById('screen' + screenId);
-    }
-
-    // 3. 대상 스크린 활성화 및 제목 업데이트
-    if (targetScreen) {
-        targetScreen.classList.add('active');
-        if (title) {
-            const titleEl = document.getElementById('screenTitle');
-            if (titleEl) titleEl.textContent = title;
+        let targetScreen;
+        if (typeof screenId === 'number') {
+            targetScreen = document.querySelectorAll('.screen')[screenId];
+        } else {
+            // 'Activity' -> 'screenActivity' 형태로 매칭
+            targetScreen = document.getElementById('screen' + screenId);
         }
-    } else {
-        console.error(`❌ 스크린을 찾을 수 없습니다: screen${screenId}`);
-    }
-},
 
-    // 2. 하단 네비게이션 활성화
+        if (targetScreen) {
+            targetScreen.classList.add('active');
+            if (title) {
+                const titleEl = document.getElementById('screenTitle');
+                if (titleEl) titleEl.textContent = title;
+            }
+            // 💡 상단 스크롤 초기화
+            window.scrollTo(0, 0);
+        } else {
+            console.error(`❌ 스크린을 찾을 수 없습니다: screen${screenId}`);
+        }
+    },
+
+    // 2. 하단 네비게이션 활성화 상태 업데이트
     updateNavActive(navId) {
         document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
         const activeBtn = document.getElementById(navId);
         if (activeBtn) activeBtn.classList.add('active');
     },
 
-    // 3. 감정 기록 목록 렌더링 (사진 포함)
+    // 3. [복구] 7일 감정 트렌드 차트 렌더링
+    renderEmotionChart(history) {
+        const ctx = document.getElementById('emotionChart');
+        if (!ctx || !window.Chart) return;
+
+        // 최근 7일 라벨 생성 (월/일 형식)
+        const labels = [];
+        for (let i = 6; i >= 0; i--) {
+            const d = new Date();
+            d.setDate(d.getDate() - i);
+            labels.push(d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+        }
+
+        // 날짜별 평균 강도 계산: $Average = \frac{\sum Intensity}{Count}$
+        const dataPoints = labels.map(label => {
+            const dayEntries = history.filter(h => 
+                new Date(h.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) === label
+            );
+            if (dayEntries.length === 0) return 0;
+            const sum = dayEntries.reduce((acc, curr) => acc + curr.intensity, 0);
+            return (sum / dayEntries.length).toFixed(1);
+        });
+
+        if (window.myEmotionChart) window.myEmotionChart.destroy();
+
+        window.myEmotionChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Avg. Intensity',
+                    data: dataPoints,
+                    borderColor: '#7c3aed',
+                    backgroundColor: 'rgba(124, 58, 237, 0.1)',
+                    borderWidth: 3,
+                    tension: 0.4,
+                    fill: true,
+                    pointBackgroundColor: '#7c3aed',
+                    pointRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { beginAtZero: true, max: 10, ticks: { stepSize: 2 } },
+                    x: { grid: { display: false } }
+                },
+                plugins: { legend: { display: false } }
+            }
+        });
+    },
+
+    // 4. 감정 기록 목록 렌더링
     renderHistory(history) {
         const container = document.getElementById('historyList');
         if (!container) return;
@@ -50,21 +101,20 @@ const UI = {
             return;
         }
 
-        container.innerHTML = history.map(entry => {
-            const date = new Date(entry.timestamp || entry.createdAt);
+        container.innerHTML = history.slice().reverse().map(entry => {
+            const date = new Date(entry.timestamp);
             const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             
-            const photoHtml = entry.photo && typeof entry.photo === 'string' && entry.photo.startsWith('data:image')
-                ? `<div class="history-photo-wrapper" style="margin-top:12px; border-radius:12px; overflow:hidden; border:1px solid #edf2f7;">
-                     <img src="${entry.photo}" style="width:100%; display:block;">
-                   </div>` 
-                : '';
+            const photoHtml = entry.photo ? `
+                <div class="history-photo-wrapper" style="margin-top:12px; border-radius:12px; overflow:hidden; border:1px solid #edf2f7;">
+                    <img src="${entry.photo}" style="width:100%; display:block;">
+                </div>` : '';
 
             return `
-                <div class="history-item" style="background: white; border-radius: 20px; padding: 20px; margin-bottom: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); display: flex; flex-direction: column;">
-                    <div style="display: flex; align-items: center; gap: 15px; width: 100%;">
+                <div class="history-item" style="background: white; border-radius: 20px; padding: 20px; margin-bottom: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+                    <div style="display: flex; align-items: center; gap: 15px;">
                         <span style="font-size: 2.5rem;">${entry.emoji}</span>
-                        <div class="history-details">
+                        <div>
                             <div style="font-weight: 700; color: #2d3748; font-size: 1.1rem;">${entry.emotion} (Lv.${entry.intensity})</div>
                             <div style="font-size: 0.85rem; color: #a0aec0;">${timeStr}</div>
                         </div>
@@ -76,38 +126,24 @@ const UI = {
         }).join('');
     },
 
-    // 4. 날씨 데이터 가공 로직 (통합본)
+    // 5. 날씨 시스템 (Los Gatos 최적화)
     getWeatherInfo(code, temp) {
         const weatherMap = {
-            0: { icon: '☀️', description: 'Clear', baseTip: 'Beautiful day!' },
-            1: { icon: '🌤️', description: 'Mostly clear', baseTip: 'Nice weather!' },
-            2: { icon: '⛅', description: 'Partly cloudy', baseTip: 'Nice day!' },
-            3: { icon: '☁️', description: 'Cloudy', baseTip: 'Cozy day inside.' },
-            45: { icon: '🌫️', description: 'Foggy', baseTip: 'Be careful outside!' },
-            51: { icon: '🌧️', description: 'Drizzle', baseTip: 'Grab a jacket!' },
-            61: { icon: '🌧️', description: 'Light rain', baseTip: 'Bring an umbrella! ☔' },
-            63: { icon: '🌧️', description: 'Rain', baseTip: 'Bring an umbrella! ☔' },
-            65: { icon: '🌧️', description: 'Heavy rain', baseTip: 'Umbrella & raincoat needed! ☔' },
-            71: { icon: '🌨️', description: 'Light snow', baseTip: 'Dress warmly! 🧥' },
-            73: { icon: '🌨️', description: 'Snow', baseTip: 'Bundle up! 🧤' },
-            75: { icon: '❄️', description: 'Heavy snow', baseTip: 'Stay warm! ⛄' },
-            95: { icon: '⛈️', description: 'Thunderstorm', baseTip: 'Stay inside! ⚡' }
+            0: { icon: '☀️', description: 'Clear', baseTip: 'Perfect day for golf! ⛳' },
+            3: { icon: '☁️', description: 'Cloudy', baseTip: 'Cozy day for gaming. 🎮' },
+            61: { icon: '🌧️', description: 'Rain', baseTip: 'Grab an umbrella! ☔' }
         };
-        let info = weatherMap[code] || { icon: '🌤️', description: 'Weather', baseTip: 'Have a great day!' };
+        const info = weatherMap[code] || { icon: '🌤️', description: 'Fair', baseTip: 'Have a great day!' };
         let tip = info.baseTip;
-        if (temp < 32) tip = "It's freezing! 🥶 Wear coat, hat & gloves!";
-        else if (temp < 50) tip += " It's chilly - grab a jacket! 🧥";
-        else if (temp > 90) tip = "Very hot! 🥵 Stay hydrated!";
-        else if (temp > 80) tip += " Stay hydrated! 💧";
+        if (temp > 85) tip = "Stay hydrated in the California sun! 💧";
         return { icon: info.icon, description: info.description, tip };
     },
 
-    // 5. 실제 날씨 UI 업데이트
     displayWeather(data) {
         const temp = Math.round(data.current.temperature_2m);
         const { icon, description, tip } = this.getWeatherInfo(data.current.weather_code, temp);
         
-        const elements = {
+        const el = {
             temp: document.getElementById('weatherTemp'),
             icon: document.getElementById('weatherIcon'),
             desc: document.getElementById('weatherDesc'),
@@ -116,43 +152,36 @@ const UI = {
             day: document.getElementById('weatherDay')
         };
 
-        if (elements.temp) elements.temp.textContent = `${temp}°F`;
-        if (elements.icon) elements.icon.textContent = icon;
-        if (elements.desc) elements.desc.textContent = description;
-        if (elements.tip) elements.tip.textContent = tip;
+        if (el.temp) el.temp.textContent = `${temp}°F`;
+        if (el.icon) el.icon.textContent = icon;
+        if (el.desc) el.desc.textContent = description;
+        if (el.tip) el.tip.textContent = tip;
 
         const now = new Date();
         const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-        const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
         
-        if (elements.date) elements.date.textContent = `${months[now.getMonth()]} ${now.getDate()}, ${now.getFullYear()}`;
-        if (elements.day) elements.day.textContent = days[now.getDay()];
+        if (el.date) el.date.textContent = `${months[now.getMonth()]} ${now.getDate()}, ${now.getFullYear()}`;
+        if (el.day) el.day.textContent = days[now.getDay()];
     },
 
-    // 6. 날씨 API 호출 (데이터 통신 후 5번 displayWeather 호출)
     async fetchWeatherByCity(city) {
         try {
-            // 좌표 가져오기 (Geocoding)
-            const geoResponse = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1`);
-            const geoData = await geoResponse.json();
+            const geoRes = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1`);
+            const geoData = await geoRes.json();
             
             if (geoData.results && geoData.results.length > 0) {
                 const { latitude, longitude } = geoData.results[0];
-                
-                // 실제 날씨 데이터 가져오기
-                const weatherResponse = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,weather_code&temperature_unit=fahrenheit&timezone=auto`);
-                const weatherData = await weatherResponse.json();
-                
-                // 화면 업데이트 호출
-                this.displayWeather(weatherData);
-            } else {
-                console.warn("도시를 찾을 수 없습니다.");
+                const wRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,weather_code&temperature_unit=fahrenheit&timezone=auto`);
+                const wData = await wRes.json();
+                this.displayWeather(wData);
             }
-        } catch (error) {
-            console.error("날씨 정보 로드 중 오류 발생:", error);
+        } catch (e) {
+            console.error("Weather load fail:", e);
         }
     }
-
-
-
 };
+
+// 전역 브릿지
+window.UI = UI;
+window.renderEmotionChart = (history) => UI.renderEmotionChart(history);

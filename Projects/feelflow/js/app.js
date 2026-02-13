@@ -184,8 +184,25 @@ function clearAllData() {
     }
 }
 
+// js/app.js 내 수정
+async function goToHistory() {
+    UI.goToScreen('History', 'My Check-ins');
+    UI.updateNavActive('navHistory');
+    document.getElementById('weatherHeader').style.display = 'none';
+    document.getElementById('greeting').style.display = 'none';
+    
+    const history = await EmotionAPI.fetchHistory();
+    UI.renderHistory(history);
+
+    // ✅ 차트 렌더링 함수 호출 추가
+    if (typeof renderEmotionChart === 'function') {
+        renderEmotionChart(history);
+    }
+}
+
 // js/app.js 맨 하단에 추가
 window.goToResult = goToResult;
 window.goToStrategies = goToStrategies;
 window.selectEmotion = selectEmotion;
 window.updateIntensity = updateIntensity;
+
