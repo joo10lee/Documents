@@ -2312,33 +2312,31 @@
             if (!container) return;
         
             if (!history || history.length === 0) {
-                container.innerHTML = '<div class="empty-state">No check-ins yet.</div>';
+                container.innerHTML = '<div style="text-align:center; padding:40px;">No records yet!</div>';
                 return;
             }
         
             container.innerHTML = history.map(entry => {
-                const date = new Date(entry.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                
-                // 사진 데이터가 있을 경우 이미지 태그 생성
-                const photoHtml = entry.photo 
-                    ? `<div class="history-photo"><img src="${entry.photo}" style="width:100%; border-radius:8px; margin-top:8px;"></div>` 
-                    : '';
+                // 날짜 처리 (서버에서 온 timestamp 대응)
+                const dateObj = new Date(entry.timestamp || entry.createdAt);
+                const timeStr = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                const dateStr = dateObj.toLocaleDateString();
         
                 return `
-                    <div class="history-card">
-                        <div class="history-header">
-                            <span class="history-emoji">${entry.emoji}</span>
-                            <div class="history-info">
-                                <div class="history-emotion">${entry.emotion} (Lv.${entry.intensity})</div>
-                                <div class="history-time">${date}</div>
+                    <div class="history-item" style="flex-direction: column; align-items: flex-start; gap: 10px; padding: 20px;">
+                        <div style="display: flex; align-items: center; gap: 15px; width: 100%;">
+                            <span class="history-emoji" style="font-size: 2.5rem;">${entry.emoji}</span>
+                            <div class="history-details">
+                                <div class="history-emotion" style="font-size: 1.1rem;">${entry.emotion} (Lv.${entry.intensity})</div>
+                                <div class="history-meta">${dateStr} ${timeStr}</div>
                             </div>
                         </div>
-                        ${entry.note ? `<div class="history-note">${entry.note}</div>` : ''}
-                        ${photoHtml} </div>
+                        ${entry.note ? `<div style="background: #f7fafc; padding: 10px; border-radius: 8px; font-size: 0.9rem; width: 100%; color: #4a5568;">${entry.note}</div>` : ''}
+                        ${entry.photo ? `<img src="${entry.photo}" style="width: 100%; border-radius: 12px; margin-top: 5px; border: 1px solid #eee;">` : ''}
+                    </div>
                 `;
             }).join('');
         }
-
         // ===== STRATEGIES =====
         const strategies = {
             Happy: [
@@ -2482,18 +2480,28 @@
             updateNavActive('navHome');
         }
 
-        function goToHistory() {
-            document.getElementById('weatherHeader').style.display = 'none';
-            document.getElementById('greeting').style.display = 'none';
-            
-            // 차트와 리스트를 동시에 호출하되, 에러가 나도 서로 방해하지 않게 합니다.
-            renderHistory().catch(e => console.error(e)); 
-            setTimeout(() => {
-                renderEmotionChart().catch(e => console.error(e));
-            }, 100); // 리스트가 그려진 후 0.1초 뒤에 차트를 그립니다.
+        async function goToHistory() {
+            try {
+                console.log("📅 History 이동 시도...");
+                feedback('tap'); // 소리/진동 피드백
+                
+                // 화면 전환부터 확실히 실행
+                goToScreen('History', 'My Check-ins');
+                updateNavActive('navHistory');
         
-            goToScreen('History', 'My Check-ins');
-            updateNavActive('navHistory');
+                // 데이터 가져오기 및 렌더링
+                const historyData = await EmotionAPI.fetchHistory();
+                renderHistory(historyData);
+                
+                // 차트 업데이트 (0.1초 뒤 실행하여 캔버스 크기 확보)
+                setTimeout(() => {
+                    if (typeof renderEmotionChart === 'function') renderEmotionChart();
+                }, 100);
+            } catch (error) {
+                console.error("History 로드 실패:", error);
+                document.getElementById('historyList').innerHTML = 
+                    '<p style="text-align:center; color:red; padding:20px;">서버와 연결할 수 없습니다.</p>';
+            }
         }
 
         function goToTracker() {
