@@ -3,14 +3,24 @@
  */
 const UI = {
   
-    // 1. 화면 전환 함수
+ // 1. 화면 전환 함수 (히스토리 스택 쌓기)
     goToScreen(screenId, title) {
-        console.log(`🎬 Screen 전환 시도: ${screenId}`);
+        // 💡 실제 화면을 그리는 로직 호출
+        this.renderScreen(screenId, title);
+
+        // 💡 브라우저 히스토리에 상태 저장 (이게 있어야 백 버튼이 동작함)
+        const state = { screenId, title };
+        window.history.pushState(state, "", ""); 
+    },
+
+    // 💡 [신규 추가] 순수하게 화면만 렌더링 (popstate와 중복 사용을 위해 분리)
+    renderScreen(screenId, title) {
+        console.log(`🎨 화면 렌더링: ${screenId}`);
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
 
         let targetScreen = typeof screenId === 'number' 
             ? document.querySelectorAll('.screen')[screenId] 
-            : document.getElementById('screen' + screenId);
+            : document.getElementById(screenId.startsWith('screen') ? screenId : 'screen' + screenId);
 
         if (targetScreen) {
             targetScreen.classList.add('active');
@@ -19,8 +29,20 @@ const UI = {
                 if (titleEl) titleEl.textContent = title;
             }
             window.scrollTo(0, 0);
+        }
+
+        // 💡 활동 화면이 아닌 곳으로 이동 시 활동 중단(Cleanup)
+        if (screenId !== 'Activity' && screenId !== 'screenActivity' && window.Activities?.stopAll) {
+            window.Activities.stopAll();
+        }
+    },
+
+    // 💡 [신규 추가] 인앱 백 버튼 함수
+    back() {
+        if (window.history.length > 1) {
+            window.history.back();
         } else {
-            console.error(`❌ 스크린을 찾을 수 없습니다: screen${screenId}`);
+            this.goToScreen('1', 'How are you feeling?');
         }
     },
 
@@ -176,5 +198,15 @@ const UI = {
 };
 
 // 전역 등록
+// 💡 브라우저/하드웨어 백 버튼 클릭 시 실행
+window.onpopstate = function(event) {
+    if (event.state) {
+        // 히스토리에 저장된 이전 화면 ID로 화면만 다시 그림 (pushState 호출 안 함)
+        UI.renderScreen(event.state.screenId, event.state.title);
+    } else {
+        // 초기 상태(홈 화면)
+        UI.renderScreen('1', 'How are you feeling?');
+    }
+};
 window.UI = UI;
 window.renderEmotionChart = (history) => UI.renderEmotionChart(history);
