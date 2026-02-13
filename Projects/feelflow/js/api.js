@@ -1,76 +1,45 @@
-// public/js/api.js
+// 1. 서버 주소 설정 (ngrok)
 const API_BASE_URL = 'https://ungainable-sonja-bewailingly.ngrok-free.dev';
 
 /**
- * EmotionAPI: 서버(ngrok)와 통신하여 감정 기록을 관리합니다.
+ * [통합] EmotionAPI: 서버 통신 및 로컬 대기열(Queue) 관리
  */
 const EmotionAPI = {
-    // 공통 헤더 (ngrok 우회 포함)
     headers: {
         'Content-Type': 'application/json',
         'ngrok-skip-browser-warning': 'true'
     },
 
-    // 1. 전체 기록 가져오기 (GET)
-    async fetchHistory() {
-        try {
-            const response = await fetch(`${API_BASE_URL}/api/emotions`, {
-                headers: this.headers
-            });
-            if (!response.ok) throw new Error("네트워크 응답 에러");
-            return await response.json();
-        } catch (error) {
-            console.error("데이터 로드 실패:", error);
-            throw error;
-        }
+    // A. [Network] 실제 서버로 전송 (저수준 함수)
+    async _postToServer(entry) {
+        const response = await fetch(`${API_BASE_URL}/api/emotions`, {
+            method: 'POST',
+            headers: this.headers,
+            body: JSON.stringify(entry)
+        });
+        if (!response.ok) throw new Error("서버 응답 오류");
+        return await response.json();
     },
 
-    // 2. 단일 기록 저장하기 (POST)
-    // 💡 함수 이름을 app.js에서 호출하는 'saveCheckIn'으로 맞춥니다.
-    async saveCheckIn(entry) {
-        try {
-            console.log("🚀 서버로 데이터 전송 중...", entry);
-            const response = await fetch(`${API_BASE_URL}/api/emotions`, {
-                method: 'POST',
-                headers: this.headers,
-                body: JSON.stringify(entry)
-            });
-            
-            if (!response.ok) throw new Error("서버 저장 실패");
-            return await response.json();
-        } catch (error) {
-            console.error("서버 전송 실패, 하지만 로직을 계속 진행합니다.");
-            // 오프라인 대응이 필요하다면 여기서 LocalStorage 로직을 추가할 수 있습니다.
-            throw error;
-        }
-    }
-};
-
-// 전역에서 접근 가능하도록 등록
-window.EmotionAPI = EmotionAPI;
-
-// public/js/api.js 하단에 추가
-
-const EmotionManager = {
-    // 1. 체크인 저장 (기존 saveCheckIn 대체)
+    // B. [Main] app.js가 호출하는 저장 함수
     async saveCheckIn(entry) {
         console.log("🚀 저장 프로세스 시작:", entry.emotion);
         
-        // 로컬 대기열 관리
+        // 1. 로컬 대기열에 추가 (서버 장애 대비)
         let queue = JSON.parse(localStorage.getItem('emotionQueue') || '[]');
         queue.push(entry);
         localStorage.setItem('emotionQueue', JSON.stringify(queue));
 
-        // 로컬 히스토리 업데이트 (즉시 반영용)
+        // 2. 로컬 히스토리에 즉시 반영 (사용자 체감 속도 향상)
         const history = JSON.parse(localStorage.getItem('feelflow_history') || '[]');
         history.unshift(entry);
         localStorage.setItem('feelflow_history', JSON.stringify(history));
 
-        // 서버 동기화 시도
+        // 3. 서버 동기화 시도 (비동기)
         return await this.syncQueue();
     },
 
-    // 2. 서버 동기화 (기존 syncQueueWithServer 대체)
+    // C. [Sync] 대기열 비우기 및 서버 동기화
     async syncQueue() {
         let queue = JSON.parse(localStorage.getItem('emotionQueue') || '[]');
         if (queue.length === 0) return;
@@ -80,108 +49,93 @@ const EmotionManager = {
 
         for (const item of queue) {
             try {
-                // 아까 만든 EmotionAPI.saveEntry 사용
-                await EmotionAPI.saveEntry(item); 
+                // 실제 서버 전송 호출
+                await this._postToServer(item); 
                 console.log("✅ 서버 전송 성공:", item.emotion);
             } catch (error) {
-                console.warn("⚠️ 전송 실패: 대기열 유지");
+                console.warn("⚠️ 전송 실패: 다음 기회에 재시도", error.message);
                 remainingQueue.push(item);
             }
         }
         localStorage.setItem('emotionQueue', JSON.stringify(remainingQueue));
+    },
+
+    // D. [History] 전체 기록 가져오기
+    async fetchHistory() {
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/emotions`, { headers: this.headers });
+            if (!response.ok) throw new Error("로드 에러");
+            return await response.json();
+        } catch (error) {
+            console.warn("서버 로드 실패, 로컬 데이터를 불러옵니다.");
+            return JSON.parse(localStorage.getItem('feelflow_history') || '[]');
+        }
     }
 };
 
-// 카메라 및 인앱 액션 관리 객체
+/**
+ * EmotionActions: 카메라 및 인앱 액션 관리
+ */
 const EmotionActions = {
-    // 내부 변수
     activeStream: null, 
     capturedPhoto: null,
 
-    // 1. 카메라 시작
     async startCamera() {
         const video = document.getElementById('videoElement');
         const container = document.getElementById('videoContainer');
         const cameraBtn = document.getElementById('cameraBtn');
-
         try {
-            // 카메라 중복 실행 방지
             if (this.activeStream) this.stopCamera();
-
             const stream = await navigator.mediaDevices.getUserMedia({ 
                 video: { facingMode: "environment" }, 
                 audio: false 
             });
-            
-            this.activeStream = stream; // 변수에 스트림 저장
+            this.activeStream = stream;
             video.srcObject = stream;
-            
             container.style.display = 'block';
             cameraBtn.style.display = 'none';
-            console.log("📸 카메라 시작됨");
-        } catch (err) {
-            alert("카메라를 켤 수 없습니다: " + err.message);
-        }
+        } catch (err) { alert("카메라를 켤 수 없습니다: " + err.message); }
     },
 
-    // 2. 사진 촬영 및 종료
     takePhoto() {
         const video = document.getElementById('videoElement');
         const canvas = document.getElementById('hiddenCanvas');
         const previewImg = document.getElementById('capturedPhoto');
         const previewContainer = document.getElementById('photoPreviewContainer');
-        const videoContainer = document.getElementById('videoContainer');
 
-        if (!video.videoWidth) return; // 비디오 로드 확인
-
-        // 캔버스에 그리기
+        if (!video || !video.videoWidth) return;
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
         canvas.getContext('2d').drawImage(video, 0, 0);
 
-        // 데이터 저장
         this.capturedPhoto = canvas.toDataURL('image/jpeg', 0.5);
         previewImg.src = this.capturedPhoto;
         
-        // UI 전환
         previewContainer.style.display = 'block';
-        videoContainer.style.display = 'none';
-        
-        // ✅ 여기서 카메라를 확실히 끕니다.
+        document.getElementById('videoContainer').style.display = 'none';
         this.stopCamera();
-        console.log("✅ 촬영 완료 및 카메라 종료");
     },
 
-    // 3. 카메라 엔진 끄기 (핵심 로직)
     stopCamera() {
         if (this.activeStream) {
-            const tracks = this.activeStream.getTracks();
-            tracks.forEach(track => {
-                track.stop(); // 트랙 정지
-                console.log(`🚫 ${track.kind} 트랙 정지됨`);
-            });
+            this.activeStream.getTracks().forEach(track => track.stop());
             this.activeStream = null;
         }
-        
         const video = document.getElementById('videoElement');
-        if (video) video.srcObject = null; // 비디오 연결 해제
+        if (video) video.srcObject = null;
     },
 
-    // 4. 리셋 (다시 찍기 버튼용)
     reset() {
         this.capturedPhoto = null;
         this.stopCamera();
-        
-        const preview = document.getElementById('photoPreviewContainer');
-        if (preview) preview.style.display = 'none';
-        
-        const cameraBtn = document.getElementById('cameraBtn');
-        if (cameraBtn) cameraBtn.style.display = 'block';
-        
-        const videoContainer = document.getElementById('videoContainer');
-        if (videoContainer) videoContainer.style.display = 'none';
-
+        document.getElementById('photoPreviewContainer').style.display = 'none';
+        document.getElementById('cameraBtn').style.display = 'block';
+        document.getElementById('videoContainer').style.display = 'none';
         const actionNote = document.getElementById('actionNote');
         if (actionNote) actionNote.value = '';
     }
 };
+
+// 전역 브릿지 등록
+window.EmotionAPI = EmotionAPI;
+window.EmotionActions = EmotionActions;
