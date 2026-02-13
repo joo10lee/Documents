@@ -24,7 +24,7 @@ const UI = {
                 const titleEl = document.getElementById('screenTitle');
                 if (titleEl) titleEl.textContent = title;
             }
-            // 💡 상단 스크롤 초기화
+            // 상단 스크롤 초기화
             window.scrollTo(0, 0);
         } else {
             console.error(`❌ 스크린을 찾을 수 없습니다: screen${screenId}`);
@@ -38,57 +38,63 @@ const UI = {
         if (activeBtn) activeBtn.classList.add('active');
     },
 
-    // 3. [복구] 7일 감정 트렌드 차트 렌더링
+    // 3. [개선] 7일 감정 트렌드 차트 렌더링 (지연 실행 추가)
     renderEmotionChart(history) {
-        const ctx = document.getElementById('emotionChart');
-        if (!ctx || !window.Chart) return;
-
-        // 최근 7일 라벨 생성 (월/일 형식)
-        const labels = [];
-        for (let i = 6; i >= 0; i--) {
-            const d = new Date();
-            d.setDate(d.getDate() - i);
-            labels.push(d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
-        }
-
-        // 날짜별 평균 강도 계산: $Average = \frac{\sum Intensity}{Count}$
-        const dataPoints = labels.map(label => {
-            const dayEntries = history.filter(h => 
-                new Date(h.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) === label
-            );
-            if (dayEntries.length === 0) return 0;
-            const sum = dayEntries.reduce((acc, curr) => acc + curr.intensity, 0);
-            return (sum / dayEntries.length).toFixed(1);
-        });
-
-        if (window.myEmotionChart) window.myEmotionChart.destroy();
-
-        window.myEmotionChart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'Avg. Intensity',
-                    data: dataPoints,
-                    borderColor: '#7c3aed',
-                    backgroundColor: 'rgba(124, 58, 237, 0.1)',
-                    borderWidth: 3,
-                    tension: 0.4,
-                    fill: true,
-                    pointBackgroundColor: '#7c3aed',
-                    pointRadius: 4
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: { beginAtZero: true, max: 10, ticks: { stepSize: 2 } },
-                    x: { grid: { display: false } }
-                },
-                plugins: { legend: { display: false } }
+        // 💡 중요: 화면 전환 후 캔버스가 완전히 그려질 시간을 줍니다.
+        setTimeout(() => {
+            const ctx = document.getElementById('emotionChart');
+            if (!ctx || !window.Chart) {
+                console.warn("차트 캔버스나 라이브러리를 찾을 수 없습니다.");
+                return;
             }
-        });
+
+            // 최근 7일 라벨 생성 (월/일 형식)
+            const labels = [];
+            for (let i = 6; i >= 0; i--) {
+                const d = new Date();
+                d.setDate(d.getDate() - i);
+                labels.push(d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+            }
+
+            // 날짜별 평균 강도 계산: $$Average = \frac{\sum Intensity}{Count}$$
+            const dataPoints = labels.map(label => {
+                const dayEntries = history.filter(h => 
+                    new Date(h.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) === label
+                );
+                if (dayEntries.length === 0) return 0;
+                const sum = dayEntries.reduce((acc, curr) => acc + curr.intensity, 0);
+                return (sum / dayEntries.length).toFixed(1);
+            });
+
+            if (window.myEmotionChart) window.myEmotionChart.destroy();
+
+            window.myEmotionChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Avg. Intensity',
+                        data: dataPoints,
+                        borderColor: '#7c3aed',
+                        backgroundColor: 'rgba(124, 58, 237, 0.1)',
+                        borderWidth: 3,
+                        tension: 0.4,
+                        fill: true,
+                        pointBackgroundColor: '#7c3aed',
+                        pointRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true, max: 10, ticks: { stepSize: 2 } },
+                        x: { grid: { display: false } }
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }, 150); // 150ms 지연으로 렌더링 안정성 확보
     },
 
     // 4. 감정 기록 목록 렌더링
@@ -126,11 +132,11 @@ const UI = {
         }).join('');
     },
 
-    // 5. 날씨 시스템 (Los Gatos 최적화)
+    // 5. 날씨 시스템 (로스 가토스 최적화 및 화씨 기준)
     getWeatherInfo(code, temp) {
         const weatherMap = {
             0: { icon: '☀️', description: 'Clear', baseTip: 'Perfect day for golf! ⛳' },
-            3: { icon: '☁️', description: 'Cloudy', baseTip: 'Cozy day for gaming. 🎮' },
+            3: { icon: '☁️', description: 'Cloudy', baseTip: 'Cozy day for gaming on PS5. 🎮' },
             61: { icon: '🌧️', description: 'Rain', baseTip: 'Grab an umbrella! ☔' }
         };
         const info = weatherMap[code] || { icon: '🌤️', description: 'Fair', baseTip: 'Have a great day!' };
@@ -182,6 +188,6 @@ const UI = {
     }
 };
 
-// 전역 브릿지
+// 전역 브릿지 등록
 window.UI = UI;
 window.renderEmotionChart = (history) => UI.renderEmotionChart(history);

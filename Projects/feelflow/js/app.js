@@ -71,14 +71,27 @@ function goHome() {
     document.getElementById('greeting').style.display = 'block';
 }
 
+// js/app.js 내 해당 함수 수정
 async function goToHistory() {
     UI.goToScreen('History', 'My Check-ins');
     UI.updateNavActive('navHistory');
-    document.getElementById('weatherHeader').style.display = 'none';
-    document.getElementById('greeting').style.display = 'none';
     
+    // 헤더 숨기기
+    const weatherHeader = document.getElementById('weatherHeader');
+    const greeting = document.getElementById('greeting');
+    if (weatherHeader) weatherHeader.style.display = 'none';
+    if (greeting) greeting.style.display = 'none';
+    
+    // 1. 데이터 가져오기
     const history = await EmotionAPI.fetchHistory();
+    
+    // 2. 리스트 렌더링
     UI.renderHistory(history);
+
+    // 3. ✅ 차트 렌더링 호출 (이 줄이 빠져있을 확률이 높습니다)
+    if (typeof renderEmotionChart === 'function') {
+        renderEmotionChart(history);
+    }
 }
 
 function goToTracker() {
