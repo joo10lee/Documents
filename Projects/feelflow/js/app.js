@@ -183,3 +183,9 @@ function clearAllData() {
         location.reload();
     }
 }
+
+// js/app.js 맨 하단에 추가
+window.goToResult = goToResult;
+window.goToStrategies = goToStrategies;
+window.selectEmotion = selectEmotion;
+window.updateIntensity = updateIntensity;
