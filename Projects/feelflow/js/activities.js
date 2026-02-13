@@ -6,42 +6,61 @@
 let audioCtx = null;
 
 const Activities = {
-    // 💡 1. 오디오/햅틱 피드백 엔진 (Rich Feedback)
-    initAudio() {
-        if (!audioCtx) {
-            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        }
-        if (audioCtx.state === 'suspended') audioCtx.resume();
-    },
+ // 💡 1. 오디오/햅틱 피드백 엔진 (iOS/안드로이드 호환성 강화)
+ initAudio() {
+    if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    // 사용자의 터치 없이 재생되는 것을 막는 브라우저 정책 대응
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+},
 
-    feedback(type) {
-        this.initAudio();
-        const sounds = {
-            tap: { freq: 880, dur: 0.1, vib: 15 },
-            tick: { freq: 440, dur: 0.05, vib: 8 },
-            success: { freq: [523.25, 659.25, 783.99], dur: 0.5, vib: [50, 100, 50] }
-        };
-        const cfg = sounds[type];
-        if (!cfg) return;
+feedback(type) {
+    this.initAudio();
+    const sounds = {
+        tap: { freq: 880, dur: 0.1, vib: 15 },
+        tick: { freq: 440, dur: 0.05, vib: 8 },
+        success: { freq: [523.25, 659.25, 783.99], dur: 0.5, vib: [50, 100, 50] }
+    };
+    const cfg = sounds[type];
+    if (!cfg) return;
 
+    // 💡 오디오 컨텍스트가 활성화된 상태인지 한 번 더 확인
+    if (audioCtx.state === 'running') {
         if (Array.isArray(cfg.freq)) {
-            cfg.freq.forEach((f, i) => this.playTone(f, cfg.dur, audioCtx.currentTime + i * 0.1));
+            cfg.freq.forEach((f, i) => {
+                // 코드(Chord) 재생 시 타이밍 오프셋을 더 정밀하게 계산
+                this.playTone(f, cfg.dur, audioCtx.currentTime + (i * 0.1) + 0.05);
+            });
         } else {
-            this.playTone(cfg.freq, cfg.dur);
+            // 일반 비프음 재생 시에도 50ms의 여유를 주어 끊김 방지
+            this.playTone(cfg.freq, cfg.dur, audioCtx.currentTime + 0.05);
         }
-        if (navigator.vibrate) navigator.vibrate(cfg.vib);
-    },
+    }
+    
+    if (navigator.vibrate) navigator.vibrate(cfg.vib);
+},
 
-    playTone(freq, dur, startTime = null) {
-        const start = startTime || audioCtx.currentTime;
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.frequency.setValueAtTime(freq, start);
-        gain.gain.setValueAtTime(0.1, start);
-        gain.gain.exponentialRampToValueAtTime(0.01, start + dur);
-        osc.connect(gain); gain.connect(audioCtx.destination);
-        osc.start(start); osc.stop(start + dur);
-    },
+playTone(freq, dur, startTime) {
+    // 💡 시작 시간이 현재보다 과거가 되지 않도록 안전장치 마련
+    const start = Math.max(startTime, audioCtx.currentTime + 0.02);
+    
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    
+    osc.type = 'sine'; // 부드러운 소리를 위해 사인파 유지
+    osc.frequency.setValueAtTime(freq, start);
+    
+    // 볼륨 설정: 시작은 0.1, 끝은 0.001로 감쇄 (지수 방식)
+    gain.gain.setValueAtTime(0.1, start);
+    gain.gain.exponentialRampToValueAtTime(0.001, start + dur);
+    
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    
+    osc.start(start);
+    osc.stop(start + dur);
+},
 
     // 💡 2. 자원 정리 (Navigation Cleanup)
     stopAll() {
