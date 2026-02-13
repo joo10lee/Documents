@@ -1,6 +1,9 @@
 // public/js/api.js
 const API_BASE_URL = 'https://ungainable-sonja-bewailingly.ngrok-free.dev';
 
+/**
+ * EmotionAPI: 서버(ngrok)와 통신하여 감정 기록을 관리합니다.
+ */
 const EmotionAPI = {
     // 공통 헤더 (ngrok 우회 포함)
     headers: {
@@ -23,20 +26,28 @@ const EmotionAPI = {
     },
 
     // 2. 단일 기록 저장하기 (POST)
-    async saveEntry(entry) {
+    // 💡 함수 이름을 app.js에서 호출하는 'saveCheckIn'으로 맞춥니다.
+    async saveCheckIn(entry) {
         try {
+            console.log("🚀 서버로 데이터 전송 중...", entry);
             const response = await fetch(`${API_BASE_URL}/api/emotions`, {
                 method: 'POST',
                 headers: this.headers,
                 body: JSON.stringify(entry)
             });
+            
+            if (!response.ok) throw new Error("서버 저장 실패");
             return await response.json();
         } catch (error) {
-            console.warn("서버 전송 실패, 로컬 대기열에 저장합니다.");
+            console.error("서버 전송 실패, 하지만 로직을 계속 진행합니다.");
+            // 오프라인 대응이 필요하다면 여기서 LocalStorage 로직을 추가할 수 있습니다.
             throw error;
         }
     }
 };
+
+// 전역에서 접근 가능하도록 등록
+window.EmotionAPI = EmotionAPI;
 
 // public/js/api.js 하단에 추가
 
