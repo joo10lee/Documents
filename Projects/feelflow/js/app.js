@@ -156,25 +156,26 @@ function resetAppInput() {
 }
 
 // 8. 서브 화면 이동
-async function goToHistory() {
-    UI.goToScreen('History', 'My Check-ins');
-    UI.updateNavActive('navHistory');
-    
-    document.getElementById('weatherHeader').style.display = 'none';
-    document.getElementById('greeting').style.display = 'none';
-
-    try {
-        const history = await EmotionAPI.fetchHistory();
-        UI.renderHistory(history);
-        if (typeof renderEmotionChart === 'function') renderEmotionChart(history);
-    } catch (error) { console.error("History 로드 실패"); }
-}
-
+// app.js의 goToTracker와 goToHistory 함수 내부를 아래처럼 보강하세요.
 function goToTracker() {
     UI.goToScreen('Tracker', 'Life Skills Tracker');
     UI.updateNavActive('navTracker');
-    document.getElementById('weatherHeader').style.display = 'none';
-    document.getElementById('greeting').style.display = 'none';
+    // 💡 화면 진입 시 트래커 다시 렌더링 강제
+    if (window.Tracker && typeof window.Tracker.render === 'function') {
+        window.Tracker.render();
+    }
+}
+
+function goToHistory() {
+    UI.goToScreen('History', 'My Check-ins');
+    UI.updateNavActive('navHistory');
+    // 💡 화면 진입 시 히스토리 및 차트 로드 강제
+    if (typeof UI.renderHistory === 'function') {
+        EmotionAPI.fetchHistory().then(data => {
+            UI.renderHistory(data);
+            if (typeof renderEmotionChart === 'function') renderEmotionChart(data);
+        });
+    }
 }
 
 function goToSettings() {
