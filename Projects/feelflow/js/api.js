@@ -129,7 +129,7 @@ const EmotionActions = {
         canvas.getContext('2d').drawImage(video, 0, 0);
 
         // 데이터 저장
-        this.capturedPhoto = canvas.toDataURL('image/jpeg', 0.7);
+        this.capturedPhoto = canvas.toDataURL('image/jpeg', 0.5);
         previewImg.src = this.capturedPhoto;
         
         // UI 전환

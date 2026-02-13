@@ -2319,26 +2319,28 @@
             container.innerHTML = history.map(entry => {
                 const dateObj = new Date(entry.timestamp || entry.createdAt);
                 const timeStr = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                const dateStr = dateObj.toLocaleDateString();
         
-                // ✅ 사진 데이터(Base64)가 있는지 확인하고 HTML 생성
-                const photoHtml = entry.photo 
-                    ? `<div style="margin-top: 12px; width: 100%; overflow: hidden; border-radius: 12px; border: 1px solid #edf2f7;">
-                         <img src="${entry.photo}" style="width: 100%; display: block; object-fit: cover;" alt="Captured moment">
-                       </div>` 
-                    : '';
+                // ✅ 사진 데이터가 문자열로 정상적으로 들어있는지 확인
+                let photoHtml = '';
+                if (entry.photo && typeof entry.photo === 'string' && entry.photo.startsWith('data:image')) {
+                    photoHtml = `
+                        <div style="margin-top: 15px; border-radius: 15px; overflow: hidden; border: 1px solid #edf2f7;">
+                            <img src="${entry.photo}" style="width: 100%; display: block;" alt="Check-in photo">
+                        </div>`;
+                }
         
                 return `
-                    <div class="history-item" style="background: white; border-radius: 20px; padding: 20px; margin-bottom: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); border: 1px solid #f7fafc;">
+                    <div class="history-item" style="background: white; border-radius: 20px; padding: 20px; margin-bottom: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
                         <div style="display: flex; align-items: center; gap: 15px;">
                             <span style="font-size: 2.5rem;">${entry.emoji}</span>
                             <div>
                                 <div style="font-weight: 700; color: #2d3748; font-size: 1.1rem;">${entry.emotion} (Lv.${entry.intensity})</div>
-                                <div style="font-size: 0.85rem; color: #a0aec0;">${dateStr} ${timeStr}</div>
+                                <div style="font-size: 0.85rem; color: #a0aec0;">${timeStr}</div>
                             </div>
                         </div>
-                        ${entry.note ? `<div style="margin-top: 12px; padding: 12px; background: #f8fafc; border-radius: 10px; font-size: 0.95rem; color: #4a5568; line-height: 1.5;">${entry.note}</div>` : ''}
-                        ${photoHtml} </div>
+                        ${entry.note ? `<div style="margin-top: 12px; padding: 12px; background: #f8fafc; border-radius: 12px; font-size: 0.95rem; color: #4a5568;">${entry.note}</div>` : ''}
+                        ${photoHtml}
+                    </div>
                 `;
             }).join('');
         }
@@ -2444,35 +2446,35 @@
 
   // index.html 내의 finishCheckIn 함수 수정
         async function finishCheckIn() {
-            // 1. 메인 메모와 액션 메모의 '값(.value)'을 각각 가져옵니다.
             const mainNote = document.getElementById('emotionNote').value.trim();
+            
+            // ✅ ID가 'actionNote'인 요소를 가져온 뒤 반드시 .value를 호출해야 합니다!
             const actionNoteEl = document.getElementById('actionNote');
-            const actionNoteVal = actionNoteEl ? actionNoteEl.value.trim() : ''; // 여기서 .value가 핵심!
+            const actionNoteValue = actionNoteEl ? actionNoteEl.value.trim() : ''; 
 
-            // 2. 두 메모를 합칩니다.
-            const finalNote = [mainNote, actionNoteVal].filter(n => n).join(' | Action: ');
+            const finalNote = [mainNote, actionNoteValue].filter(n => n).join(' | Action: ');
 
             const entry = {
                 emotion: currentEmotion.name,
                 emoji: currentEmotion.emoji,
-                intensity: currentEmotion.intensity,
+                intensity: parseInt(currentEmotion.intensity),
                 note: finalNote,
-                photo: EmotionActions.capturedPhoto, // api.js에서 관리하는 사진 데이터
+                photo: EmotionActions.capturedPhoto, // ✅ api.js에 저장된 사진 데이터
                 timestamp: new Date().toISOString()
             };
 
-            // 3. 저장 및 초기화
-            await EmotionManager.saveCheckIn(entry);
+            console.log("📤 서버로 전송할 데이터:", entry); // 디버깅용
+
+            await EmotionManager.saveCheckIn(entry); 
             
-            // 입력창들 비우기
+            // 초기화 로직
             document.getElementById('emotionNote').value = '';
-            if (actionNoteEl) actionNoteEl.value = ''; 
-            
+            if (actionNoteEl) actionNoteEl.value = '';
             EmotionActions.reset();
             
-            // 4. 히스토리 갱신 및 화면 이동
-            const historyData = await EmotionAPI.fetchHistory();
-            renderHistory(historyData);
+            // 히스토리 다시 불러오기
+            const updatedHistory = await EmotionAPI.fetchHistory();
+            renderHistory(updatedHistory);
             
             goToScreen(5, 'You Did It!');
         }
