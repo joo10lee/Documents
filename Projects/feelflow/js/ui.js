@@ -3,17 +3,21 @@
  */
 const UI = {
     // 1. 화면 전환 함수
-    goToScreen(screenIndex, title = "FeelFlow") {
+    // 1. 화면 전환 함수 (중복 방지를 위해 screenTitle 타겟팅 수정)
+    goToScreen(screenIndex, title = "") {
         console.log(`🎬 Screen 전환: ${screenIndex}`);
         const screens = document.querySelectorAll('.screen');
         screens.forEach(s => s.classList.remove('active'));
 
-        // ID 기반 또는 Index 기반 호출 모두 대응
         const target = typeof screenIndex === 'number' ? screens[screenIndex] : document.getElementById(`screen${screenIndex}`);
         if (target) target.classList.add('active');
 
-        const headerTitle = document.querySelector('.app-title');
-        if (headerTitle) headerTitle.textContent = title;
+        // ✅ 수정 포인트: .app-title 대신 id="screenTitle"을 업데이트합니다.
+        const screenTitle = document.getElementById('screenTitle');
+        if (screenTitle) {
+            screenTitle.textContent = title;
+        }
+
         window.scrollTo(0, 0);
     },
 
