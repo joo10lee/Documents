@@ -78,19 +78,20 @@ const Activities = {
                 btn.onclick = () => { if(typeof window.finishCheckIn === 'function') window.finishCheckIn(); };
             }
 
-            switch(type) {
-                case '5-4-3-2-1 Grounding': this.startGroundingAnimation(); break;
-                case 'Deep Breathing': this.startBreathingAnimation(); break;
-                case 'Big Hug': this.startBigHugTimer(); break;
-                case 'Squeeze & Release': this.startSqueezeAction(); break;
-                case 'Push the Wall': this.startPushWallAction(); break;
-                case 'Take a Break': this.startJasonBreakQuest(); break;
-                case 'Share the joy': this.startSMSAction(); break;
-                case 'Listen to music': this.startMusicAction(); break;
-                case 'Capture the moment': this.startCaptureAction(); break;
-                case 'Hold Something Cold': this.startColdSqueezeAnimation(); break;
-                default: this.startWriteAction(`Focus on ${type}`);
-            }
+            // setupActivity 함수 내부
+        switch(type) {
+            case '5-4-3-2-1 Grounding': this.startGroundingAnimation(); break; // 💡 이름 변경
+            case 'Squeeze & Release': this.startSqueezeAction(); break;      // 💡 이름 변경
+            case 'Push the Wall': this.startPushWallAction(); break;        // 💡 이름 변경
+            case 'Take a Break': this.startJasonBreakQuest(); break;        // 💡 Jason 전용 엔진
+            case 'Deep Breathing': this.startBreathingAnimation(); break;
+            case 'Big Hug': this.startBigHugTimer(); break;
+            case 'Share the joy': this.startSMSAction(); break;
+            case 'Listen to music': this.startMusicAction(); break;
+            case 'Capture the moment': this.startCaptureAction(); break;
+            case 'Hold Something Cold': this.startColdSqueezeAnimation(); break;
+            default: this.startWriteAction(`Focus on ${type}`);
+        }
         }, 100);
     },
 
@@ -194,12 +195,28 @@ const Activities = {
     // 7. [복구] Push the Wall
     startPushWallAction() {
         const area = document.getElementById('inAppActionArea');
-        area.innerHTML = `<div style="text-align:center; padding:20px;"><div id="pCir" style="width:130px; height:130px; margin:0 auto; border:8px solid #ef4444; border-radius:50%; display:flex; justify-content:center; align-items:center; font-size:3.5rem; font-weight:900; color:#ef4444;">15</div><div id="pBar" style="width:0%; height:12px; background:#ef4444; margin-top:30px; border-radius:6px; transition: width 1s linear;"></div><p style="margin-top:20px; font-weight:800;">PUSH THE WALL HARD!</p></div>`;
-        let t = 15; const circle = document.getElementById('pCir'); const bar = document.getElementById('pBar');
+        area.innerHTML = `
+            <div id="pContainer" style="text-align:center; padding:20px;">
+                <div id="pCir" style="width:130px; height:130px; margin:0 auto; border:10px solid #ef4444; border-radius:50%; display:flex; justify-content:center; align-items:center; font-size:3.5rem; font-weight:900; color:#ef4444;">15</div>
+                <div style="width:100%; height:12px; background:#e2e8f0; margin-top:30px; border-radius:6px; overflow:hidden;"><div id="pBar" style="width:0%; height:100%; background:#ef4444; transition: width 1s linear;"></div></div>
+                <p id="pInstr" style="margin-top:20px; font-weight:800;">PUSH THE WALL HARD!</p>
+            </div>
+            <style>
+                @keyframes strain { 0% { transform: translate(1px, 1px); } 50% { transform: translate(-1px,-2px); } 100% { transform: translate(1px,1px); } }
+                .straining { animation: strain 0.1s infinite; }
+            </style>
+        `;
+        let t = 15; const circle = document.getElementById('pCir');
         const itv = setInterval(() => {
-            if (!circle || t <= 0) { clearInterval(itv); if(circle) circle.textContent="💪"; return; }
-            t--; circle.textContent = t; if (bar) bar.style.width = `${((15-t)/15)*100}%`;
-            if (navigator.vibrate) navigator.vibrate(60);
+            if (!circle) { clearInterval(itv); return; }
+            t--; circle.textContent = t;
+            document.getElementById('pBar').style.width = `${((15-t)/15)*100}%`;
+            if (t <= 10) circle.classList.add('straining');
+            if (navigator.vibrate) navigator.vibrate(t <= 5 ? 80 : 40);
+            if (t <= 0) { 
+                clearInterval(itv); circle.classList.remove('straining'); 
+                circle.textContent = "💪"; circle.style.color = "#22c55e"; circle.style.borderColor = "#22c55e";
+            }
         }, 1000);
     },
 
@@ -207,9 +224,15 @@ const Activities = {
     startJasonBreakQuest() {
         const area = document.getElementById('inAppActionArea');
         const quests = ["🎸 1분간 기타/드럼 자유 연주하기", "🎤 좋아하는 합창곡 소리 내어 부르기", "🎶 새 음악 찾아 3분간 감상하기", "🧘 30초간 기지개 크게 켜기"];
-        const quest = quests[Math.floor(Math.random() * quests.length)];
-        area.innerHTML = `<div style="padding:25px; background:#eff6ff; border:3px solid #3b82f6; border-radius:25px; text-align:center;"><h3 style="color:#1d4ed8;">Hey Jason! 🕺</h3><p style="font-size:1.4rem; font-weight:800;">"${quest}"</p><button id="searchIdeasBtn" class="btn" style="background:#3b82f6; color:white; width:100%; margin-top:15px;">🔍 아이디어 더 보기</button></div>`;
-        document.getElementById('searchIdeasBtn').onclick = () => window.open(`https://www.google.com/search?q=${encodeURIComponent("fun creative break for musical teens")}`, '_blank');
+        const q = quests[Math.floor(Math.random() * quests.length)];
+        area.innerHTML = `
+            <div style="padding:25px; background:#eff6ff; border:3px solid #3b82f6; border-radius:25px; text-align:center;">
+                <h3 style="color:#1d4ed8; margin-bottom:10px;">Hey Jason! 🕺</h3>
+                <p style="font-size:1.4rem; font-weight:800;">"${q}"</p>
+                <button id="sB" class="btn" style="background:#3b82f6; color:white; width:100%; margin-top:15px; border-radius:15px;">🔍 아이디어 더 보기</button>
+            </div>
+        `;
+        document.getElementById('sB').onclick = () => window.open(`https://www.google.com/search?q=${encodeURIComponent("fun break for musical teens")}`, '_blank');
     },
 
     // 9. 기타 원본 로직 유지
