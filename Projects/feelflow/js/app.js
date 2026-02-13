@@ -2,8 +2,8 @@
  * Main App Module: 전역 상태 관리 및 앱 초기화 담당
  */
 
-// 1. 전역 상태 관리 (객체 구조 유지)
-let currentEmotion = { name: '', emoji: '', intensity: 5 };
+// 1. 전역 상태 관리
+let currentEmotion = { name: '', emoji: '', intensity: 5, color: '' };
 let currentRoutine = 'morning'; 
 
 // 2. 앱 초기화
@@ -22,34 +22,23 @@ async function initApp() {
 }
 
 // 3. 감정 및 강도 제어
-/**
- * 감정 선택 처리 함수
- * 1. 사운드 엔진 잠금 해제
- * 2. 선택 데이터 저장
- * 3. 히스토리 기반 화면 전환
- */
 function selectEmotion(name, emoji, color) {
-    // 💡 [핵심 1] 사운드/햅틱 엔진 기상 (Browser Autoplay Policy 해제)
     if (window.Activities) {
         window.Activities.initAudio();
-        window.Activities.feedback('tap'); // 즉각적인 햅틱 피드백
+        window.Activities.feedback('tap'); 
     }
 
-    // 💡 데이터 저장 (color 값도 저장해두면 나중에 UI 테마 스티칭 시 유용합니다)
     currentEmotion.name = name;
     currentEmotion.emoji = emoji;
     currentEmotion.color = color; 
     
-    // Screen 2(Intensity)를 위한 UI 업데이트
     const emojiDisplay = document.getElementById('selectedEmoji');
     const nameDisplay = document.getElementById('selectedName');
     if (emojiDisplay) emojiDisplay.textContent = emoji;
     if (nameDisplay) nameDisplay.textContent = name;
     
-    // 💡 [핵심 2] 하드코딩된 숫자(1) 대신 문자열 ID 사용 (UI.js의 pushState와 연동)
-    if (window.UI) {
-        window.UI.goToScreen('2', "How strong is it?");
-    }
+    // 💡 ID 기반 내비게이션 통일 ('2' = Intensity 화면)
+    UI.goToScreen('2', "How strong is it?");
 }
 
 function updateIntensity(val) {
@@ -58,14 +47,15 @@ function updateIntensity(val) {
     if (display) display.textContent = val;
 }
 
-// 4. 화면 흐름 제어
+// 4. 화면 흐름 제어 (ID 기반 무결성 확보)
 function goToResult() {
     if (typeof feedback === 'function') feedback('tap');
     
     document.getElementById('resultEmoji').textContent = currentEmotion.emoji;
     document.getElementById('resultText').textContent = `${currentEmotion.name} at level ${currentEmotion.intensity}`;
     
-    UI.goToScreen(2, "Check-in Complete!");
+    // 💡 숫자 2 대신 문자열 ID '3' (Result 화면) 사용
+    UI.goToScreen('3', "Check-in Complete!");
 }
 
 function goToStrategies() {
@@ -78,13 +68,11 @@ function goToStrategies() {
         renderStrategies(currentEmotion.name);
     }
     
-    UI.goToScreen(3, "Helpful Strategies");
+    // 💡 숫자 3 대신 문자열 ID '4' (Strategies 화면) 사용
+    UI.goToScreen('4', "Helpful Strategies");
 }
 
-/**
- * 💡 [추가] 활동 유형에 따른 하단 버튼 설정
- * activities.js에서 "Share the Joy"를 클릭할 때 이 함수를 호출해야 합니다.
- */
+// 5. 활동 전용 기능 (SMS 전송 등)
 function setupActivityButton(type) {
     const btn = document.getElementById('activityBtn');
     if (!btn) return;
@@ -98,27 +86,23 @@ function setupActivityButton(type) {
     }
 }
 
-// 5. [Share the Joy] SMS 전송 기능
 function shareJoy() {
     const msgArea = document.getElementById('actionNote');
-    // Joo님의 가족(Solbee, Jason)에게 보낼 수 있는 기본 메시지 설정
     const message = msgArea && msgArea.value.trim() !== "" 
         ? msgArea.value 
         : "오늘 정말 기분 좋은 일이 있었어! 함께 나누고 싶어 ✨";
     
-    // 아이폰/안드로이드 SMS 앱 호출
     window.location.href = `sms:?&body=${encodeURIComponent(message)}`;
-    
-    // 전송 시도 후 1.5초 뒤에 자동으로 저장 및 성공 화면으로 이동
     setTimeout(() => finishCheckIn(), 1500);
 }
 
-// 6. 저장 및 완료 로직
+// 6. 저장 및 완료 로직 (사진 데이터 동기화)
 async function finishCheckIn() {
-    console.log("💾 데이터 저장 및 화면 전환 시작...");
+    console.log("💾 데이터 저장 중...");
 
+    // activities.js에서 촬영된 사진 데이터를 가져옴
     const note = document.getElementById('actionNote')?.value || "";
-    const photo = document.getElementById('capturedPhoto')?.src || null;
+    const photo = window.lastCapturedPhoto || null; 
 
     const entry = {
         emotion: currentEmotion.name || "Feeling",
@@ -131,15 +115,16 @@ async function finishCheckIn() {
 
     try {
         await EmotionAPI.saveCheckIn(entry);
-        UI.goToScreen(4, "Check-in Complete!"); 
+        if (window.Activities) window.Activities.stopAll();
+        UI.goToScreen('5', "Check-in Complete!"); 
     } catch (error) {
         console.error("❌ 저장 실패:", error);
     }
 }
 
-// 7. 내비게이션 및 초기화 로직 (통합 및 중복 제거)
+// 7. 내비게이션 및 리셋
 function goHome() {
-    UI.goToScreen(0, "How are you feeling today?");
+    UI.goToScreen('1', "How are you feeling today?");
     UI.updateNavActive('navHome');
     
     const weatherHeader = document.getElementById('weatherHeader');
@@ -151,54 +136,38 @@ function goHome() {
 }
 
 function startOver() {
-    currentEmotion = { name: '', emoji: '', intensity: 5 };
+    currentEmotion = { name: '', emoji: '', intensity: 5, color: '' };
     goHome();
 }
 
 function resetAppInput() {
-    // 1. 감정 노트 초기화
-    const emotionNote = document.getElementById('emotionNote');
-    if (emotionNote) emotionNote.value = '';
-
-    // 2. 활동 노트 초기화
-    const actionNote = document.getElementById('actionNote');
-    if (actionNote) actionNote.value = '';
+    if (document.getElementById('emotionNote')) document.getElementById('emotionNote').value = '';
+    if (document.getElementById('actionNote')) document.getElementById('actionNote').value = '';
     
-    // 3. 강도 슬라이더 리셋
+    // 💡 캡처된 사진 변수 초기화 (메모리 누수 방지)
+    window.lastCapturedPhoto = null; 
+    
     const slider = document.getElementById('intensitySlider');
     if (slider) {
         slider.value = 5;
         const display = document.getElementById('intensityDisplay');
         if (display) display.textContent = '5';
     }
-    
-    // 4. API 관련 액션 리셋 (위에 수정한 안전한 reset 호출)
-    if (window.EmotionActions && typeof window.EmotionActions.reset === 'function') {
-        window.EmotionActions.reset();
-    }
 }
 
-// 8. 서브 화면 이동 (히스토리 최적화 버전)
+// 8. 서브 화면 이동
 async function goToHistory() {
-    console.log("📊 히스토리 화면 로드...");
     UI.goToScreen('History', 'My Check-ins');
     UI.updateNavActive('navHistory');
     
     document.getElementById('weatherHeader').style.display = 'none';
     document.getElementById('greeting').style.display = 'none';
 
-    const listContainer = document.getElementById('historyList');
-    if (listContainer) listContainer.innerHTML = '<p style="text-align:center; padding:20px; color:#a0aec0;">Loading... ⌛</p>';
-
     try {
         const history = await EmotionAPI.fetchHistory();
         UI.renderHistory(history);
-        if (typeof renderEmotionChart === 'function') {
-            renderEmotionChart(history);
-        }
-    } catch (error) {
-        console.error("❌ 로드 실패:", error);
-    }
+        if (typeof renderEmotionChart === 'function') renderEmotionChart(history);
+    } catch (error) { console.error("History 로드 실패"); }
 }
 
 function goToTracker() {
@@ -206,7 +175,6 @@ function goToTracker() {
     UI.updateNavActive('navTracker');
     document.getElementById('weatherHeader').style.display = 'none';
     document.getElementById('greeting').style.display = 'none';
-    if (typeof renderTracker === 'function') renderTracker();
 }
 
 function goToSettings() {
@@ -216,20 +184,19 @@ function goToSettings() {
     document.getElementById('greeting').style.display = 'none';
 }
 
-// 9. 설정 및 날씨 관리
+// 9. 설정 및 날씨 관리 (로스 가토스 기본값)
 function saveSettings() {
     const nameVal = document.getElementById('settingsName')?.value.trim();
     const cityVal = document.getElementById('settingsCity')?.value.trim();
     const ageVal = document.getElementById('settingsAge')?.value;
 
     localStorage.setItem('feelflow_settings', JSON.stringify({ name: nameVal, city: cityVal, age: ageVal }));
-
-    const savedNotice = document.getElementById('settingsSaved');
-    if (savedNotice) {
-        savedNotice.classList.add('show');
-        setTimeout(() => savedNotice.classList.remove('show'), 2000);
+    
+    const notice = document.getElementById('settingsSaved');
+    if (notice) {
+        notice.classList.add('show');
+        setTimeout(() => notice.classList.remove('show'), 2000);
     }
-
     updateGreeting(nameVal);
     if (cityVal) UI.fetchWeatherByCity(cityVal);
 }
@@ -255,28 +222,25 @@ function updateGreeting(name) {
 }
 
 function initWeather() {
-    // Joo님의 홈타운인 로스 가토스를 기본값으로 유지합니다.
     const city = document.getElementById('settingsCity')?.value || 'Los Gatos';
     UI.fetchWeatherByCity(city);
 }
 
 function clearAllData() {
-    if (confirm('Delete ALL data including check-ins, tracker, and settings?')) {
+    if (confirm('모든 데이터를 삭제할까요?')) {
         localStorage.clear();
         location.reload();
     }
 }
 
-// 10. 전역 윈도우 객체 바인딩
+// 10. 전역 바인딩
 window.initApp = initApp;
 window.goHome = goHome;
 window.goToResult = goToResult;
 window.goToStrategies = goToStrategies;
 window.selectEmotion = selectEmotion;
 window.updateIntensity = updateIntensity;
-window.setupActivityButton = setupActivityButton;
 window.finishCheckIn = finishCheckIn;
-window.shareJoy = shareJoy;
 window.startOver = startOver;
 window.goToHistory = goToHistory;
 window.goToTracker = goToTracker;
