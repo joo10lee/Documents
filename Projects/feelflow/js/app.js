@@ -40,7 +40,7 @@ function updateIntensity(val) {
     if (display) display.textContent = val;
 }
 
-// 4. 화면 흐름 제어 (중간 결과 및 활동 추천)
+// 4. 화면 흐름 제어
 function goToResult() {
     if (typeof feedback === 'function') feedback('tap');
     
@@ -63,16 +63,36 @@ function goToStrategies() {
     UI.goToScreen(3, "Helpful Strategies");
 }
 
+/**
+ * 💡 [추가] 활동 유형에 따른 하단 버튼 설정
+ * activities.js에서 "Share the Joy"를 클릭할 때 이 함수를 호출해야 합니다.
+ */
+function setupActivityButton(type) {
+    const btn = document.getElementById('activityBtn');
+    if (!btn) return;
+
+    if (type === 'joy') {
+        btn.textContent = "Send Joy via SMS 💌";
+        btn.onclick = () => shareJoy(); 
+    } else {
+        btn.textContent = "Save & Finish";
+        btn.onclick = () => finishCheckIn();
+    }
+}
+
 // 5. [Share the Joy] SMS 전송 기능
 function shareJoy() {
     const msgArea = document.getElementById('actionNote');
-    const message = msgArea ? msgArea.value : "오늘 정말 기분 좋은 일이 있었어! 함께 나누고 싶어 ✨";
+    // Joo님의 가족(Solbee, Jason)에게 보낼 수 있는 기본 메시지 설정
+    const message = msgArea && msgArea.value.trim() !== "" 
+        ? msgArea.value 
+        : "오늘 정말 기분 좋은 일이 있었어! 함께 나누고 싶어 ✨";
     
     // 아이폰/안드로이드 SMS 앱 호출
     window.location.href = `sms:?&body=${encodeURIComponent(message)}`;
     
-    // 전송 시도 후 저장을 위해 finishCheckIn 호출 (선택 사항)
-    setTimeout(() => finishCheckIn(), 1000);
+    // 전송 시도 후 1.5초 뒤에 자동으로 저장 및 성공 화면으로 이동
+    setTimeout(() => finishCheckIn(), 1500);
 }
 
 // 6. 저장 및 완료 로직
@@ -93,14 +113,13 @@ async function finishCheckIn() {
 
     try {
         await EmotionAPI.saveCheckIn(entry);
-        // ✅ 성공 화면(Screen 5, 인덱스 4)으로 이동
         UI.goToScreen(4, "Check-in Complete!"); 
     } catch (error) {
         console.error("❌ 저장 실패:", error);
     }
 }
 
-// 7. 내비게이션 및 초기화 로직 (통합본)
+// 7. 내비게이션 및 초기화 로직 (통합 및 중복 제거)
 function goHome() {
     UI.goToScreen(0, "How are you feeling today?");
     UI.updateNavActive('navHome');
@@ -114,7 +133,6 @@ function goHome() {
 }
 
 function startOver() {
-    // 상태 및 입력값 완전 초기화 후 홈으로 이동
     currentEmotion = { name: '', emoji: '', intensity: 5 };
     goHome();
 }
@@ -135,7 +153,7 @@ function resetAppInput() {
     if (window.EmotionActions) window.EmotionActions.reset();
 }
 
-// 8. 서브 화면 이동 (히스토리, 트래커, 설정)
+// 8. 서브 화면 이동 (히스토리 최적화 버전)
 async function goToHistory() {
     console.log("📊 히스토리 화면 로드...");
     UI.goToScreen('History', 'My Check-ins');
@@ -150,7 +168,6 @@ async function goToHistory() {
     try {
         const history = await EmotionAPI.fetchHistory();
         UI.renderHistory(history);
-        // 트렌드 차트 렌더링
         if (typeof renderEmotionChart === 'function') {
             renderEmotionChart(history);
         }
@@ -180,8 +197,7 @@ function saveSettings() {
     const cityVal = document.getElementById('settingsCity')?.value.trim();
     const ageVal = document.getElementById('settingsAge')?.value;
 
-    const settings = { name: nameVal, city: cityVal, age: ageVal };
-    localStorage.setItem('feelflow_settings', JSON.stringify(settings));
+    localStorage.setItem('feelflow_settings', JSON.stringify({ name: nameVal, city: cityVal, age: ageVal }));
 
     const savedNotice = document.getElementById('settingsSaved');
     if (savedNotice) {
@@ -214,7 +230,7 @@ function updateGreeting(name) {
 }
 
 function initWeather() {
-    // 주(Joo)님의 거주지 로스 가토스를 기본값으로 사용
+    // Joo님의 홈타운인 로스 가토스를 기본값으로 유지합니다.
     const city = document.getElementById('settingsCity')?.value || 'Los Gatos';
     UI.fetchWeatherByCity(city);
 }
@@ -226,13 +242,14 @@ function clearAllData() {
     }
 }
 
-// 10. 전역 윈도우 객체 바인딩 (HTML onclick 이벤트 대응)
+// 10. 전역 윈도우 객체 바인딩
 window.initApp = initApp;
 window.goHome = goHome;
 window.goToResult = goToResult;
 window.goToStrategies = goToStrategies;
 window.selectEmotion = selectEmotion;
 window.updateIntensity = updateIntensity;
+window.setupActivityButton = setupActivityButton;
 window.finishCheckIn = finishCheckIn;
 window.shareJoy = shareJoy;
 window.startOver = startOver;
