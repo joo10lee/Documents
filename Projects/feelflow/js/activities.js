@@ -2,10 +2,25 @@
  * Activities 관리 모듈: 감정별 특수 활동 로직 및 사운드/햅틱 엔진
  */
 
+// 전역 오디오 컨텍스트 관리 (엔진 잠금 해제용)
+let audioCtx = null;
+
 const Activities = {
-    // 1. 활동별 동적 UI 설정
+    // 1. 오디오 엔진 초기화 및 잠금 해제
+    initAudio() {
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume();
+        }
+    },
+
+    // 2. 활동별 동적 UI 설정
     setupActivity(type) {
         console.log(`🏃 활동 시작: ${type}`);
+        this.initAudio(); // 활동 시작 시 오디오 엔진 체크
+        
         const actionArea = document.getElementById('inAppActionArea');
         const actionQuestion = document.getElementById('actionQuestion');
         const actionNote = document.getElementById('actionNote');
@@ -19,13 +34,13 @@ const Activities = {
         switch(type) {
             case 'Write it down':
                 actionQuestion.textContent = "✍️ What made you happy?";
-                actionNote.style.display = 'block';
-                cameraBtn.style.display = 'none';
+                if (actionNote) actionNote.style.display = 'block';
+                if (cameraBtn) cameraBtn.style.display = 'none';
                 break;
             case 'Capture the moment':
                 actionQuestion.textContent = "📸 Capture this happy moment!";
-                actionNote.style.display = 'none';
-                cameraBtn.style.display = 'block';
+                if (actionNote) actionNote.style.display = 'none';
+                if (cameraBtn) cameraBtn.style.display = 'block';
                 break;
             case 'Share the joy':
             case 'Talk to someone':
@@ -40,7 +55,7 @@ const Activities = {
         }
     },
 
-    // 2. 문자 메시지(SMS) 전송
+    // 3. 문자 메시지(SMS) 전송
     setupSMSAction(type) {
         const question = type === 'Share the joy' ? "🎉 Who do you want to share this with?" : "💬 Who would you like to talk to?";
         document.getElementById('actionQuestion').textContent = question;
@@ -59,10 +74,13 @@ const Activities = {
         smsBtn.textContent = type === 'Share the joy' ? "💬 Send Happy News" : "📞 Request a Chat";
         
         const message = type === 'Share the joy' ? "I'm feeling so happy right now! ✨" : "I'm feeling a bit sad. Can we talk? 🥺";
-        smsBtn.onclick = () => { window.location.href = `sms:?body=${encodeURIComponent(message)}`; };
+        smsBtn.onclick = () => { 
+            this.initAudio();
+            window.location.href = `sms:?body=${encodeURIComponent(message)}`; 
+        };
     },
 
-    // 3. 유튜브 음악 연결
+    // 4. 유튜브 음악 연결
     setupMusicAction() {
         document.getElementById('actionQuestion').textContent = "🎵 Let's listen to some calming music.";
         const musicUrl = "http://www.youtube.com/watch?v=1ZYbU82GVz4"; 
@@ -78,10 +96,13 @@ const Activities = {
         }
         musicBtn.style.display = 'block';
         musicBtn.textContent = "📺 Open YouTube";
-        musicBtn.onclick = () => { window.open(musicUrl, '_blank'); };
+        musicBtn.onclick = () => { 
+            this.initAudio();
+            window.open(musicUrl, '_blank'); 
+        };
     },
 
-    // 4. 차가운 것 쥐기 애니메이션
+    // 5. 차가운 것 쥐기 애니메이션
     startColdSqueezeAnimation() {
         const question = document.getElementById('actionQuestion');
         question.textContent = "❄️ Hold something cold and follow the steps.";
@@ -112,10 +133,10 @@ const Activities = {
         updateStep();
     },
 
-    // --- 사운드 엔진 (객체 내부 메서드 방식) ---
+    // --- 사운드 엔진 (객체 내부 메서드) ---
     playTapSound() {
         try {
-            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            this.initAudio();
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
             osc.type = 'sine';
@@ -130,7 +151,7 @@ const Activities = {
 
     playTimerEndSound() {
         try {
-            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            this.initAudio();
             [660, 880].forEach((freq, i) => {
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
@@ -142,11 +163,27 @@ const Activities = {
                 osc.stop(audioCtx.currentTime + i * 0.15 + 0.3);
             });
         } catch (e) {}
+    },
+
+    playTickSound() {
+        try {
+            this.initAudio();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+            gain.gain.setValueAtTime(0.02, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.05);
+        } catch (e) {}
     }
 };
 
-// --- 글로벌 헬퍼 함수 (전역에서 호출 가능하도록 추출) ---
-function feedback(type = 'tap') {
+/**
+ * 글로벌 헬퍼 함수: 전역(window)에서 즉시 호출 가능하도록 설정
+ */
+window.feedback = function(type = 'tap') {
     if (type === 'tap') {
         Activities.playTapSound();
         if ("vibrate" in navigator) navigator.vibrate(10);
@@ -154,21 +191,16 @@ function feedback(type = 'tap') {
         Activities.playTimerEndSound();
         if ("vibrate" in navigator) navigator.vibrate([30, 50, 30]);
     }
-}
+};
 
-// 타이머 관련 전역 함수들 (기존 startActivityTimer에서 호출용)
-function playTickSound() {
-    try {
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.type = 'square';
-        osc.frequency.setValueAtTime(150, audioCtx.currentTime);
-        gain.gain.setValueAtTime(0.02, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
-        osc.connect(gain); gain.connect(audioCtx.destination);
-        osc.start(); osc.stop(audioCtx.currentTime + 0.05);
-    } catch (e) {}
-}
+window.playTickSound = function() {
+    Activities.playTickSound();
+};
 
-function playStartSound() { Activities.playTapSound(); } // 기존 함수 호환용
+window.playStartSound = function() {
+    Activities.playTapSound();
+};
+
+// 화면 어디든 터치하면 오디오 엔진 잠금 해제 시도
+window.addEventListener('touchstart', () => Activities.initAudio(), { once: true });
+window.addEventListener('click', () => Activities.initAudio(), { once: true });
