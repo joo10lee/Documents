@@ -23,10 +23,11 @@ async function initApp() {
 
 // 3. 감정 선택 및 흐름 제어 (에러 해결 포인트)
 function selectEmotion(name, emoji, color) {
-    // 💡 객체 내부에 값을 할당합니다.
+    // 💡 개별 변수가 아닌 객체의 속성에 값을 할당합니다.
     currentEmotion.name = name;
     currentEmotion.emoji = emoji;
     
+    // UI 업데이트 (기존 로직)
     const emojiDisplay = document.getElementById('selectedEmoji');
     const nameDisplay = document.getElementById('selectedName');
     if (emojiDisplay) emojiDisplay.textContent = emoji;
@@ -126,17 +127,15 @@ function goToSettings() {
     document.getElementById('greeting').style.display = 'none';
 }
 
-// 5. 체크인 완료 및 데이터 저장
-// js/app.js 내 finishCheckIn 함수 수정
-// js/app.js 내 수정
-// 4. 저장 및 완료 함수
+
+// 3. 저장 함수 수정 (ReferenceError 해결 및 홈 이동 추가)
 async function finishCheckIn() {
-    console.log("💾 데이터 저장 프로세스 시작...");
+    console.log("💾 데이터 저장 및 화면 전환 시작...");
 
     const note = document.getElementById('actionNote')?.value || "";
     const photo = document.getElementById('capturedPhoto')?.src || null;
 
-    // 💡 호출 시 currentEmotion 객체의 속성을 사용합니다.
+    // 💡 currentEmoji 대신 currentEmotion.emoji를 사용합니다.
     const entry = {
         emotion: currentEmotion.name || "Feeling",
         emoji: currentEmotion.emoji || "✨",
@@ -148,7 +147,11 @@ async function finishCheckIn() {
 
     try {
         await EmotionAPI.saveCheckIn(entry);
-        UI.goToScreen(4, "Check-in Complete!");
+
+        // ✅ 수정 1: 저장 후 히스토리 대신 '성공 화면(Screen 5)'으로 이동
+        // index.html의 5번째 화면인 screen5(인덱스 4)를 호출합니다.
+        UI.goToScreen(4, "Check-in Complete!"); 
+
     } catch (error) {
         console.error("❌ 저장 실패:", error);
     }
@@ -156,11 +159,16 @@ async function finishCheckIn() {
 
 // 5. 다시 시작 (상태 초기화)
 function startOver() {
-    // 객체 초기화
+    // 상태 초기화
     currentEmotion = { name: '', emoji: '', intensity: 5 };
     
+    // 첫 번째 화면(감정 선택)으로 이동
     UI.goToScreen(0, "How are you feeling today?");
     UI.updateNavActive('navHome');
+    
+    // 숨겼던 헤더 다시 표시
+    document.getElementById('weatherHeader').style.display = 'block';
+    document.getElementById('greeting').style.display = 'block';
 }
 
 function resetAppInput() {
