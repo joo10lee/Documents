@@ -125,13 +125,23 @@ const EmotionActions = {
     },
 
     reset() {
-        this.capturedPhoto = null;
+        console.log("🧹 UI 요소 초기화 중...");
         this.stopCamera();
-        document.getElementById('photoPreviewContainer').style.display = 'none';
-        document.getElementById('cameraBtn').style.display = 'block';
-        document.getElementById('videoContainer').style.display = 'none';
+
+        // 💡 방어 코드: 요소가 존재할 때만 스타일 변경 (빨간 줄 에러 해결)
+        const photoPreview = document.getElementById('photoPreviewContainer');
+        if (photoPreview) photoPreview.style.display = 'none';
+
+        const cameraBtn = document.getElementById('cameraBtn');
+        if (cameraBtn) cameraBtn.style.display = 'block';
+
+        const videoCont = document.getElementById('videoContainer');
+        if (videoCont) videoCont.style.display = 'none';
+
         const actionNote = document.getElementById('actionNote');
         if (actionNote) actionNote.value = '';
+        
+        this.capturedPhoto = null;
     }
 };
 

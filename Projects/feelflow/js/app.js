@@ -138,19 +138,26 @@ function startOver() {
 }
 
 function resetAppInput() {
+    // 1. 감정 노트 초기화
     const emotionNote = document.getElementById('emotionNote');
-    const actionNote = document.getElementById('actionNote');
     if (emotionNote) emotionNote.value = '';
+
+    // 2. 활동 노트 초기화
+    const actionNote = document.getElementById('actionNote');
     if (actionNote) actionNote.value = '';
     
-    const intensitySlider = document.getElementById('intensitySlider');
-    if (intensitySlider) {
-        intensitySlider.value = 5;
+    // 3. 강도 슬라이더 리셋
+    const slider = document.getElementById('intensitySlider');
+    if (slider) {
+        slider.value = 5;
         const display = document.getElementById('intensityDisplay');
         if (display) display.textContent = '5';
     }
     
-    if (window.EmotionActions) window.EmotionActions.reset();
+    // 4. API 관련 액션 리셋 (위에 수정한 안전한 reset 호출)
+    if (window.EmotionActions && typeof window.EmotionActions.reset === 'function') {
+        window.EmotionActions.reset();
+    }
 }
 
 // 8. 서브 화면 이동 (히스토리 최적화 버전)
