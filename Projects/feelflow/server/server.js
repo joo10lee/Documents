@@ -22,11 +22,19 @@ app.get('/api/emotions', async (req, res) => {
 
 // API: 새 기록 저장 (메모 및 사진 포함)
 app.post('/api/emotions', async (req, res) => {
+    console.log("📥 [Server] Received Data:", req.body);
+    
+    if (req.body.photo) {
+        console.log("📸 [Server] Photo detected! (Size:", req.body.photo.length, ")");
+    }
+
     try {
-        const newEntry = await Emotion.create(req.body);
-        console.log(`📦 신규 데이터 저장 (ID: ${newEntry.id})`);
+        // 실제 DB에 저장하는 로직
+        const newEntry = await Emotion.create(req.body); 
         res.status(201).json(newEntry);
+        console.log("✅ [DB] Successfully saved to database!");
     } catch (error) {
+        console.error("❌ [DB] Save failed:", error);
         res.status(500).json({ error: error.message });
     }
 });
