@@ -1,25 +1,21 @@
 #!/bin/bash
 
-# 1. 변경 사항 확인
-echo "🔍 변경된 파일을 확인합니다..."
-git status -s
+# 1. 현재 시간을 '월일-시분' 형태로 생성 (예: 0213-1530)
+NOW=$(date +'%m%d-%H%M')
 
-# 2. 모든 변경 사항 스테이징
-git add .
-
-# 3. 커밋 메시지 입력 (입력하지 않으면 기본 메시지 사용)
-echo "📝 커밋 메시지를 입력하세요 (기본: 'Refactor: Architecture and In-app actions preparation'):"
-read commit_msg
-
-if [ -z "$commit_msg" ]; then
-    commit_msg="Refactor: Architecture and In-app actions preparation"
+# 2. index.html의 {{BUILD_ID}}를 현재 시간으로 치환
+# (macOS와 Linux의 sed 문법 차이를 고려하여 작성)
+if [[ "$OSTYPE" == "darwin"* ]]; then
+  sed -i '' "s/{{BUILD_ID}}/$NOW/g" index.html
+else
+  sed -i "s/{{BUILD_ID}}/$NOW/g" index.html
 fi
 
-# 4. 커밋 실행
-git commit -m "$commit_msg"
+echo "✅ Build ID Updated: $NOW"
 
-# 5. GitHub로 푸시
-echo "🚀 GitHub로 배포 중..."
+# 3. 이후 기존 배포 명령 실행 (git add, commit, push 등)
+git add .
+git commit -m "Deploy Build $NOW"
 git push origin main
 
 echo "✅ 배포 완료! 잠시 후 아이폰에서 ?v=$(date +%s)를 붙여 확인하세요."
