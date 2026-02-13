@@ -2,7 +2,6 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -76,7 +75,7 @@
         font-size: 0.65rem; 
         font-family: monospace;
         z-index: 100;
-    ">Ver.0213-1213</span>
+    ">Ver.0213-1239</span>
 
     <p class="app-title">FEELFLOW</p>
     <p class="greeting" id="greeting">Good evening, Joo!</p>
@@ -147,8 +146,8 @@
             <div class="result-intensity" id="resultText">Happy at level 5</div>
             <p class="result-text">Let's find some helpful strategies!</p>
         </div>
-        <button class="btn btn-primary" onclick="goToStrategies()" style="margin-top: 30px;">See Strategies</button>
-        <button class="btn btn-secondary" onclick="goToScreen(2, 'How strong is it?')">← Back</button>
+        <button class="btn btn-primary" onclick="goToStrategies()" style="margin-top: 30px;">Explore Strategies</button>
+        <button class="btn btn-secondary" onclick="UI.back()">← Back</button>
     </main>
 
     <!-- SCREEN 4: Strategies -->
@@ -244,101 +243,19 @@
     </main>
 
     <!-- Breathing Screen -->
-    <main class="screen" id="screenBreathing">
-        <div class="breathing-container">
-            <div class="pattern-selector">
-                <button class="pattern-btn active" onclick="selectPattern('relaxing')">Relaxing (4-7-8)</button>
-                <button class="pattern-btn" onclick="selectPattern('box')">Box Breathing</button>
-                <button class="pattern-btn" onclick="selectPattern('quick')">Quick Calm</button>
+    <main class="screen" id="screenActivity">
+        <div class="activity-container">
+            <div class="activity-header" style="text-align: center; margin-bottom: 20px;">
+                <div class="activity-icon" id="activityIcon" style="font-size: 4rem;">🧸</div>
+                <h2 class="activity-title" id="activityTitle">Activity</h2>
             </div>
-            <div class="breathing-circle-container">
-                <div class="breathing-circle" id="breathingCircle"><span class="breathing-icon">🫁</span></div>
+    
+            <div id="inAppActionArea" style="min-height: 300px; background: #fff; border-radius: 20px; padding: 20px;">
             </div>
-            <div class="breathing-instruction" id="breathingInstruction">Press Start</div>
-            <div class="breathing-counter" id="breathingCounter"></div>
-            <div class="breathing-progress" id="breathingProgress">5 breaths remaining</div>
-            <div class="breathing-buttons">
-                <button class="btn btn-primary btn-small" id="breathingStartBtn" onclick="toggleBreathing()">Start</button>
-                <button class="btn btn-secondary btn-small" onclick="backToStrategies()">← Back</button>
-            </div>
-        </div>
-    </main>
-
-    <!-- Grounding Screen -->
-    <main class="screen" id="screenGrounding">
-        <div class="grounding-progress-bar">
-            <div class="progress-dot active" id="dot1"></div>
-            <div class="progress-dot" id="dot2"></div>
-            <div class="progress-dot" id="dot3"></div>
-            <div class="progress-dot" id="dot4"></div>
-            <div class="progress-dot" id="dot5"></div>
-        </div>
-        <div class="grounding-container" id="groundingContainer">
-            <div class="grounding-step active" id="groundingStep1">
-                <div class="grounding-number">5</div>
-                <div class="grounding-sense">👀 Things You SEE</div>
-                <div class="grounding-prompt">Look around. Name 5 things you can see.</div>
-                <div class="grounding-inputs">
-                    <input type="text" class="grounding-input" placeholder="1. I see..." oninput="checkGroundingInput(this)">
-                    <input type="text" class="grounding-input" placeholder="2. I see..." oninput="checkGroundingInput(this)">
-                    <input type="text" class="grounding-input" placeholder="3. I see..." oninput="checkGroundingInput(this)">
-                    <input type="text" class="grounding-input" placeholder="4. I see..." oninput="checkGroundingInput(this)">
-                    <input type="text" class="grounding-input" placeholder="5. I see..." oninput="checkGroundingInput(this)">
-                </div>
-            </div>
-            <div class="grounding-step" id="groundingStep2">
-                <div class="grounding-number">4</div>
-                <div class="grounding-sense">✋ Things You TOUCH</div>
-                <div class="grounding-prompt">Notice 4 things you can physically feel.</div>
-                <div class="grounding-inputs">
-                    <input type="text" class="grounding-input" placeholder="1. I feel..." oninput="checkGroundingInput(this)">
-                    <input type="text" class="grounding-input" placeholder="2. I feel..." oninput="checkGroundingInput(this)">
-                    <input type="text" class="grounding-input" placeholder="3. I feel..." oninput="checkGroundingInput(this)">
-                    <input type="text" class="grounding-input" placeholder="4. I feel..." oninput="checkGroundingInput(this)">
-                </div>
-            </div>
-            <div class="grounding-step" id="groundingStep3">
-                <div class="grounding-number">3</div>
-                <div class="grounding-sense">👂 Things You HEAR</div>
-                <div class="grounding-prompt">Name 3 sounds you hear.</div>
-                <div class="grounding-inputs">
-                    <input type="text" class="grounding-input" placeholder="1. I hear..." oninput="checkGroundingInput(this)">
-                    <input type="text" class="grounding-input" placeholder="2. I hear..." oninput="checkGroundingInput(this)">
-                    <input type="text" class="grounding-input" placeholder="3. I hear..." oninput="checkGroundingInput(this)">
-                </div>
-            </div>
-            <div class="grounding-step" id="groundingStep4">
-                <div class="grounding-number">2</div>
-                <div class="grounding-sense">👃 Things You SMELL</div>
-                <div class="grounding-prompt">Notice 2 things you can smell.</div>
-                <div class="grounding-inputs">
-                    <input type="text" class="grounding-input" placeholder="1. I smell..." oninput="checkGroundingInput(this)">
-                    <input type="text" class="grounding-input" placeholder="2. I smell..." oninput="checkGroundingInput(this)">
-                </div>
-            </div>
-            <div class="grounding-step" id="groundingStep5">
-                <div class="grounding-number">1</div>
-                <div class="grounding-sense">👅 Thing You TASTE</div>
-                <div class="grounding-prompt">Notice 1 thing you can taste.</div>
-                <div class="grounding-inputs">
-                    <input type="text" class="grounding-input" placeholder="1. I taste..." oninput="checkGroundingInput(this)">
-                </div>
-            </div>
-        </div>
-        <button class="btn btn-primary" id="groundingNextBtn" onclick="nextGroundingStep()">Next</button>
-        <button class="btn btn-secondary" onclick="backToStrategies()">← Back</button>
-    </main>
-
-    <!-- Squeeze Screen -->
-    <main class="screen" id="screenSqueeze">
-        <div class="squeeze-container">
-            <div class="squeeze-visual" id="squeezeVisual">✊</div>
-            <div class="squeeze-instruction" id="squeezeInstruction">Press Start when ready</div>
-            <div class="squeeze-counter" id="squeezeCounter"></div>
-            <div class="squeeze-round" id="squeezeRound">3 rounds total</div>
-            <div class="breathing-buttons">
-                <button class="btn btn-primary btn-small" id="squeezeStartBtn" onclick="toggleSqueeze()">Start</button>
-                <button class="btn btn-secondary btn-small" onclick="backToStrategies()">← Back</button>
+    
+            <div class="activity-footer" style="margin-top: 25px;">
+                <button class="btn btn-primary" id="activityBtn" onclick="finishCheckIn()">Finish Activity</button>
+                <button class="btn btn-secondary" onclick="UI.back()">← Back</button>
             </div>
         </div>
     </main>

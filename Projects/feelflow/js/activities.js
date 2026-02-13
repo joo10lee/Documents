@@ -98,59 +98,78 @@ const Activities = {
     // 💡 3. [신규] 5-4-3-2-1 Grounding 손가락 애니메이션
     startGroundingAnimation() {
         const area = document.getElementById('inAppActionArea');
-        const groundingSteps = [
-            { icon: '🖐️', text: '5 things you can <b>SEE</b>', color: '#3b82f6' },
-            { icon: '🖖', text: '4 things you can <b>HEAR</b>', color: '#10b981' },
-            { icon: '🤟', text: '3 things you can <b>SMELL</b>', color: '#f59e0b' },
-            { icon: '✌️', text: '2 things you can <b>TOUCH</b>', color: '#ef4444' },
-            { icon: '☝️', text: '1 thing you can <b>TASTE</b>', color: '#7c3aed' }
-        ];
-
-        area.innerHTML = `
-            <div id="groundingContent" style="text-align:center; padding:30px; transition: all 0.5s ease;">
-                <div id="fingerEmoji" style="font-size:7rem; margin-bottom:20px; transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);">🖐️</div>
-                <p id="groundingText" style="font-size:1.5rem; line-height:1.4; min-height:3em;"></p>
-                <div id="groundingProgress" style="display:flex; justify-content:center; gap:8px; margin-top:20px;"></div>
-            </div>
-        `;
-
-        const emojiEl = document.getElementById('fingerEmoji');
-        const textEl = document.getElementById('groundingText');
-        const progEl = document.getElementById('groundingProgress');
+        const mainBtn = document.getElementById('activityBtn');
         
+        // 💡 시작 시 메인 버튼을 숨겨서 단계 집중 유도
+        if (mainBtn) mainBtn.style.display = 'none';
+    
+        const groundingSteps = [
+            { n: 5, s: 'SEE 👀', p: 'Name 5 things you can see.', c: '#3b82f6', i: '🖐️' },
+            { n: 4, s: 'TOUCH ✋', p: 'Notice 4 things you can feel.', c: '#10b981', i: '🖖' },
+            { n: 3, s: 'HEAR 👂', p: 'Name 3 sounds you hear.', c: '#f59e0b', i: '🤟' },
+            { n: 2, s: 'SMELL 👃', p: 'Notice 2 things you can smell.', c: '#ef4444', i: '✌️' },
+            { n: 1, s: 'TASTE 👅', p: 'Notice 1 thing you can taste.', c: '#7c3aed', i: '☝️' }
+        ];
+    
         let currentStep = 0;
-
-        const updateStep = () => {
-            if (currentStep >= groundingSteps.length) {
-                emojiEl.textContent = '✨';
-                textEl.innerHTML = 'Feeling more grounded now?';
-                progEl.innerHTML = '✅'.repeat(5);
-                return;
-            }
-
-            const step = groundingSteps[currentStep];
+    
+        const renderStep = (idx) => {
+            const step = groundingSteps[idx];
             
-            // 애니메이션 효과
-            emojiEl.style.transform = 'scale(0.5)';
-            setTimeout(() => {
-                emojiEl.textContent = step.icon;
-                emojiEl.style.transform = 'scale(1.2)';
-                emojiEl.style.color = step.color;
-                textEl.innerHTML = step.text;
-                
-                // 진행 표시 업데이트
-                progEl.innerHTML = groundingSteps.map((_, i) => 
-                    `<div style="width:12px; height:12px; border-radius:50%; background:${i <= currentStep ? step.color : '#e2e8f0'}; transition: 0.3s;"></div>`
-                ).join('');
-
+            // 입력창 동적 생성 (제이슨의 음악적 관심을 유도하는 placeholder)
+            let inputsHTML = '';
+            const placeholders = idx === 2 ? ['Guitar sound', 'Wind', 'Footsteps'] : ['Something blue', 'A chair', 'The screen'];
+            
+            for (let i = 1; i <= step.n; i++) {
+                inputsHTML += `
+                    <input type="text" class="grounding-input" 
+                           placeholder="${i}. ${placeholders[i-1] || 'I ' + step.s.split(' ')[1].toLowerCase() + '...'}" 
+                           style="width:100%; margin-bottom:10px; padding:12px; border:2px solid #e2e8f0; border-radius:12px; font-size:1rem; outline:none; transition:border-color 0.3s;">
+                `;
+            }
+    
+            area.innerHTML = `
+                <div id="stepContainer" style="text-align:center; animation: fadeIn 0.4s;">
+                    <div style="font-size:6rem; color:${step.c}; transition:transform 0.3s;" id="stepEmoji">${step.i}</div>
+                    <h2 style="color:${step.c}; margin-bottom:10px;">${step.n} Things to ${step.s.split(' ')[1]}</h2>
+                    <p style="color:#64748b; margin-bottom:20px;">${step.p}</p>
+                    <div style="max-height:200px; overflow-y:auto; padding:5px;">${inputsHTML}</div>
+                    <button id="nextStepBtn" class="btn btn-primary" style="width:100%; margin-top:20px; background:${step.c}; border:none;">
+                        ${idx === 4 ? 'Finish' : 'Next Step'}
+                    </button>
+                    <div style="display:flex; justify-content:center; gap:8px; margin-top:20px;">
+                        ${groundingSteps.map((_, i) => `<div style="width:10px; height:10px; border-radius:50%; background:${i <= idx ? step.c : '#e2e8f0'};"></div>`).join('')}
+                    </div>
+                </div>
+            `;
+    
+            // 다음 단계 버튼 로직
+            document.getElementById('nextStepBtn').onclick = () => {
                 if (window.feedback) window.feedback('tap');
-                
-                currentStep++;
-                setTimeout(updateStep, 5000); // 5초마다 다음 단계로 전환
-            }, 300);
+                if (idx < 4) {
+                    renderStep(idx + 1);
+                } else {
+                    completeGrounding();
+                }
+            };
         };
-
-        updateStep();
+    
+        const completeGrounding = () => {
+            area.innerHTML = `
+                <div style="text-align:center; padding:40px; animation: scaleUp 0.5s;">
+                    <div style="font-size:5rem;">✨</div>
+                    <h2 style="color:#7c3aed; margin-top:20px;">Well Done!</h2>
+                    <p>You've successfully grounded yourself.</p>
+                </div>
+            `;
+            if (mainBtn) {
+                mainBtn.style.display = 'block';
+                mainBtn.textContent = "Save & Finish";
+            }
+            if (window.feedback) window.feedback('success');
+        };
+    
+        renderStep(0);
     },
 
     // 4. [기존] Deep Breathing
@@ -180,16 +199,50 @@ const Activities = {
     // 6. [복구] Squeeze & Release
     startSqueezeAction() {
         const area = document.getElementById('inAppActionArea');
-        area.innerHTML = `<div style="text-align:center; padding:20px;"><div id="handEmoji" style="font-size:8rem; transition: 0.4s;">✊</div><p id="sqStatus" style="font-size:1.6rem; font-weight:800; color:#7c3aed; margin-top:30px;">Squeeze Tight!</p></div>`;
-        let isSq = true; let count = 0;
-        const toggle = () => {
-            const hand = document.getElementById('handEmoji'); const status = document.getElementById('sqStatus');
-            if (!hand || count >= 10) return;
-            if (isSq) { hand.textContent = "🖐️"; hand.style.transform = "scale(1.4)"; status.textContent = "Release..."; }
-            else { hand.textContent = "✊"; hand.style.transform = "scale(0.8)"; status.textContent = "Squeeze!"; if (navigator.vibrate) navigator.vibrate(30); }
-            isSq = !isSq; count++; setTimeout(toggle, 2000);
+        let round = 1;
+        let timeLeft = 5;
+        let isSqueezing = true;
+    
+        const updateUI = () => {
+            area.innerHTML = `
+                <div style="text-align:center; animation: pulse 1s infinite alternate;">
+                    <div id="squeezeEmoji" style="font-size: 8rem; transition: transform 0.3s;">${isSqueezing ? '✊' : '🖐️'}</div>
+                    <h2 style="color: #7c3aed; margin-top: 20px;">${isSqueezing ? 'SQUEEZE!' : 'RELEASE...'}</h2>
+                    <div style="font-size: 3rem; font-weight: 800; margin: 20px 0;">${timeLeft}</div>
+                    <p style="color: #94a3b8;">Round ${round} of 3</p>
+                </div>
+            `;
+            const emoji = document.getElementById('squeezeEmoji');
+            if (isSqueezing) {
+                emoji.style.transform = 'scale(0.8)';
+                if (navigator.vibrate) navigator.vibrate(50);
+            } else {
+                emoji.style.transform = 'scale(1.2)';
+            }
         };
-        setTimeout(toggle, 1000);
+    
+        const timer = setInterval(() => {
+            timeLeft--;
+            if (timeLeft < 0) {
+                if (isSqueezing) {
+                    isSqueezing = false;
+                    timeLeft = 5;
+                } else {
+                    round++;
+                    if (round > 3) {
+                        clearInterval(timer);
+                        area.innerHTML = `<div style="text-align:center; padding:40px;"><h3>Feeling relaxed?</h3><p>Muscle tension has been released.</p></div>`;
+                        return;
+                    }
+                    isSqueezing = true;
+                    timeLeft = 5;
+                }
+            }
+            updateUI();
+        }, 1000);
+    
+        updateUI();
+        this.currentInterval = timer; // 클린업용
     },
 
     // 7. [복구] Push the Wall
@@ -223,18 +276,44 @@ const Activities = {
     // 8. [신규] Jason's Break Quest
     startJasonBreakQuest() {
         const area = document.getElementById('inAppActionArea');
-        const quests = ["🎸 1분간 기타/드럼 자유 연주하기", "🎤 좋아하는 합창곡 소리 내어 부르기", "🎶 새 음악 찾아 3분간 감상하기", "🧘 30초간 기지개 크게 켜기"];
-        const q = quests[Math.floor(Math.random() * quests.length)];
+        const quests = [
+            { t: "🎸 Guitar Hero", d: "1분 동안 가장 좋아하는 리프를 연주해보세요.", q: "guitar chords for beginners" },
+            { t: "🎤 Choir Practice", d: "합창단에서 부르는 곡의 한 소절을 소리내어 불러보세요.", q: "vocal warm up exercises" },
+            { t: "🎶 Music Discovery", d: "YouTube에서 본 적 없는 새로운 악기 연주 영상을 찾아보세요.", q: "amazing unusual musical instruments" },
+            { t: "🧘 Physical Reset", d: "악기에서 잠시 떨어져 전신 스트레칭을 30초간 하세요.", q: "quick stretches for musicians" }
+        ];
+    
+        const quest = quests[Math.floor(Math.random() * quests.length)];
+    
         area.innerHTML = `
-            <div style="padding:25px; background:#eff6ff; border:3px solid #3b82f6; border-radius:25px; text-align:center;">
-                <h3 style="color:#1d4ed8; margin-bottom:10px;">Hey Jason! 🕺</h3>
-                <p style="font-size:1.4rem; font-weight:800;">"${q}"</p>
-                <button id="sB" class="btn" style="background:#3b82f6; color:white; width:100%; margin-top:15px; border-radius:15px;">🔍 아이디어 더 보기</button>
+            <div style="padding: 20px; border: 2px solid #3b82f6; border-radius: 20px; background: #eff6ff; text-align: center;">
+                <div style="font-size: 3rem; margin-bottom: 10px;">🕺</div>
+                <h3 style="color: #1d4ed8; margin-bottom: 15px;">Hey Jason!</h3>
+                <div style="font-size: 1.1rem; font-weight: 700; background: white; padding: 15px; border-radius: 15px; margin-bottom: 20px;">
+                    "${quest.d}"
+                </div>
+                <button onclick="window.open('https://www.google.com/search?q=${encodeURIComponent(quest.q)}', '_blank')" 
+                        style="width:100%; padding:12px; background:#3b82f6; color:white; border:none; border-radius:12px; font-weight:700;">
+                    🔍 Get Ideas on Google
+                </button>
             </div>
         `;
-        document.getElementById('sB').onclick = () => window.open(`https://www.google.com/search?q=${encodeURIComponent("fun break for musical teens")}`, '_blank');
     },
 
+        // activities.js 내부 - PHASE 3
+    startBreathingAnimation() {
+        const area = document.getElementById('inAppActionArea');
+        // 💡 삭제했던 HTML의 핵심 요소를 JS 안에서 정의합니다.
+        area.innerHTML = `
+            <div class="pattern-selector" style="display:flex; gap:10px; margin-bottom:20px;">
+                <button class="btn-mini" onclick="Activities.setPattern('relax')">Relax</button>
+                <button class="btn-mini" onclick="Activities.setPattern('box')">Box</button>
+            </div>
+            <div id="lungCircle" ...>🫁</div>
+            <p id="breathStatus">Ready...</p>
+        `;
+        // ... 이후 애니메이션 로직 실행
+    }
     // 9. 기타 원본 로직 유지
     startSMSAction() {
         const area = document.getElementById('inAppActionArea'); const btn = document.getElementById('activityBtn');
