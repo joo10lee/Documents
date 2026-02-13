@@ -2,7 +2,7 @@
  * Activities 관리 모듈: 감정별 특수 활동 로직 및 사운드/햅틱 엔진
  */
 
-// 전역 오디오 컨텍스트 관리 (엔진 잠금 해제용)
+// 전역 오디오 컨텍스트 관리
 let audioCtx = null;
 
 const Activities = {
@@ -16,10 +16,59 @@ const Activities = {
         }
     },
 
-    // 2. 활동별 동적 UI 설정
+    // 2. [추가] 감정별 전략 카드 렌더링 (app.js에서 호출)
+    renderStrategies(emotion) {
+        const container = document.getElementById('strategiesContainer');
+        if (!container) return;
+
+        const strategyMap = {
+            'Happy': [
+                { title: 'Write it down', icon: '✍️' },
+                { title: 'Capture the moment', icon: '📸' },
+                { title: 'Share the joy', icon: '🎉' }
+            ],
+            'Sad': [
+                { title: 'Talk to someone', icon: '💬' },
+                { title: 'Listen to music', icon: '🎵' },
+                { title: 'Big Hug', icon: '🧸' }
+            ],
+            'Anxious': [
+                { title: 'Deep Breathing', icon: '🌬️' },
+                { title: '5-4-3-2-1 Grounding', icon: '🖐️' },
+                { title: 'Hold Something Cold', icon: '❄️' }
+            ],
+            'Angry': [
+                { title: 'Squeeze & Release', icon: '✊' },
+                { title: 'Take a Break', icon: '🚶' },
+                { title: 'Push the Wall', icon: '🧱' }
+            ],
+            'Calm': [
+                { title: 'Listen to music', icon: '🎵' },
+                { title: 'Write it down', icon: '✍️' }
+            ],
+            'Tired': [
+                { title: 'Deep Breathing', icon: '🌬️' },
+                { title: 'Listen to music', icon: '🎵' }
+            ]
+        };
+
+        const strategies = strategyMap[emotion] || [
+            { title: 'Deep Breathing', icon: '🌬️' },
+            { title: 'Listen to music', icon: '🎵' }
+        ];
+
+        container.innerHTML = strategies.map(s => `
+            <div class="strategy-card" onclick="Activities.setupActivity('${s.title}')">
+                <div class="strategy-icon">${s.icon}</div>
+                <div class="strategy-title">${s.title}</div>
+            </div>
+        `).join('');
+    },
+
+    // 3. 활동별 동적 UI 설정
     setupActivity(type) {
         console.log(`🏃 활동 시작: ${type}`);
-        this.initAudio(); // 활동 시작 시 오디오 엔진 체크
+        this.initAudio();
         
         const actionArea = document.getElementById('inAppActionArea');
         const actionQuestion = document.getElementById('actionQuestion');
@@ -52,10 +101,11 @@ const Activities = {
             case 'Hold Something Cold':
                 this.startColdSqueezeAnimation();
                 break;
+            // 추가 활동들에 대한 분기는 필요에 따라 UI 모듈에서 직접 제어 가능합니다.
         }
     },
 
-    // 3. 문자 메시지(SMS) 전송
+    // 4. 문자 메시지(SMS) 전송 설정
     setupSMSAction(type) {
         const question = type === 'Share the joy' ? "🎉 Who do you want to share this with?" : "💬 Who would you like to talk to?";
         document.getElementById('actionQuestion').textContent = question;
@@ -80,7 +130,7 @@ const Activities = {
         };
     },
 
-    // 4. 유튜브 음악 연결
+    // 5. 유튜브 음악 연결
     setupMusicAction() {
         document.getElementById('actionQuestion').textContent = "🎵 Let's listen to some calming music.";
         const musicUrl = "http://www.youtube.com/watch?v=1ZYbU82GVz4"; 
@@ -102,7 +152,7 @@ const Activities = {
         };
     },
 
-    // 5. 차가운 것 쥐기 애니메이션
+    // 6. 차가운 것 쥐기 애니메이션
     startColdSqueezeAnimation() {
         const question = document.getElementById('actionQuestion');
         question.textContent = "❄️ Hold something cold and follow the steps.";
@@ -133,7 +183,7 @@ const Activities = {
         updateStep();
     },
 
-    // --- 사운드 엔진 (객체 내부 메서드) ---
+    // --- 사운드 엔진 메서드 ---
     playTapSound() {
         try {
             this.initAudio();
@@ -181,7 +231,7 @@ const Activities = {
 };
 
 /**
- * 글로벌 헬퍼 함수: 전역(window)에서 즉시 호출 가능하도록 설정
+ * 글로벌 헬퍼 함수 및 브릿지
  */
 window.feedback = function(type = 'tap') {
     if (type === 'tap') {
@@ -193,6 +243,10 @@ window.feedback = function(type = 'tap') {
     }
 };
 
+window.renderStrategies = function(emotion) {
+    Activities.renderStrategies(emotion);
+};
+
 window.playTickSound = function() {
     Activities.playTickSound();
 };
@@ -201,6 +255,6 @@ window.playStartSound = function() {
     Activities.playTapSound();
 };
 
-// 화면 어디든 터치하면 오디오 엔진 잠금 해제 시도
+// 화면 어디든 터치하면 오디오 엔진 잠금 해제
 window.addEventListener('touchstart', () => Activities.initAudio(), { once: true });
 window.addEventListener('click', () => Activities.initAudio(), { once: true });
