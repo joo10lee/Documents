@@ -1,12 +1,11 @@
 /**
- * Activities 관리 모듈: 감정 및 스트레스 관리 엔진
- * [Phase 3] 통합 아키텍처 (Sound + Interactive Camera + Haptic)
+ * Activities 관리 모듈: [Final] 사운드 + 카메라 + 인터랙티브 활동 통합 버전
  */
 
 let audioCtx = null;
 
 const Activities = {
-    // 1. 사운드/햅틱 엔진
+    // 1. 사운드/햅틱 엔진 (Rich Feedback)
     initAudio() {
         try {
             if (!audioCtx) {
@@ -85,7 +84,7 @@ const Activities = {
         `).join('');
     },
 
-    // 4. 활동 디스패처
+    // 4. 활동 디스패처 (Dispatcher)
     setupActivity(type) {
         this.stopAll();
         this.feedback('tap');
@@ -167,6 +166,10 @@ const Activities = {
     startBreathingAnimation() {
         const area = document.getElementById('inAppActionArea');
         area.innerHTML = `
+            <div class="pattern-selector" style="display:flex; justify-content:center; gap:10px; margin-bottom:25px;">
+                <button class="btn-mini active" id="pRelax" onclick="Activities.setPattern('relax')">Relax</button>
+                <button class="btn-mini" id="pBox" onclick="Activities.setPattern('box')">Box</button>
+            </div>
             <div id="lungContainer" style="display:flex; justify-content:center; align-items:center; height:180px;">
                 <div id="lungCircle" style="width:80px; height:80px; background:rgba(124,58,237,0.2); border-radius:50%; border:5px solid #7c3aed; transition:4s ease-in-out; display:flex; justify-content:center; align-items:center; font-size:3rem;">🫁</div>
             </div>
@@ -175,7 +178,7 @@ const Activities = {
         let cy = 0;
         const anim = () => {
             const l = document.getElementById('lungCircle'); const s = document.getElementById('breathStatus');
-            if (!l || cy >= 3) return;
+            if (!l || cy >= 3) { if(s) s.textContent = "✅ Balanced."; return; }
             this.feedback('tap'); s.textContent = "Inhale... 🌬️"; l.style.transform = "scale(2.5)";
             setTimeout(() => {
                 if (!l) return;
@@ -184,6 +187,13 @@ const Activities = {
             }, 4000);
         };
         setTimeout(anim, 1000);
+    },
+
+    setPattern(pattern) {
+        console.log(`🌬️ 호흡 패턴 변경: ${pattern}`);
+        document.querySelectorAll('.btn-mini').forEach(b => b.classList.remove('active'));
+        const activeBtn = (pattern === 'relax') ? document.getElementById('pRelax') : document.getElementById('pBox');
+        if (activeBtn) activeBtn.classList.add('active');
     },
 
     startSqueezeAction() {
@@ -267,7 +277,7 @@ const Activities = {
             try {
                 this.currentStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: this.currentFacingMode }, audio: false });
                 video.srcObject = this.currentStream;
-            } catch (err) { console.error(err); }
+            } catch (err) { console.error("카메라 에러:", err); }
         };
 
         snapBtn.onclick = () => {
@@ -326,6 +336,7 @@ const Activities = {
     },
 
     startMusicAction() { document.getElementById('inAppActionArea').innerHTML = `<button class="btn btn-primary" style="background:#FF0000; width:100%;" onclick="window.open('https://www.youtube.com/watch?v=1ZYbU82GVz4', '_blank')">📺 Open YouTube</button>`; },
+    
     startColdSqueezeAnimation() { 
         const area = document.getElementById('inAppActionArea');
         let s = 1;
@@ -335,6 +346,7 @@ const Activities = {
             s++; this.feedback('tick');
         }, 1000);
     },
+    
     startWriteAction(q) { document.getElementById('inAppActionArea').innerHTML = `<textarea id="actionNote" class="form-control" style="height:180px; border-radius:20px;" placeholder="${q}"></textarea>`; },
 
     // Legacy 유틸리티
