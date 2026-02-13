@@ -38,99 +38,98 @@ const UI = {
         if (activeBtn) activeBtn.classList.add('active');
     },
 
-    // 3. [개선] 7일 감정 트렌드 차트 렌더링 (지연 실행 추가)
-    renderEmotionChart(history) {
-        // 💡 중요: 화면 전환 후 캔버스가 완전히 그려질 시간을 줍니다.
-        setTimeout(() => {
-            const ctx = document.getElementById('emotionChart');
-            if (!ctx || !window.Chart) {
-                console.warn("차트 캔버스나 라이브러리를 찾을 수 없습니다.");
-                return;
-            }
+   // 3. 7일 트렌드 차트 렌더링 (안정성 강화)
+   renderEmotionChart(history) {
+    setTimeout(() => {
+        const ctx = document.getElementById('emotionChart');
+        if (!ctx || !window.Chart) return;
 
-            // 최근 7일 라벨 생성 (월/일 형식)
-            const labels = [];
-            for (let i = 6; i >= 0; i--) {
-                const d = new Date();
-                d.setDate(d.getDate() - i);
-                labels.push(d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
-            }
-
-            // 날짜별 평균 강도 계산: $$Average = \frac{\sum Intensity}{Count}$$
-            const dataPoints = labels.map(label => {
-                const dayEntries = history.filter(h => 
-                    new Date(h.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) === label
-                );
-                if (dayEntries.length === 0) return 0;
-                const sum = dayEntries.reduce((acc, curr) => acc + curr.intensity, 0);
-                return (sum / dayEntries.length).toFixed(1);
-            });
-
-            if (window.myEmotionChart) window.myEmotionChart.destroy();
-
-            window.myEmotionChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Avg. Intensity',
-                        data: dataPoints,
-                        borderColor: '#7c3aed',
-                        backgroundColor: 'rgba(124, 58, 237, 0.1)',
-                        borderWidth: 3,
-                        tension: 0.4,
-                        fill: true,
-                        pointBackgroundColor: '#7c3aed',
-                        pointRadius: 4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: { beginAtZero: true, max: 10, ticks: { stepSize: 2 } },
-                        x: { grid: { display: false } }
-                    },
-                    plugins: { legend: { display: false } }
-                }
-            });
-        }, 150); // 150ms 지연으로 렌더링 안정성 확보
-    },
-
-    // 4. 감정 기록 목록 렌더링
-    renderHistory(history) {
-        const container = document.getElementById('historyList');
-        if (!container) return;
-
-        if (!history || history.length === 0) {
-            container.innerHTML = '<div class="empty-history"><div class="empty-history-icon">📔</div><p>No records yet!</p></div>';
-            return;
+        // 최근 7일간의 날짜 라벨 생성
+        const labels = [];
+        for (let i = 6; i >= 0; i--) {
+            const d = new Date();
+            d.setDate(d.getDate() - i);
+            labels.push(d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
         }
 
-        container.innerHTML = history.slice().reverse().map(entry => {
-            const date = new Date(entry.timestamp);
-            const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            
-            const photoHtml = entry.photo ? `
-                <div class="history-photo-wrapper" style="margin-top:12px; border-radius:12px; overflow:hidden; border:1px solid #edf2f7;">
-                    <img src="${entry.photo}" style="width:100%; display:block;">
-                </div>` : '';
+        // 날짜별 평균 강도 집계
+        const dataPoints = labels.map(label => {
+            const dayEntries = history.filter(h => {
+                const hDate = new Date(h.timestamp || h.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                return hDate === label;
+            });
+            if (dayEntries.length === 0) return 0;
+            const sum = dayEntries.reduce((acc, curr) => acc + (curr.intensity || 0), 0);
+            return (sum / dayEntries.length).toFixed(1);
+        });
 
-            return `
-                <div class="history-item" style="background: white; border-radius: 20px; padding: 20px; margin-bottom: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
-                    <div style="display: flex; align-items: center; gap: 15px;">
-                        <span style="font-size: 2.5rem;">${entry.emoji}</span>
-                        <div>
-                            <div style="font-weight: 700; color: #2d3748; font-size: 1.1rem;">${entry.emotion} (Lv.${entry.intensity})</div>
-                            <div style="font-size: 0.85rem; color: #a0aec0;">${timeStr}</div>
-                        </div>
+        if (window.myEmotionChart) window.myEmotionChart.destroy();
+
+        window.myEmotionChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: dataPoints,
+                    borderColor: '#7c3aed',
+                    backgroundColor: 'rgba(124, 58, 237, 0.1)',
+                    borderWidth: 3,
+                    tension: 0.4,
+                    fill: true,
+                    pointBackgroundColor: '#7c3aed',
+                    pointRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { beginAtZero: true, max: 10, ticks: { stepSize: 2 } },
+                    x: { grid: { display: false } }
+                },
+                plugins: { legend: { display: false } }
+            }
+        });
+    }, 150); // 화면 전환 애니메이션 후 실행
+},
+
+// 4. 감정 기록 리스트 렌더링 (최신순 정렬)
+renderHistory(history) {
+    const container = document.getElementById('historyList');
+    if (!container) return;
+
+    if (!history || history.length === 0) {
+        container.innerHTML = '<div class="empty-history"><div class="empty-history-icon">📔</div><p>No records yet!</p></div>';
+        return;
+    }
+
+    // 최신 데이터가 위로 오도록 정렬하여 출력
+    container.innerHTML = history.slice().sort((a, b) => 
+        new Date(b.timestamp || b.createdAt) - new Date(a.timestamp || a.createdAt)
+    ).map(entry => {
+        const date = new Date(entry.timestamp || entry.createdAt);
+        const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        
+        const photoHtml = entry.photo ? `
+            <div class="history-photo" style="margin-top:12px; border-radius:12px; overflow:hidden;">
+                <img src="${entry.photo}" style="width:100%; display:block;">
+            </div>` : '';
+
+        return `
+            <div class="history-item" style="background:white; border-radius:20px; padding:20px; margin-bottom:16px; box-shadow:0 4px 15px rgba(0,0,0,0.05);">
+                <div style="display:flex; align-items:center; gap:15px;">
+                    <span style="font-size:2.5rem;">${entry.emoji || '❓'}</span>
+                    <div>
+                        <div style="font-weight:700; color:#2d3748;">${entry.emotion} (Lv.${entry.intensity})</div>
+                        <div style="font-size:0.85rem; color:#a0aec0;">${timeStr}</div>
                     </div>
-                    ${entry.note ? `<div style="margin-top:12px; padding:12px; background: #f8fafc; border-radius: 12px; font-size: 0.95rem; color: #4a5568;">${entry.note}</div>` : ''}
-                    ${photoHtml}
                 </div>
-            `;
-        }).join('');
-    },
+                ${entry.note ? `<div style="margin-top:12px; padding:12px; background:#f8fafc; border-radius:12px; font-size:0.95rem;">${entry.note}</div>` : ''}
+                ${photoHtml}
+            </div>
+        `;
+    }).join('');
+},
 
     // 5. 날씨 시스템 (로스 가토스 최적화 및 화씨 기준)
     getWeatherInfo(code, temp) {

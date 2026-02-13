@@ -71,8 +71,11 @@ function goHome() {
     document.getElementById('greeting').style.display = 'block';
 }
 
-// js/app.js 내 해당 함수 수정
+// js/app.js 내 goToHistory 함수 교체
 async function goToHistory() {
+    console.log("📊 히스토리 화면으로 이동 중...");
+    
+    // 💡 1단계: 화면 전환부터 즉시 실행 (사용자 경험 개선)
     UI.goToScreen('History', 'My Check-ins');
     UI.updateNavActive('navHistory');
     
@@ -81,16 +84,26 @@ async function goToHistory() {
     const greeting = document.getElementById('greeting');
     if (weatherHeader) weatherHeader.style.display = 'none';
     if (greeting) greeting.style.display = 'none';
-    
-    // 1. 데이터 가져오기
-    const history = await EmotionAPI.fetchHistory();
-    
-    // 2. 리스트 렌더링
-    UI.renderHistory(history);
 
-    // 3. ✅ 차트 렌더링 호출 (이 줄이 빠져있을 확률이 높습니다)
-    if (typeof renderEmotionChart === 'function') {
-        renderEmotionChart(history);
+    // 💡 2단계: 로딩 표시 (선택 사항)
+    const listContainer = document.getElementById('historyList');
+    if (listContainer) listContainer.innerHTML = '<p style="text-align:center; padding:20px; color:#a0aec0;">Loading your memories... ⌛</p>';
+
+    try {
+        // 💡 3단계: 데이터를 비동기로 가져오기
+        const history = await EmotionAPI.fetchHistory();
+        console.log("📥 데이터 수신 완료:", history);
+
+        if (history && history.length > 0) {
+            // 💡 4단계: 리스트와 차트를 순차적으로 렌더링
+            UI.renderHistory(history);
+            UI.renderEmotionChart(history);
+        } else {
+            UI.renderHistory([]); // 데이터 없을 때 처리
+        }
+    } catch (error) {
+        console.error("❌ 데이터 로드 실패:", error);
+        if (listContainer) listContainer.innerHTML = '<p>데이터를 불러오지 못했습니다.</p>';
     }
 }
 
