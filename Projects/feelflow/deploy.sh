@@ -1,21 +1,27 @@
 #!/bin/bash
 
-# 1. 현재 시간을 '월일-시분' 형태로 생성 (예: 0213-1530)
+# 1. 현재 시간을 '월일-시분' 형태로 생성 (예: 0213-1650)
 NOW=$(date +'%m%d-%H%M')
 
-# 2. index.html의 {{BUILD_ID}}를 현재 시간으로 치환
-# (macOS와 Linux의 sed 문법 차이를 고려하여 작성)
+# 2. index.html 업데이트
+# macOS 전용 -E (Extended Regex) 옵션을 사용하여 Ver. 뒤의 내용을 무조건 치환합니다.
+# 이 방식은 {{BUILD_ID}}가 이미 숫자로 바뀌어 있어도 다시 최신 숫자로 덮어씁니다.
 if [[ "$OSTYPE" == "darwin"* ]]; then
-  sed -i '' "s/{{BUILD_ID}}/$NOW/g" index.html
+  sed -i '' -E "s/Ver\.[^<]*/Ver\.$NOW/g" index.html
 else
-  sed -i "s/{{BUILD_ID}}/$NOW/g" index.html
+  # 리눅스 환경 대응
+  sed -i -r "s/Ver\.[^<]*/Ver\.$NOW/g" index.html
 fi
 
-echo "✅ Build ID Updated: $NOW"
+echo "✅ [Build ID Updated] 현재 버전: Ver.$NOW"
 
-# 3. 이후 기존 배포 명령 실행 (git add, commit, push 등)
+# 3. Git 배포 프로세스
 git add .
-git commit -m "Deploy Build $NOW"
+git commit -m "Build: $NOW - Update activities and sound logic"
 git push origin main
 
-echo "✅ 배포 완료! 잠시 후 아이폰에서 ?v=$(date +%s)를 붙여 확인하세요."
+echo "--------------------------------------------------"
+echo "🚀 배포가 완료되었습니다!"
+echo "📱 아이폰 사파리에서 확인 시 캐시 방지를 위해 아래 주소를 사용하세요:"
+echo "👉 https://joo10lee.github.io/feelflow/index.html?v=$NOW"
+echo "--------------------------------------------------"
