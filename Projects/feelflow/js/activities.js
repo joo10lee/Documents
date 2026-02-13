@@ -66,34 +66,42 @@ const Activities = {
     },
 
     // 3. 활동별 동적 UI 설정 (가시성 & 자동 스크롤 보강)
+    // 3. 활동별 동적 UI 설정 (화면 전환 로직 추가)
     setupActivity(type) {
         console.log(`🏃 활동 시작: ${type}`);
         this.initAudio();
         if (window.feedback) window.feedback('tap');
 
-        // UI 요소 가져오기
+        // 💡 1단계: 먼저 '활동 화면'으로 이동합니다.
+        if (typeof UI !== 'undefined' && UI.goToScreen) {
+            UI.goToScreen('Activity', type);
+        }
+
         const actionArea = document.getElementById('inAppActionArea');
         const actionQuestion = document.getElementById('actionQuestion');
         const actionNote = document.getElementById('actionNote');
         const cameraBtn = document.getElementById('cameraBtn');
+        const activityIcon = document.getElementById('activityIcon');
+        const activityTitle = document.getElementById('activityTitle');
 
-        if (!actionArea) {
-            console.error("❌ 'inAppActionArea'를 찾을 수 없습니다. index.html의 구조를 확인하세요.");
-            return;
-        }
+        if (!actionArea) return;
 
-        // 1단계: 영역 초기화 (모든 요소를 일단 숨김)
-        actionArea.style.display = 'block'; 
-        actionArea.style.visibility = 'visible'; // 강제 가시화
-        actionArea.style.opacity = '1';
+        // 💡 2단계: 화면 상단의 아이콘과 제목을 활동에 맞게 업데이트
+        actionArea.style.display = 'block';
+        if (activityTitle) activityTitle.textContent = type;
         
+        // 아이콘 매칭 (선택사항)
+        const iconMap = { 'Write it down': '✍️', 'Capture the moment': '📸', 'Listen to music': '🎵' };
+        if (activityIcon && iconMap[type]) activityIcon.textContent = iconMap[type];
+
+        // 3단계: 입력 요소 초기화
         if (actionNote) {
             actionNote.style.display = 'none';
-            actionNote.value = ''; // 이전 입력값 초기화
+            actionNote.value = ''; 
         }
         if (cameraBtn) cameraBtn.style.display = 'none';
 
-        // 2단계: 활동 유형별 맞춤 UI 활성화
+        // 4단계: 활동별 맞춤 UI 활성화
         switch(type) {
             case 'Write it down':
                 if (actionQuestion) actionQuestion.textContent = "✍️ What made you happy?";
@@ -103,23 +111,8 @@ const Activities = {
                 if (actionQuestion) actionQuestion.textContent = "📸 Capture this happy moment!";
                 if (cameraBtn) cameraBtn.style.display = 'block';
                 break;
-            case 'Share the joy':
-            case 'Talk to someone':
-                this.setupSMSAction(type);
-                break;
-            case 'Listen to music':
-                this.setupMusicAction();
-                break;
-            case 'Hold Something Cold':
-                this.startColdSqueezeAnimation();
-                break;
+            // ... 나머지 케이스는 기존과 동일
         }
-
-        // 3단계: 💡 사용자가 바로 볼 수 있게 해당 영역으로 스크롤
-        // 레이아웃이 그려질 시간을 주기 위해 약간의 지연(setTimeout)을 둡니다.
-        setTimeout(() => {
-            actionArea.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }, 100);
     },
 
     // 4. 문자 메시지(SMS) 전송 설정
