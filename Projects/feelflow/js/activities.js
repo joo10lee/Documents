@@ -16,7 +16,7 @@ const Activities = {
         }
     },
 
-    // 2. [추가] 감정별 전략 카드 렌더링 (app.js에서 호출)
+    // 2. 감정별 전략 카드 렌더링
     renderStrategies(emotion) {
         const container = document.getElementById('strategiesContainer');
         if (!container) return;
@@ -65,14 +65,13 @@ const Activities = {
         `).join('');
     },
 
-    // 3. 활동별 동적 UI 설정 (가시성 & 자동 스크롤 보강)
-    // 3. 활동별 동적 UI 설정 (화면 전환 로직 추가)
+    // 3. 활동별 동적 UI 설정 (SMS 및 기타 활동 분기 추가)
     setupActivity(type) {
         console.log(`🏃 활동 시작: ${type}`);
         this.initAudio();
         if (window.feedback) window.feedback('tap');
 
-        // 💡 1단계: 먼저 '활동 화면'으로 이동합니다.
+        // 1단계: 활동 화면으로 이동
         if (typeof UI !== 'undefined' && UI.goToScreen) {
             UI.goToScreen('Activity', type);
         }
@@ -86,74 +85,106 @@ const Activities = {
 
         if (!actionArea) return;
 
-        // 💡 2단계: 화면 상단의 아이콘과 제목을 활동에 맞게 업데이트
+        // 2단계: 공통 UI 초기화 (모두 숨김)
         actionArea.style.display = 'block';
         if (activityTitle) activityTitle.textContent = type;
-        
-        // 아이콘 매칭 (선택사항)
-        const iconMap = { 'Write it down': '✍️', 'Capture the moment': '📸', 'Listen to music': '🎵' };
-        if (activityIcon && iconMap[type]) activityIcon.textContent = iconMap[type];
-
-        // 3단계: 입력 요소 초기화
         if (actionNote) {
             actionNote.style.display = 'none';
-            actionNote.value = ''; 
+            actionNote.value = '';
+            actionNote.placeholder = "내용을 입력하세요...";
         }
         if (cameraBtn) cameraBtn.style.display = 'none';
+        
+        // 아이콘 매칭
+        const iconMap = { 
+            'Write it down': '✍️', 
+            'Capture the moment': '📸', 
+            'Share the joy': '🎉',
+            'Listen to music': '🎵',
+            'Hold Something Cold': '❄️'
+        };
+        if (activityIcon && iconMap[type]) activityIcon.textContent = iconMap[type];
 
-        // 4단계: 활동별 맞춤 UI 활성화
+        // 💡 3단계: 활동별 분기 처리 (여기에 Share the joy 추가)
         switch(type) {
             case 'Write it down':
                 if (actionQuestion) actionQuestion.textContent = "✍️ What made you happy?";
                 if (actionNote) actionNote.style.display = 'block';
+                // 일반 저장 버튼으로 복구
+                if (window.setupActivityButton) window.setupActivityButton('write');
                 break;
+
             case 'Capture the moment':
                 if (actionQuestion) actionQuestion.textContent = "📸 Capture this happy moment!";
                 if (cameraBtn) cameraBtn.style.display = 'block';
+                // 일반 저장 버튼으로 복구
+                if (window.setupActivityButton) window.setupActivityButton('write');
                 break;
-            // ... 나머지 케이스는 기존과 동일
+
+            case 'Share the joy':
+                // 💡 문자 보내기 전용 UI 설정 호출
+                this.setupSMSAction(type);
+                break;
+
+            case 'Listen to music':
+                this.setupMusicAction();
+                break;
+
+            case 'Hold Something Cold':
+                this.startColdSqueezeAnimation();
+                break;
+
+            default:
+                if (actionQuestion) actionQuestion.textContent = `Let's try ${type}!`;
+                if (actionNote) actionNote.style.display = 'block';
+                break;
         }
     },
 
-    // 4. 문자 메시지(SMS) 전송 설정
-   // js/activities.js 내 setupSMSAction 함수 수정
-setupSMSAction(type) {
-    const actionArea = document.getElementById('inAppActionArea');
-    const actionNote = document.getElementById('actionNote');
-    const activityBtn = document.getElementById('activityBtn');
-    
-    if (!actionArea || !activityBtn) return;
-
-    actionArea.style.display = 'block';
-    if (actionNote) {
-        actionNote.value = `오늘 기분이 정말 좋아! 이 기쁨을 나누고 싶어서 메시지 보내. ✨`;
-    }
-
-    // 💡 버튼을 SMS 전송용으로 교체
-    activityBtn.textContent = "Send via SMS 💌";
-    activityBtn.onclick = function() {
-        const msg = actionNote.value;
-        // 💡 아이폰 메시지 앱 호출
-        window.location.href = `sms:&body=${encodeURIComponent(msg)}`;
+    // 4. 문자 메시지(SMS) 전용 UI 및 버튼 설정
+    setupSMSAction(type) {
+        const actionQuestion = document.getElementById('actionQuestion');
+        const actionNote = document.getElementById('actionNote');
+        const activityBtn = document.getElementById('activityBtn');
         
-        // 메시지 앱이 열린 후, 데이터를 저장하고 성공 화면으로 보냅니다.
-        setTimeout(() => {
-            finishCheckIn();
-        }, 1500);
-    };
-},
+        if (actionQuestion) actionQuestion.textContent = "💌 누구에게 이 기쁨을 전할까요?";
+        
+        if (actionNote) {
+            actionNote.style.display = 'block';
+            actionNote.value = `오늘 기분이 정말 좋아! 이 기쁨을 나누고 싶어서 메시지 보내. ✨`;
+        }
+
+        // 💡 하단 버튼을 SMS 전송용으로 교체
+        if (activityBtn) {
+            activityBtn.textContent = "Send via SMS 💌";
+            activityBtn.onclick = () => {
+                const msg = actionNote ? actionNote.value : "";
+                // 아이폰/안드로이드 SMS 앱 호출
+                window.location.href = `sms:?&body=${encodeURIComponent(msg)}`;
+                
+                // 메시지 앱 오픈 후 1.5초 뒤 저장 및 성공 화면 이동
+                setTimeout(() => {
+                    if (typeof finishCheckIn === 'function') finishCheckIn();
+                }, 1500);
+            };
+        }
+    },
+
     // 5. 유튜브 음악 연결
     setupMusicAction() {
-        document.getElementById('actionQuestion').textContent = "🎵 Let's listen to some calming music.";
-        const musicUrl = "http://www.youtube.com/watch?v=1ZYbU82GVz4"; 
+        if (document.getElementById('actionQuestion')) {
+            document.getElementById('actionQuestion').textContent = "🎵 Let's listen to some calming music.";
+        }
+        const musicUrl = "https://www.youtube.com/watch?v=1ZYbU82GVz4"; 
         
         let musicBtn = document.getElementById('musicActionBtn');
         if (!musicBtn) {
             musicBtn = document.createElement('button');
             musicBtn.id = 'musicActionBtn';
-            musicBtn.className = 'btn-primary';
+            musicBtn.className = 'btn btn-primary';
             musicBtn.style.background = '#FF0000';
             musicBtn.style.width = '100%';
+            musicBtn.style.marginTop = '20px';
             document.getElementById('inAppActionArea').appendChild(musicBtn);
         }
         musicBtn.style.display = 'block';
@@ -167,29 +198,30 @@ setupSMSAction(type) {
     // 6. 차가운 것 쥐기 애니메이션
     startColdSqueezeAnimation() {
         const question = document.getElementById('actionQuestion');
-        question.textContent = "❄️ Hold something cold and follow the steps.";
+        const area = document.getElementById('inAppActionArea');
+        
         let step = 1;
         const totalSteps = 5;
         
-        const area = document.getElementById('inAppActionArea');
         let animBox = document.getElementById('animBox');
         if (!animBox) {
             animBox = document.createElement('div');
             animBox.id = 'animBox';
-            animBox.style.padding = '20px';
-            animBox.style.fontSize = '3rem';
+            animBox.style.padding = '30px';
+            animBox.style.fontSize = '4rem';
             animBox.style.textAlign = 'center';
             area.appendChild(animBox);
         }
+        animBox.style.display = 'block';
         
         const updateStep = () => {
             animBox.textContent = "❄️".repeat(step);
-            question.textContent = `Step ${step}: Feel the coldness... (${step}/${totalSteps})`;
+            if (question) question.textContent = `Step ${step}: Feel the coldness... (${step}/${totalSteps})`;
             if (step < totalSteps) {
                 step++;
                 setTimeout(updateStep, 2000);
             } else {
-                question.textContent = "✅ Well done. Do you feel a bit calmer?";
+                if (question) question.textContent = "✅ Well done. Do you feel a bit calmer?";
             }
         };
         updateStep();
@@ -241,15 +273,10 @@ setupSMSAction(type) {
         } catch (e) {}
     }
 };
-/**
- * 글로벌 헬퍼 함수 및 브릿지
- * 💡 핵심: Activities 객체와 함수들을 window(전역)에 명시적으로 등록해야 합니다.
- */
 
-// 1. Activities 객체 자체를 전역에 노출 (이게 없으면 카드 클릭 시 ReferenceError 발생)
+// --- 글로벌 브릿지 등록 ---
 window.Activities = Activities;
 
-// 2. 피드백 함수 (소리 및 진동)
 window.feedback = function(type = 'tap') {
     if (type === 'tap') {
         Activities.playTapSound();
@@ -260,20 +287,12 @@ window.feedback = function(type = 'tap') {
     }
 };
 
-// 3. 전략 렌더링 함수 브릿지
 window.renderStrategies = function(emotion) {
     Activities.renderStrategies(emotion);
 };
 
-// 4. 타이머 사운드 브릿지
-window.playTickSound = function() {
-    Activities.playTickSound();
-};
+window.playTickSound = function() { Activities.playTickSound(); };
+window.playStartSound = function() { Activities.playTapSound(); };
 
-window.playStartSound = function() {
-    Activities.playTapSound();
-};
-
-// 5. 오디오 엔진 잠금 해제 (iOS/Safari 필수 대응)
+// iOS/Safari 필수 대응
 window.addEventListener('touchstart', () => Activities.initAudio(), { once: true });
-window.addEventListener('click', () => Activities.initAudio(), { once: true });
