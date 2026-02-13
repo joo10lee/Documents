@@ -157,25 +157,29 @@ function resetAppInput() {
 
 // 8. 서브 화면 이동
 // app.js의 goToTracker와 goToHistory 함수 내부를 아래처럼 보강하세요.
+// Tracker 화면으로 갈 때 데이터 로직 깨우기
 function goToTracker() {
     UI.goToScreen('Tracker', 'Life Skills Tracker');
     UI.updateNavActive('navTracker');
-    // 💡 화면 진입 시 트래커 다시 렌더링 강제
-    if (window.Tracker && typeof window.Tracker.render === 'function') {
-        window.Tracker.render();
+    
+    // 💡 [핵심] 트래커 데이터 로드 및 렌더링 엔진 호출
+    if (window.Tracker && typeof window.Tracker.init === 'function') {
+        window.Tracker.init(); 
+    } else if (typeof renderTracker === 'function') {
+        renderTracker(); 
     }
 }
 
+// History 화면으로 갈 때 차트와 로그 깨우기
 function goToHistory() {
     UI.goToScreen('History', 'My Check-ins');
     UI.updateNavActive('navHistory');
-    // 💡 화면 진입 시 히스토리 및 차트 로드 강제
-    if (typeof UI.renderHistory === 'function') {
-        EmotionAPI.fetchHistory().then(data => {
-            UI.renderHistory(data);
-            if (typeof renderEmotionChart === 'function') renderEmotionChart(data);
-        });
-    }
+    
+    // 💡 [핵심] API에서 데이터를 가져와서 UI에 뿌리기
+    EmotionAPI.fetchHistory().then(data => {
+        if (typeof UI.renderHistory === 'function') UI.renderHistory(data);
+        if (typeof renderEmotionChart === 'function') renderEmotionChart(data);
+    });
 }
 
 function goToSettings() {

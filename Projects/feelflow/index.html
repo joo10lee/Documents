@@ -19,19 +19,19 @@
     <script src="js/app.js"></script>
     <script>
         window.onload = function() {
-            console.log("FeelFlow 인프라 Ver.0213-1520
+            console.log("FeelFlow 인프라 Ver.0213-1526
             if ('serviceWorker' in navigator) {
                 navigator.serviceWorker.register('sw.js').catch(err => console.log('SW fail:', err));
             }
             if (typeof initApp === 'function') initApp();
         };
     </script>  
-    <title>FeelFlow - Build Ver.0213-1520</title>
+    <title>FeelFlow - Build Ver.0213-1526</title>
 </head>
 <body>
     <header class="app-header">
         <div class="header-status">
-            <span></span> <span class="build-tag">Ver.0213-1520</span>
+            <span></span> <span class="build-tag">Ver.0213-1526</span>
         </div>
         <div class="header-main">
             <h1 class="greeting">Hey Joo, <br>how's it going?</h1>
@@ -127,35 +127,46 @@
         </div>
     </main>
 
-    <main class="screen" id="screenTracker">
-        <div class="tracker-container" style="padding: 20px 24px;">
-            <div class="tracker-tabs" style="display:flex; gap:10px; margin-bottom:20px;">
-                <button class="tracker-tab active" id="tabMorning" onclick="switchRoutine('morning')" style="flex:1; padding:12px; border-radius:15px; border:none; background:#fff;">🌅 Morning</button>
-                <button class="tracker-tab" id="tabEvening" onclick="switchRoutine('evening')" style="flex:1; padding:12px; border-radius:15px; border:none; background:#fff;">🌙 Evening</button>
+    <main class="screen" id="screenHistory">
+        <div class="history-container">
+            <h2 class="section-title">Emotion Trend</h2>
+            <div class="history-card" style="height: 220px; padding: 15px; background:white; border-radius:24px; margin:0 24px;">
+                <canvas id="emotionChart"></canvas>
             </div>
             
-            <div class="progress-card" style="background:#fff; padding:20px; border-radius:24px; margin-bottom:20px;">
-                <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
-                    <span id="progressTitle" style="font-weight:800;">Routine</span>
-                    <span id="progressFraction" style="color:#7c3aed; font-weight:800;">0/0</span>
-                </div>
-                <div style="height:10px; background:#f1f5f9; border-radius:5px; overflow:hidden;">
-                    <div id="progressBar" style="width:0%; height:100%; background:#7c3aed; transition:0.3s;"></div>
-                </div>
-            </div>
-
-            <div id="taskList"></div> <div id="stickerGrid" class="sticker-grid" style="display:grid; grid-template-columns:repeat(7, 1fr); gap:8px; margin-top:20px;"></div>
+            <h2 class="section-title">Recent Check-ins</h2>
+            <div class="history-list" id="historyList"></div>
+            
+            <button class="btn-danger" onclick="clearHistory()" style="margin: 20px 24px; width: calc(100% - 48px); border:none; padding:15px; border-radius:15px;">Clear History</button>
         </div>
     </main>
 
-    <main class="screen" id="screenHistory">
-        <div class="history-container" style="padding: 20px 24px;">
-            <h2 class="section-title">Trends</h2>
-            <div style="background:#fff; padding:15px; border-radius:24px; height:220px; margin-bottom:25px;">
-                <canvas id="emotionChart"></canvas> </div>
-            <div id="historyList"></div> </div>
+    <main class="screen" id="screenTracker">
+        <div class="tracker-container">
+            <div class="tracker-tabs">
+                <button class="tracker-tab active" id="tabMorning" onclick="switchRoutine('morning')">🌅 Morning</button>
+                <button class="tracker-tab" id="tabEvening" onclick="switchRoutine('evening')">🌙 Evening</button>
+            </div>
+
+            <div class="progress-card">
+                <div class="progress-header">
+                    <span id="progressTitle" style="font-weight:850;">Routine</span>
+                    <span id="progressFraction" style="color:#7c3aed; font-weight:850;">0/0</span>
+                </div>
+                <div class="progress-bar-container">
+                    <div id="progressBar" class="progress-bar-fill" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <div id="taskList"></div>
+
+            <div class="sticker-collection">
+                <p class="section-title" style="margin-left:0;">🏆 Stickers</p>
+                <div id="stickerGrid" class="sticker-grid"></div>
+            </div>
+        </div>
     </main>
-    
+
 
     <main class="screen" id="screenSettings">
         <div class="settings-container">
