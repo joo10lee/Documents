@@ -1,217 +1,69 @@
 /* * FeelFlow Premium UI Stack
- * Target: Gen-Z (13-18y)
- * Build: Ver.0213-1450
+ * Build: Ver.0213-1450 (Fixed)
  */
 
- @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
-
- * {
-     margin: 0;
-     padding: 0;
-     box-sizing: border-box;
-     -webkit-tap-highlight-color: transparent;
- }
- 
  body {
-     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-     background: linear-gradient(180deg, #F0F4F8 0%, #D9E2EC 100%);
-     height: 100vh;
-     display: flex;
-     flex-direction: column;
-     overflow: hidden; /* 아이폰 한 화면 고정 */
-     color: #1e293b;
- }
- 
- /* ===== SLIM HEADER SYSTEM ===== */
- .app-header {
-     padding: 50px 24px 15px;
-     width: 100%;
- }
- 
- .header-status {
-     display: flex;
-     justify-content: space-between;
-     align-items: center;
-     margin-bottom: 12px;
- }
- 
- .location-chip {
-     background: rgba(255, 255, 255, 0.5);
-     backdrop-filter: blur(10px);
-     -webkit-backdrop-filter: blur(10px);
-     padding: 6px 14px;
-     border-radius: 20px;
-     font-size: 0.75rem;
-     font-weight: 700;
-     color: #475569;
-     border: 1px solid rgba(255, 255, 255, 0.3);
- }
- 
- .build-tag {
-     font-family: 'SF Mono', monospace;
-     font-size: 0.65rem;
-     color: #94a3b8;
- }
- 
- .greeting {
-     font-size: 2rem;
-     font-weight: 800;
-     line-height: 1.1;
-     letter-spacing: -1px;
-     margin-bottom: 8px;
- }
- 
- .context-tip {
-     display: flex;
-     align-items: center;
-     gap: 8px;
-     background: rgba(255, 255, 255, 0.4);
-     padding: 8px 14px;
-     border-radius: 12px;
-     font-size: 0.85rem;
-     color: #64748b;
-     border: 1px solid rgba(255, 255, 255, 0.2);
- }
- 
- /* ===== BENTO GRID SYSTEM ===== */
- .screen {
-     display: none;
-     flex: 1;
-     flex-direction: column;
-     width: 100%;
- }
- 
- .screen.active {
-     display: flex;
- }
- 
- .emotion-bento {
-     display: grid;
-     grid-template-columns: 1fr 1fr;
-     grid-template-rows: repeat(3, 1fr);
-     gap: 16px;
-     padding: 10px 24px 24px;
-     flex: 1;
- }
- 
- .bento-card {
-     background: rgba(255, 255, 255, 0.7);
-     backdrop-filter: blur(20px);
-     -webkit-backdrop-filter: blur(20px);
-     border: 1px solid rgba(255, 255, 255, 0.4);
-     border-radius: 32px;
-     display: flex;
-     flex-direction: column;
-     align-items: center;
-     justify-content: center;
-     transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.03);
-     cursor: pointer;
-     text-decoration: none;
- }
- 
- .bento-card:active {
-     transform: scale(0.94);
-     background: rgba(255, 255, 255, 0.9);
- }
- 
- .bento-card .emoji {
-     font-size: 3rem;
-     margin-bottom: 8px;
- }
- 
- .bento-card .label {
-     font-weight: 700;
-     font-size: 1.1rem;
-     color: #1e293b;
- }
- 
- /* 젠더 중립적 컬러 필터 (은은한 수채화 느낌) */
- .happy { background: rgba(255, 217, 61, 0.12); border-color: rgba(255, 217, 61, 0.3); }
- .sad { background: rgba(108, 180, 238, 0.12); border-color: rgba(108, 180, 238, 0.3); }
- .anxious { background: rgba(160, 132, 232, 0.12); border-color: rgba(160, 132, 232, 0.3); }
- .angry { background: rgba(255, 107, 107, 0.12); border-color: rgba(255, 107, 107, 0.3); }
- .calm { background: rgba(107, 203, 119, 0.12); border-color: rgba(107, 203, 119, 0.3); }
- .tired { background: rgba(149, 165, 166, 0.12); border-color: rgba(149, 165, 166, 0.3); }
- 
- /* ===== SUB SCREENS (INTENSITY, RESULT) ===== */
- .intensity-screen {
-     padding: 24px;
-     text-align: center;
- }
- 
- .intensity-card {
-     background: white;
-     padding: 30px;
-     border-radius: 32px;
-     box-shadow: 0 20px 40px rgba(0,0,0,0.05);
- }
- 
- .intensity-slider {
-     width: 100%;
-     height: 50px;
-     -webkit-appearance: none;
-     background: transparent;
- }
- 
- .intensity-slider::-webkit-slider-runnable-track {
-     height: 12px;
-     background: #E2E8F0;
-     border-radius: 10px;
- }
- 
- .intensity-slider::-webkit-slider-thumb {
-     -webkit-appearance: none;
-     height: 32px;
-     width: 32px;
-     border-radius: 50%;
-     background: #1e293b;
-     margin-top: -10px;
-     box-shadow: 0 4px 10px rgba(0,0,0,0.2);
- }
- 
- /* ===== PREMIUM BOTTOM NAV ===== */
- .bottom-nav {
-     position: absolute;
-     bottom: 30px;
-     left: 24px;
-     right: 24px;
-     background: rgba(255, 255, 255, 0.8);
-     backdrop-filter: blur(20px);
-     -webkit-backdrop-filter: blur(20px);
-     display: flex;
-     justify-content: space-around;
-     padding: 12px;
-     border-radius: 24px;
-     border: 1px solid rgba(255, 255, 255, 0.5);
-     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
- }
- 
- .nav-btn {
-     display: flex;
-     flex-direction: column;
-     align-items: center;
-     background: none;
-     border: none;
-     color: #94a3b8;
-     gap: 4px;
- }
- 
- .nav-btn.active { color: #7c3aed; }
- .nav-icon { font-size: 1.4rem; }
- .nav-label { font-size: 0.7rem; font-weight: 700; }
- 
- /* 공통 버튼 스타일 */
- .btn-primary {
-     background: #1e293b;
-     color: white;
-     padding: 18px 32px;
-     border-radius: 20px;
-     font-weight: 700;
-     border: none;
-     width: 100%;
-     font-size: 1.1rem;
-     margin-top: 20px;
- }
- 
- .btn-primary:active { transform: scale(0.96); }
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: linear-gradient(180deg, #F0F4F8 0%, #D9E2EC 100%);
+    height: 100vh;
+    overflow: hidden; /* 아이폰 한 화면 고정 */
+    display: flex;
+    flex-direction: column;
+}
+
+/* 슬림 헤더 */
+.app-header {
+    padding: 50px 24px 10px;
+}
+
+.header-status {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #475569;
+    margin-bottom: 12px;
+}
+
+.greeting {
+    font-size: 1.8rem;
+    font-weight: 850;
+    line-height: 1.1;
+    letter-spacing: -1.2px;
+}
+
+/* 💡 핵심: 벤토 그리드 레이아웃 */
+.emotion-bento {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* 2열 */
+    grid-template-rows: repeat(3, 1fr); /* 3행 */
+    gap: 16px;
+    padding: 20px 24px 100px; /* 하단 네비게이션 공간 확보 */
+    flex: 1;
+}
+
+.bento-card {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    border-radius: 32px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.bento-card:active { transform: scale(0.92); }
+.bento-card .emoji { font-size: 3rem; margin-bottom: 4px; }
+.bento-card .label { font-weight: 700; color: #1e293b; }
+
+/* 감정별 은은한 배경색 */
+.happy { background: rgba(255, 217, 61, 0.15); }
+.sad { background: rgba(108, 180, 238, 0.15); }
+.anxious { background: rgba(160, 132, 232, 0.15); }
+.angry { background: rgba(255, 107, 107, 0.15); }
+.calm { background: rgba(107, 203, 119, 0.15); }
+.tired { background: rgba(149, 165, 166, 0.15); }
