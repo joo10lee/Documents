@@ -229,10 +229,15 @@ const Activities = {
         } catch (e) {}
     }
 };
-
 /**
  * 글로벌 헬퍼 함수 및 브릿지
+ * 💡 핵심: Activities 객체와 함수들을 window(전역)에 명시적으로 등록해야 합니다.
  */
+
+// 1. Activities 객체 자체를 전역에 노출 (이게 없으면 카드 클릭 시 ReferenceError 발생)
+window.Activities = Activities;
+
+// 2. 피드백 함수 (소리 및 진동)
 window.feedback = function(type = 'tap') {
     if (type === 'tap') {
         Activities.playTapSound();
@@ -243,10 +248,12 @@ window.feedback = function(type = 'tap') {
     }
 };
 
+// 3. 전략 렌더링 함수 브릿지
 window.renderStrategies = function(emotion) {
     Activities.renderStrategies(emotion);
 };
 
+// 4. 타이머 사운드 브릿지
 window.playTickSound = function() {
     Activities.playTickSound();
 };
@@ -255,6 +262,6 @@ window.playStartSound = function() {
     Activities.playTapSound();
 };
 
-// 화면 어디든 터치하면 오디오 엔진 잠금 해제
+// 5. 오디오 엔진 잠금 해제 (iOS/Safari 필수 대응)
 window.addEventListener('touchstart', () => Activities.initAudio(), { once: true });
 window.addEventListener('click', () => Activities.initAudio(), { once: true });
