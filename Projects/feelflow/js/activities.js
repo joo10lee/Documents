@@ -1,11 +1,12 @@
 /**
  * Activities 관리 모듈: 감정 및 스트레스 관리 엔진
- * [Full Integration] 306 Line Base + Squeeze, Push, Jason Break + 5-4-3-2-1 Animation
+ * [Phase 3] 306 Line Base + Interactive Grounding + Push Animation + Rich Sound/Haptic
  */
 
 let audioCtx = null;
 
 const Activities = {
+    // 💡 1. 오디오/햅틱 피드백 엔진 (Rich Feedback)
     initAudio() {
         if (!audioCtx) {
             audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -13,36 +14,55 @@ const Activities = {
         if (audioCtx.state === 'suspended') audioCtx.resume();
     },
 
-    // 1. 전략 카드 렌더링
+    feedback(type) {
+        this.initAudio();
+        const sounds = {
+            tap: { freq: 880, dur: 0.1, vib: 15 },
+            tick: { freq: 440, dur: 0.05, vib: 8 },
+            success: { freq: [523.25, 659.25, 783.99], dur: 0.5, vib: [50, 100, 50] }
+        };
+        const cfg = sounds[type];
+        if (!cfg) return;
+
+        if (Array.isArray(cfg.freq)) {
+            cfg.freq.forEach((f, i) => this.playTone(f, cfg.dur, audioCtx.currentTime + i * 0.1));
+        } else {
+            this.playTone(cfg.freq, cfg.dur);
+        }
+        if (navigator.vibrate) navigator.vibrate(cfg.vib);
+    },
+
+    playTone(freq, dur, startTime = null) {
+        const start = startTime || audioCtx.currentTime;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.frequency.setValueAtTime(freq, start);
+        gain.gain.setValueAtTime(0.1, start);
+        gain.gain.exponentialRampToValueAtTime(0.01, start + dur);
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        osc.start(start); osc.stop(start + dur);
+    },
+
+    // 💡 2. 자원 정리 (Navigation Cleanup)
+    stopAll() {
+        console.log("🛑 활동 중단 및 리소스 정리");
+        if (this.currentInterval) clearInterval(this.currentInterval);
+        if (navigator.vibrate) navigator.vibrate(0);
+        this.currentInterval = null;
+    },
+
+    // 3. 전략 카드 렌더링
     renderStrategies(emotion) {
         const container = document.getElementById('strategiesContainer');
         if (!container) return;
-
         const strategyMap = {
-            'Happy': [
-                { title: 'Write it down', icon: '✍️' },
-                { title: 'Capture the moment', icon: '📸' },
-                { title: 'Share the joy', icon: '🎉' }
-            ],
-            'Sad': [
-                { title: 'Talk to someone', icon: '💬' },
-                { title: 'Listen to music', icon: '🎵' },
-                { title: 'Big Hug', icon: '🧸' }
-            ],
-            'Anxious': [
-                { title: 'Deep Breathing', icon: '🌬️' },
-                { title: '5-4-3-2-1 Grounding', icon: '🖐️' },
-                { title: 'Hold Something Cold', icon: '❄️' }
-            ],
-            'Angry': [
-                { title: 'Squeeze & Release', icon: '✊' },
-                { title: 'Take a Break', icon: '🚶' },
-                { title: 'Push the Wall', icon: '🧱' }
-            ],
-            'Calm': [ { title: 'Listen to music', icon: '🎵' }, { title: 'Write it down', icon: '✍️' } ],
-            'Tired': [ { title: 'Deep Breathing', icon: '🌬️' }, { title: 'Listen to music', icon: '🎵' } ]
+            'Happy': [{ title: 'Write it down', icon: '✍️' }, { title: 'Capture the moment', icon: '📸' }, { title: 'Share the joy', icon: '🎉' }],
+            'Sad': [{ title: 'Talk to someone', icon: '💬' }, { title: 'Listen to music', icon: '🎵' }, { title: 'Big Hug', icon: '🧸' }],
+            'Anxious': [{ title: 'Deep Breathing', icon: '🌬️' }, { title: '5-4-3-2-1 Grounding', icon: '🖐️' }, { title: 'Hold Something Cold', icon: '❄️' }],
+            'Angry': [{ title: 'Squeeze & Release', icon: '✊' }, { title: 'Take a Break', icon: '🚶' }, { title: 'Push the Wall', icon: '🧱' }],
+            'Calm': [{ title: 'Listen to music', icon: '🎵' }, { title: 'Write it down', icon: '✍️' }],
+            'Tired': [{ title: 'Deep Breathing', icon: '🌬️' }, { title: 'Listen to music', icon: '🎵' }]
         };
-
         const strategies = strategyMap[emotion] || [{ title: 'Deep Breathing', icon: '🌬️' }];
         container.innerHTML = strategies.map(s => `
             <div class="strategy-card" onclick="Activities.setupActivity('${s.title}')">
@@ -52,11 +72,11 @@ const Activities = {
         `).join('');
     },
 
-    // 2. 활동 메인 엔진
+    // 4. 활동 메인 엔진
     setupActivity(type) {
         console.log(`🏃 활동 엔진 가동: ${type}`);
-        this.initAudio();
-        if (window.feedback) window.feedback('tap');
+        this.stopAll(); // 이전 활동 정리
+        this.feedback('tap');
 
         if (typeof UI !== 'undefined' && UI.goToScreen) {
             UI.goToScreen('Activity', type);
@@ -66,277 +86,193 @@ const Activities = {
             const area = document.getElementById('inAppActionArea');
             const btn = document.getElementById('activityBtn');
             const title = document.getElementById('activityTitle');
-
             if (!area) return;
-            area.style.display = 'block';
-            area.innerHTML = ''; 
+            area.style.display = 'block'; area.innerHTML = ''; 
             if (title) title.textContent = type;
-            
             if (btn) {
-                btn.style.display = 'block';
-                btn.textContent = "Finish Activity";
+                btn.style.display = 'block'; btn.textContent = "Finish Activity";
                 btn.onclick = () => { if(typeof window.finishCheckIn === 'function') window.finishCheckIn(); };
             }
 
-            // setupActivity 함수 내부
-        switch(type) {
-            case '5-4-3-2-1 Grounding': this.startGroundingAnimation(); break; // 💡 이름 변경
-            case 'Squeeze & Release': this.startSqueezeAction(); break;      // 💡 이름 변경
-            case 'Push the Wall': this.startPushWallAction(); break;        // 💡 이름 변경
-            case 'Take a Break': this.startJasonBreakQuest(); break;        // 💡 Jason 전용 엔진
-            case 'Deep Breathing': this.startBreathingAnimation(); break;
-            case 'Big Hug': this.startBigHugTimer(); break;
-            case 'Share the joy': this.startSMSAction(); break;
-            case 'Listen to music': this.startMusicAction(); break;
-            case 'Capture the moment': this.startCaptureAction(); break;
-            case 'Hold Something Cold': this.startColdSqueezeAnimation(); break;
-            default: this.startWriteAction(`Focus on ${type}`);
-        }
+            switch(type) {
+                case '5-4-3-2-1 Grounding': this.startGroundingAnimation(); break;
+                case 'Squeeze & Release': this.startSqueezeAction(); break;
+                case 'Push the Wall': this.startPushWallAction(); break;
+                case 'Take a Break': this.startJasonBreakQuest(); break;
+                case 'Deep Breathing': this.startBreathingAnimation(); break;
+                case 'Big Hug': this.startBigHugTimer(); break;
+                case 'Share the joy': this.startSMSAction(); break;
+                case 'Listen to music': this.startMusicAction(); break;
+                case 'Capture the moment': this.startCaptureAction(); break;
+                case 'Hold Something Cold': this.startColdSqueezeAnimation(); break;
+                default: this.startWriteAction(`Focus on ${type}`);
+            }
         }, 100);
     },
 
-    // 💡 3. [신규] 5-4-3-2-1 Grounding 손가락 애니메이션
+    // 🖐️ 5-4-3-2-1 Grounding (Interactive Version)
     startGroundingAnimation() {
         const area = document.getElementById('inAppActionArea');
         const mainBtn = document.getElementById('activityBtn');
-        
-        // 💡 시작 시 메인 버튼을 숨겨서 단계 집중 유도
         if (mainBtn) mainBtn.style.display = 'none';
-    
-        const groundingSteps = [
+
+        const steps = [
             { n: 5, s: 'SEE 👀', p: 'Name 5 things you can see.', c: '#3b82f6', i: '🖐️' },
             { n: 4, s: 'TOUCH ✋', p: 'Notice 4 things you can feel.', c: '#10b981', i: '🖖' },
             { n: 3, s: 'HEAR 👂', p: 'Name 3 sounds you hear.', c: '#f59e0b', i: '🤟' },
             { n: 2, s: 'SMELL 👃', p: 'Notice 2 things you can smell.', c: '#ef4444', i: '✌️' },
             { n: 1, s: 'TASTE 👅', p: 'Notice 1 thing you can taste.', c: '#7c3aed', i: '☝️' }
         ];
-    
-        let currentStep = 0;
-    
-        const renderStep = (idx) => {
-            const step = groundingSteps[idx];
-            
-            // 입력창 동적 생성 (제이슨의 음악적 관심을 유도하는 placeholder)
-            let inputsHTML = '';
-            const placeholders = idx === 2 ? ['Guitar sound', 'Wind', 'Footsteps'] : ['Something blue', 'A chair', 'The screen'];
-            
-            for (let i = 1; i <= step.n; i++) {
-                inputsHTML += `
-                    <input type="text" class="grounding-input" 
-                           placeholder="${i}. ${placeholders[i-1] || 'I ' + step.s.split(' ')[1].toLowerCase() + '...'}" 
-                           style="width:100%; margin-bottom:10px; padding:12px; border:2px solid #e2e8f0; border-radius:12px; font-size:1rem; outline:none; transition:border-color 0.3s;">
-                `;
+
+        let cur = 0;
+        const render = (idx) => {
+            const s = steps[idx];
+            let inputs = '';
+            for (let i = 1; i <= s.n; i++) {
+                inputs += `<input type="text" class="grounding-input" placeholder="${i}. I ${s.s.split(' ')[1].toLowerCase()}..." style="width:100%; margin-bottom:10px; padding:12px; border:2px solid #e2e8f0; border-radius:12px;">`;
             }
-    
             area.innerHTML = `
-                <div id="stepContainer" style="text-align:center; animation: fadeIn 0.4s;">
-                    <div style="font-size:6rem; color:${step.c}; transition:transform 0.3s;" id="stepEmoji">${step.i}</div>
-                    <h2 style="color:${step.c}; margin-bottom:10px;">${step.n} Things to ${step.s.split(' ')[1]}</h2>
-                    <p style="color:#64748b; margin-bottom:20px;">${step.p}</p>
-                    <div style="max-height:200px; overflow-y:auto; padding:5px;">${inputsHTML}</div>
-                    <button id="nextStepBtn" class="btn btn-primary" style="width:100%; margin-top:20px; background:${step.c}; border:none;">
-                        ${idx === 4 ? 'Finish' : 'Next Step'}
-                    </button>
-                    <div style="display:flex; justify-content:center; gap:8px; margin-top:20px;">
-                        ${groundingSteps.map((_, i) => `<div style="width:10px; height:10px; border-radius:50%; background:${i <= idx ? step.c : '#e2e8f0'};"></div>`).join('')}
-                    </div>
-                </div>
-            `;
-    
-            // 다음 단계 버튼 로직
-            document.getElementById('nextStepBtn').onclick = () => {
-                if (window.feedback) window.feedback('tap');
-                if (idx < 4) {
-                    renderStep(idx + 1);
-                } else {
-                    completeGrounding();
+                <div style="text-align:center; animation: fadeIn 0.4s;">
+                    <div style="font-size:6rem; color:${s.c};">${s.i}</div>
+                    <h2 style="color:${s.c};">${s.n} Things to ${s.s.split(' ')[1]}</h2>
+                    <p style="color:#64748b; margin-bottom:20px;">${s.p}</p>
+                    <div style="max-height:180px; overflow-y:auto;">${inputs}</div>
+                    <button id="nextG" class="btn btn-primary" style="width:100%; margin-top:20px; background:${s.c}; border:none;">${idx === 4 ? 'Finish' : 'Next Step'}</button>
+                </div>`;
+            document.getElementById('nextG').onclick = () => {
+                this.feedback('tap');
+                if (idx < 4) render(idx + 1);
+                else {
+                    area.innerHTML = `<div style="text-align:center; padding:40px;"><h2>Well Done!</h2><p>You are grounded.</p></div>`;
+                    if (mainBtn) { mainBtn.style.display = 'block'; mainBtn.textContent = "Save & Finish"; }
+                    this.feedback('success');
                 }
             };
         };
-    
-        const completeGrounding = () => {
-            area.innerHTML = `
-                <div style="text-align:center; padding:40px; animation: scaleUp 0.5s;">
-                    <div style="font-size:5rem;">✨</div>
-                    <h2 style="color:#7c3aed; margin-top:20px;">Well Done!</h2>
-                    <p>You've successfully grounded yourself.</p>
-                </div>
-            `;
-            if (mainBtn) {
-                mainBtn.style.display = 'block';
-                mainBtn.textContent = "Save & Finish";
-            }
-            if (window.feedback) window.feedback('success');
-        };
-    
-        renderStep(0);
+        render(0);
     },
 
-    // 4. [기존] Deep Breathing
+    // 🫁 Deep Breathing (Pattern UI + Animation)
     startBreathingAnimation() {
         const area = document.getElementById('inAppActionArea');
-        area.innerHTML = `<div id="lungContainer" style="display:flex; justify-content:center; align-items:center; height:200px; margin-top:20px;"><div id="lungCircle" style="width:80px; height:80px; background:rgba(124, 58, 237, 0.2); border-radius:50%; border:5px solid #7c3aed; transition: 4s ease-in-out; display:flex; justify-content:center; align-items:center; font-size:3.5rem;">🫁</div></div><p id="breathStatus" style="text-align:center; font-weight:800; color:#7c3aed; font-size:1.6rem; margin-top:30px;">Ready...</p>`;
-        let cycle = 0; const lung = document.getElementById('lungCircle'); const status = document.getElementById('breathStatus');
-        const animate = () => {
-            if (cycle >= 3 || !lung) return;
-            status.textContent = "Inhale... 🌬️"; lung.style.transform = "scale(2.5)";
-            setTimeout(() => { if (!lung) return; status.textContent = "Exhale... 💨"; lung.style.transform = "scale(1)"; cycle++; setTimeout(animate, 4500); }, 4000);
+        area.innerHTML = `
+            <div class="pattern-selector" style="display:flex; justify-content:center; gap:10px; margin-bottom:25px;">
+                <button class="btn-mini active" id="pRelax" onclick="Activities.setPattern('relax')">Relax</button>
+                <button class="btn-mini" id="pBox" onclick="Activities.setPattern('box')">Box</button>
+            </div>
+            <div id="lungContainer" style="display:flex; justify-content:center; align-items:center; height:180px;">
+                <div id="lungCircle" style="width:80px; height:80px; background:rgba(124,58,237,0.2); border-radius:50%; border:5px solid #7c3aed; transition:4s ease-in-out; display:flex; justify-content:center; align-items:center; font-size:3rem;">🫁</div>
+            </div>
+            <p id="breathStatus" style="text-align:center; font-weight:800; color:#7c3aed; font-size:1.5rem; margin-top:25px;">Ready...</p>
+        `;
+        let cy = 0;
+        const anim = () => {
+            const l = document.getElementById('lungCircle'); const s = document.getElementById('breathStatus');
+            if (!l || cy >= 3) { if(s) s.textContent = "✅ Balanced."; return; }
+            this.feedback('tap'); s.textContent = "Inhale... 🌬️"; l.style.transform = "scale(2.5)";
+            setTimeout(() => {
+                if (!l) return;
+                this.feedback('tick'); s.textContent = "Exhale... 💨"; l.style.transform = "scale(1)";
+                cy++; setTimeout(anim, 4500);
+            }, 4000);
         };
-        setTimeout(animate, 1000);
+        setTimeout(anim, 1000);
     },
 
-    // 5. [기존] Big Hug
-    startBigHugTimer() {
-        const area = document.getElementById('inAppActionArea');
-        area.innerHTML = `<div style="text-align:center; padding:30px;"><div id="hugEmoji" style="font-size:6rem; animation: hPulse 1.5s infinite alternate;">🫂</div><div id="hugTimer" style="font-size:4rem; font-weight:900; color:#7c3aed; margin-top:20px;">10</div></div><style>@keyframes hPulse { from { transform: scale(1); } to { transform: scale(1.15); } }</style>`;
-        let timeLeft = 10; const timerEl = document.getElementById('hugTimer');
-        const interval = setInterval(() => {
-            if (!timerEl || timeLeft <= 0) { clearInterval(interval); if(timerEl) timerEl.textContent="❤️"; return; }
-            timeLeft--; timerEl.textContent = timeLeft; if (window.feedback) window.feedback('tap');
-        }, 1000);
-    },
-
-    // 6. [복구] Squeeze & Release
+    // ✊ Squeeze & Release (Animated Rounds)
     startSqueezeAction() {
         const area = document.getElementById('inAppActionArea');
-        let round = 1;
-        let timeLeft = 5;
-        let isSqueezing = true;
-    
-        const updateUI = () => {
+        let round = 1; let timeLeft = 5; let isSq = true;
+        const update = () => {
             area.innerHTML = `
-                <div style="text-align:center; animation: pulse 1s infinite alternate;">
-                    <div id="squeezeEmoji" style="font-size: 8rem; transition: transform 0.3s;">${isSqueezing ? '✊' : '🖐️'}</div>
-                    <h2 style="color: #7c3aed; margin-top: 20px;">${isSqueezing ? 'SQUEEZE!' : 'RELEASE...'}</h2>
-                    <div style="font-size: 3rem; font-weight: 800; margin: 20px 0;">${timeLeft}</div>
-                    <p style="color: #94a3b8;">Round ${round} of 3</p>
-                </div>
-            `;
-            const emoji = document.getElementById('squeezeEmoji');
-            if (isSqueezing) {
-                emoji.style.transform = 'scale(0.8)';
-                if (navigator.vibrate) navigator.vibrate(50);
-            } else {
-                emoji.style.transform = 'scale(1.2)';
-            }
+                <div style="text-align:center;">
+                    <div id="sqEmoji" style="font-size:8rem; transition:0.3s;">${isSq ? '✊' : '🖐️'}</div>
+                    <h2 style="color:#7c3aed; margin-top:20px;">${isSq ? 'SQUEEZE!' : 'RELEASE...'}</h2>
+                    <div style="font-size:3.5rem; font-weight:900; margin:15px 0;">${timeLeft}</div>
+                    <p style="color:#94a3b8;">Round ${round} of 3</p>
+                </div>`;
+            const e = document.getElementById('sqEmoji');
+            if (isSq) { e.style.transform = 'scale(0.8)'; if (navigator.vibrate) navigator.vibrate(40); }
+            else { e.style.transform = 'scale(1.2)'; }
         };
-    
-        const timer = setInterval(() => {
+        this.currentInterval = setInterval(() => {
             timeLeft--;
             if (timeLeft < 0) {
-                if (isSqueezing) {
-                    isSqueezing = false;
-                    timeLeft = 5;
-                } else {
-                    round++;
-                    if (round > 3) {
-                        clearInterval(timer);
-                        area.innerHTML = `<div style="text-align:center; padding:40px;"><h3>Feeling relaxed?</h3><p>Muscle tension has been released.</p></div>`;
-                        return;
-                    }
-                    isSqueezing = true;
-                    timeLeft = 5;
-                }
+                if (isSq) { isSq = false; timeLeft = 5; }
+                else { round++; if (round > 3) { clearInterval(this.currentInterval); this.feedback('success'); area.innerHTML = "<h3>Feeling relaxed?</h3>"; return; } isSq = true; timeLeft = 5; }
             }
-            updateUI();
+            update();
         }, 1000);
-    
-        updateUI();
-        this.currentInterval = timer; // 클린업용
+        update();
     },
 
-    // 7. [복구] Push the Wall
+    // 🧱 Push the Wall (Strain Animation)
     startPushWallAction() {
         const area = document.getElementById('inAppActionArea');
         area.innerHTML = `
-            <div id="pContainer" style="text-align:center; padding:20px;">
+            <div id="pContainer" style="text-align:center;">
                 <div id="pCir" style="width:130px; height:130px; margin:0 auto; border:10px solid #ef4444; border-radius:50%; display:flex; justify-content:center; align-items:center; font-size:3.5rem; font-weight:900; color:#ef4444;">15</div>
-                <div style="width:100%; height:12px; background:#e2e8f0; margin-top:30px; border-radius:6px; overflow:hidden;"><div id="pBar" style="width:0%; height:100%; background:#ef4444; transition: width 1s linear;"></div></div>
-                <p id="pInstr" style="margin-top:20px; font-weight:800;">PUSH THE WALL HARD!</p>
+                <div style="width:100%; height:12px; background:#e2e8f0; margin-top:30px; border-radius:6px; overflow:hidden;"><div id="pBar" style="width:0%; height:100%; background:#ef4444; transition:1s linear;"></div></div>
+                <p id="pInstr" style="margin-top:20px; font-weight:800; font-size:1.2rem;">PUSH THE WALL HARD!</p>
             </div>
-            <style>
-                @keyframes strain { 0% { transform: translate(1px, 1px); } 50% { transform: translate(-1px,-2px); } 100% { transform: translate(1px,1px); } }
-                .straining { animation: strain 0.1s infinite; }
-            </style>
+            <style>@keyframes strain { 0% { transform:translate(1px,1px); } 50% { transform:translate(-1px,-2px); } 100% { transform:translate(1px,1px); } } .straining { animation: strain 0.1s infinite; }</style>
         `;
-        let t = 15; const circle = document.getElementById('pCir');
-        const itv = setInterval(() => {
-            if (!circle) { clearInterval(itv); return; }
-            t--; circle.textContent = t;
+        let t = 15; const cir = document.getElementById('pCir');
+        this.currentInterval = setInterval(() => {
+            if (!cir) { clearInterval(this.currentInterval); return; }
+            t--; cir.textContent = t; this.feedback('tick');
             document.getElementById('pBar').style.width = `${((15-t)/15)*100}%`;
-            if (t <= 10) circle.classList.add('straining');
-            if (navigator.vibrate) navigator.vibrate(t <= 5 ? 80 : 40);
-            if (t <= 0) { 
-                clearInterval(itv); circle.classList.remove('straining'); 
-                circle.textContent = "💪"; circle.style.color = "#22c55e"; circle.style.borderColor = "#22c55e";
-            }
+            if (t <= 10) cir.classList.add('straining');
+            if (t <= 5 && navigator.vibrate) navigator.vibrate(80);
+            if (t <= 0) { clearInterval(this.currentInterval); this.feedback('success'); cir.classList.remove('straining'); cir.textContent = "💪"; cir.style.color = "#22c55e"; }
         }, 1000);
     },
 
-    // 8. [신규] Jason's Break Quest
+    // 🎸 Jason's Break Quest
     startJasonBreakQuest() {
         const area = document.getElementById('inAppActionArea');
-        const quests = [
-            { t: "🎸 Guitar Hero", d: "1분 동안 가장 좋아하는 리프를 연주해보세요.", q: "guitar chords for beginners" },
-            { t: "🎤 Choir Practice", d: "합창단에서 부르는 곡의 한 소절을 소리내어 불러보세요.", q: "vocal warm up exercises" },
-            { t: "🎶 Music Discovery", d: "YouTube에서 본 적 없는 새로운 악기 연주 영상을 찾아보세요.", q: "amazing unusual musical instruments" },
-            { t: "🧘 Physical Reset", d: "악기에서 잠시 떨어져 전신 스트레칭을 30초간 하세요.", q: "quick stretches for musicians" }
-        ];
-    
-        const quest = quests[Math.floor(Math.random() * quests.length)];
-    
+        const quests = ["🎸 1분간 기타/드럼 자유 연주하기", "🎤 좋아하는 합창곡 소리 내어 부르기", "🎶 새 음악 찾아 3분간 감상하기", "🧘 30초간 기지개 크게 켜기"];
+        const q = quests[Math.floor(Math.random() * quests.length)];
         area.innerHTML = `
-            <div style="padding: 20px; border: 2px solid #3b82f6; border-radius: 20px; background: #eff6ff; text-align: center;">
-                <div style="font-size: 3rem; margin-bottom: 10px;">🕺</div>
-                <h3 style="color: #1d4ed8; margin-bottom: 15px;">Hey Jason!</h3>
-                <div style="font-size: 1.1rem; font-weight: 700; background: white; padding: 15px; border-radius: 15px; margin-bottom: 20px;">
-                    "${quest.d}"
-                </div>
-                <button onclick="window.open('https://www.google.com/search?q=${encodeURIComponent(quest.q)}', '_blank')" 
-                        style="width:100%; padding:12px; background:#3b82f6; color:white; border:none; border-radius:12px; font-weight:700;">
-                    🔍 Get Ideas on Google
-                </button>
-            </div>
-        `;
+            <div style="padding:25px; background:#eff6ff; border:3px solid #3b82f6; border-radius:25px; text-align:center;">
+                <h3 style="color:#1d4ed8;">Hey Jason! 🕺</h3>
+                <p style="font-size:1.4rem; font-weight:800;">"${q}"</p>
+                <button id="sB" class="btn btn-primary" style="width:100%; margin-top:15px; background:#3b82f6; border:none;">🔍 아이디어 더 보기</button>
+            </div>`;
+        document.getElementById('sB').onclick = () => window.open(`https://www.google.com/search?q=${encodeURIComponent("musical break for teens")}`, '_blank');
     },
 
-        // activities.js 내부 - PHASE 3
-    startBreathingAnimation() {
-        const area = document.getElementById('inAppActionArea');
-        // 💡 삭제했던 HTML의 핵심 요소를 JS 안에서 정의합니다.
-        area.innerHTML = `
-            <div class="pattern-selector" style="display:flex; gap:10px; margin-bottom:20px;">
-                <button class="btn-mini" onclick="Activities.setPattern('relax')">Relax</button>
-                <button class="btn-mini" onclick="Activities.setPattern('box')">Box</button>
-            </div>
-            <div id="lungCircle" ...>🫁</div>
-            <p id="breathStatus">Ready...</p>
-        `;
-        // ... 이후 애니메이션 로직 실행
-    }
-    // 9. 기타 원본 로직 유지
+    // 🧸 Utility Activities (SMS, Capture, etc.)
     startSMSAction() {
-        const area = document.getElementById('inAppActionArea'); const btn = document.getElementById('activityBtn');
-        area.innerHTML = `<textarea id="actionNote" class="form-control" style="height:150px; border-radius:20px; width:100%;">오늘 정말 기분 좋은 일이 있었어! ✨</textarea>`;
+        const area = document.getElementById('inAppActionArea');
+        area.innerHTML = `<p style="color:#64748b; margin-bottom:10px;">💌 이 기쁨을 가족과 나누세요.</p><textarea id="actionNote" class="form-control" style="height:120px; border-radius:15px;">오늘 정말 기분 좋은 일이 있었어! ✨</textarea>`;
+        const btn = document.getElementById('activityBtn');
         if (btn) { btn.textContent = "Send via SMS 💌"; btn.onclick = () => { window.location.href = `sms:?&body=${encodeURIComponent(document.getElementById('actionNote').value)}`; setTimeout(() => window.finishCheckIn(), 1500); }; }
     },
-    startMusicAction() { const url = "https://www.youtube.com/watch?v=1ZYbU82GVz4"; document.getElementById('inAppActionArea').innerHTML = `<button class="btn" style="background:#FF0000; color:white; width:100%;" onclick="window.open('${url}', '_blank')">📺 Open YouTube</button>`; },
-    startColdSqueezeAnimation() { const area = document.getElementById('inAppActionArea'); area.innerHTML = `<div id="animBox" style="font-size:5rem; text-align:center; padding:40px;">❄️</div>`; let step = 1; const itv = setInterval(() => { const box = document.getElementById('animBox'); if (!box || step > 5) { clearInterval(itv); return; } box.textContent = "❄️".repeat(step); step++; }, 2000); },
-    startWriteAction(q) { document.getElementById('inAppActionArea').innerHTML = `<textarea id="actionNote" class="form-control" style="height:200px; border-radius:20px; width:100%;" placeholder="${q}"></textarea>`; },
-    startCaptureAction() { document.getElementById('inAppActionArea').innerHTML = `<div style="text-align:center; padding:40px;"><button class="btn btn-secondary" onclick="window.EmotionActions.startCamera()">📸 Open Camera</button></div>`; },
+    startBigHugTimer() {
+        const area = document.getElementById('inAppActionArea');
+        area.innerHTML = `<div style="text-align:center;"><div style="font-size:6rem; animation:hPulse 1.5s infinite alternate;">🫂</div><div id="hT" style="font-size:4rem; font-weight:900; color:#7c3aed; margin-top:20px;">10</div></div><style>@keyframes hPulse { from { transform: scale(1); } to { transform: scale(1.15); } }</style>`;
+        let tl = 10; const itv = setInterval(() => {
+            const t = document.getElementById('hT'); if (!t || tl <= 0) { clearInterval(itv); if(t) t.textContent="❤️"; this.feedback('success'); return; }
+            tl--; t.textContent = tl; this.feedback('tick');
+        }, 1000);
+    },
+    startMusicAction() { document.getElementById('inAppActionArea').innerHTML = `<button class="btn btn-primary" style="background:#FF0000; width:100%; border:none;" onclick="window.open('https://www.youtube.com/watch?v=1ZYbU82GVz4', '_blank')">📺 Open YouTube</button>`; },
+    startColdSqueezeAnimation() { 
+        const area = document.getElementById('inAppActionArea'); area.innerHTML = `<div id="anB" style="font-size:5rem; text-align:center; padding:40px;">❄️</div>`;
+        let s = 1; const i = setInterval(() => { const b = document.getElementById('anB'); if (!b || s > 5) { clearInterval(i); return; } b.textContent = "❄️".repeat(s); s++; this.feedback('tick'); }, 2000);
+    },
+    startWriteAction(q) { document.getElementById('inAppActionArea').innerHTML = `<textarea id="actionNote" class="form-control" style="height:180px; border-radius:20px;" placeholder="${q}"></textarea>`; },
+    startCaptureAction() { document.getElementById('inAppActionArea').innerHTML = `<div style="text-align:center; padding:30px;"><button class="btn btn-secondary" onclick="window.EmotionActions.startCamera()">📸 Open Camera</button></div>`; },
 
-    // 10. 사운드 엔진
-    playTapSound() { try { this.initAudio(); const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain(); osc.frequency.setValueAtTime(800, audioCtx.currentTime); gain.gain.setValueAtTime(0.1, audioCtx.currentTime); osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.1); } catch (e) {} },
-    playTimerEndSound() { try { this.initAudio(); [660, 880].forEach((f, i) => { const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain(); osc.frequency.setValueAtTime(f, audioCtx.currentTime + i * 0.15); gain.gain.setValueAtTime(0.1, audioCtx.currentTime + i * 0.15); osc.connect(gain); gain.connect(audioCtx.destination); osc.start(audioCtx.currentTime + i * 0.15); osc.stop(audioCtx.currentTime + i * 0.15 + 0.3); }); } catch (e) {} },
-    playTickSound() { try { this.initAudio(); const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain(); osc.type = 'square'; osc.frequency.setValueAtTime(150, audioCtx.currentTime); gain.gain.setValueAtTime(0.02, audioCtx.currentTime); osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.05); } catch (e) {} }
+    // 💡 Legacy Sounds (For compatibility)
+    playTapSound() { this.feedback('tap'); },
+    playTickSound() { this.feedback('tick'); },
+    playTimerEndSound() { this.feedback('success'); }
 };
 
 // --- 글로벌 브릿지 ---
 window.Activities = Activities;
 window.renderStrategies = (e) => Activities.renderStrategies(e);
-window.feedback = (t) => {
-    if (t === 'tap') Activities.playTapSound();
-    if (t === 'success') Activities.playTimerEndSound();
-    if (navigator.vibrate) navigator.vibrate(10);
-};
+window.feedback = (t) => Activities.feedback(t);
 window.addEventListener('touchstart', () => Activities.initAudio(), { once: true });
