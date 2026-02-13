@@ -10,7 +10,7 @@ const EmotionAPI = {
         'ngrok-skip-browser-warning': 'true'
     },
 
-    // A. [Network] 실제 서버로 전송 (저수준 함수)
+    // A. 실제 서버로 전송 (내부용)
     async _postToServer(entry) {
         const response = await fetch(`${API_BASE_URL}/api/emotions`, {
             method: 'POST',
@@ -21,16 +21,16 @@ const EmotionAPI = {
         return await response.json();
     },
 
-    // B. [Main] app.js가 호출하는 저장 함수
+    // B. [Main] 체크인 저장 (대기열 및 히스토리 즉시 반영)
     async saveCheckIn(entry) {
         console.log("🚀 저장 프로세스 시작:", entry.emotion);
         
-        // 1. 로컬 대기열에 추가 (서버 장애 대비)
+        // 1. 로컬 대기열 추가 (서버 장애 대비)
         let queue = JSON.parse(localStorage.getItem('emotionQueue') || '[]');
         queue.push(entry);
         localStorage.setItem('emotionQueue', JSON.stringify(queue));
 
-        // 2. 로컬 히스토리에 즉시 반영 (사용자 체감 속도 향상)
+        // 2. 로컬 히스토리 즉시 업데이트 (UI 즉시 반영용)
         const history = JSON.parse(localStorage.getItem('feelflow_history') || '[]');
         history.unshift(entry);
         localStorage.setItem('feelflow_history', JSON.stringify(history));
@@ -49,18 +49,17 @@ const EmotionAPI = {
 
         for (const item of queue) {
             try {
-                // 실제 서버 전송 호출
                 await this._postToServer(item); 
                 console.log("✅ 서버 전송 성공:", item.emotion);
             } catch (error) {
-                console.warn("⚠️ 전송 실패: 다음 기회에 재시도", error.message);
+                console.warn("⚠️ 전송 실패: 대기열 유지", error.message);
                 remainingQueue.push(item);
             }
         }
         localStorage.setItem('emotionQueue', JSON.stringify(remainingQueue));
     },
 
-    // D. [History] 전체 기록 가져오기
+    // D. 전체 기록 가져오기 (GET)
     async fetchHistory() {
         try {
             const response = await fetch(`${API_BASE_URL}/api/emotions`, { headers: this.headers });
@@ -94,7 +93,7 @@ const EmotionActions = {
             video.srcObject = stream;
             container.style.display = 'block';
             cameraBtn.style.display = 'none';
-        } catch (err) { alert("카메라를 켤 수 없습니다: " + err.message); }
+        } catch (err) { alert("카메라를 켤 수 없습니다."); }
     },
 
     takePhoto() {
@@ -136,6 +135,5 @@ const EmotionActions = {
     }
 };
 
-// 전역 브릿지 등록
 window.EmotionAPI = EmotionAPI;
 window.EmotionActions = EmotionActions;

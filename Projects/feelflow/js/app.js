@@ -40,7 +40,7 @@ function updateIntensity(val) {
     if (display) display.textContent = val;
 }
 
-// 4. 화면 흐름 제어
+// 4. 화면 흐름 제어 (중간 결과 및 활동 추천)
 function goToResult() {
     if (typeof feedback === 'function') feedback('tap');
     
@@ -63,7 +63,19 @@ function goToStrategies() {
     UI.goToScreen(3, "Helpful Strategies");
 }
 
-// 5. 저장 및 완료 로직
+// 5. [Share the Joy] SMS 전송 기능
+function shareJoy() {
+    const msgArea = document.getElementById('actionNote');
+    const message = msgArea ? msgArea.value : "오늘 정말 기분 좋은 일이 있었어! 함께 나누고 싶어 ✨";
+    
+    // 아이폰/안드로이드 SMS 앱 호출
+    window.location.href = `sms:?&body=${encodeURIComponent(message)}`;
+    
+    // 전송 시도 후 저장을 위해 finishCheckIn 호출 (선택 사항)
+    setTimeout(() => finishCheckIn(), 1000);
+}
+
+// 6. 저장 및 완료 로직
 async function finishCheckIn() {
     console.log("💾 데이터 저장 및 화면 전환 시작...");
 
@@ -88,7 +100,7 @@ async function finishCheckIn() {
     }
 }
 
-// 6. 내비게이션 및 초기화
+// 7. 내비게이션 및 초기화 로직 (통합본)
 function goHome() {
     UI.goToScreen(0, "How are you feeling today?");
     UI.updateNavActive('navHome');
@@ -116,15 +128,16 @@ function resetAppInput() {
     const intensitySlider = document.getElementById('intensitySlider');
     if (intensitySlider) {
         intensitySlider.value = 5;
-        document.getElementById('intensityDisplay').textContent = '5';
+        const display = document.getElementById('intensityDisplay');
+        if (display) display.textContent = '5';
     }
     
     if (window.EmotionActions) window.EmotionActions.reset();
 }
 
-// 7. 히스토리 및 트래커 관리
+// 8. 서브 화면 이동 (히스토리, 트래커, 설정)
 async function goToHistory() {
-    console.log("📊 히스토리 화면으로 이동 중...");
+    console.log("📊 히스토리 화면 로드...");
     UI.goToScreen('History', 'My Check-ins');
     UI.updateNavActive('navHistory');
     
@@ -137,6 +150,7 @@ async function goToHistory() {
     try {
         const history = await EmotionAPI.fetchHistory();
         UI.renderHistory(history);
+        // 트렌드 차트 렌더링
         if (typeof renderEmotionChart === 'function') {
             renderEmotionChart(history);
         }
@@ -160,7 +174,7 @@ function goToSettings() {
     document.getElementById('greeting').style.display = 'none';
 }
 
-// 8. 설정 및 날씨 관리
+// 9. 설정 및 날씨 관리
 function saveSettings() {
     const nameVal = document.getElementById('settingsName')?.value.trim();
     const cityVal = document.getElementById('settingsCity')?.value.trim();
@@ -200,18 +214,19 @@ function updateGreeting(name) {
 }
 
 function initWeather() {
+    // 주(Joo)님의 거주지 로스 가토스를 기본값으로 사용
     const city = document.getElementById('settingsCity')?.value || 'Los Gatos';
     UI.fetchWeatherByCity(city);
 }
 
 function clearAllData() {
-    if (confirm('Delete ALL data?')) {
+    if (confirm('Delete ALL data including check-ins, tracker, and settings?')) {
         localStorage.clear();
         location.reload();
     }
 }
 
-// 전역 윈도우 객체 바인딩 (HTML 이벤트 대응)
+// 10. 전역 윈도우 객체 바인딩 (HTML onclick 이벤트 대응)
 window.initApp = initApp;
 window.goHome = goHome;
 window.goToResult = goToResult;
@@ -219,6 +234,7 @@ window.goToStrategies = goToStrategies;
 window.selectEmotion = selectEmotion;
 window.updateIntensity = updateIntensity;
 window.finishCheckIn = finishCheckIn;
+window.shareJoy = shareJoy;
 window.startOver = startOver;
 window.goToHistory = goToHistory;
 window.goToTracker = goToTracker;
