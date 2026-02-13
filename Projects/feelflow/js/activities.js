@@ -116,29 +116,46 @@ const Activities = {
     },
 
     // 4. 문자 메시지(SMS) 전송 설정
-    setupSMSAction(type) {
-        const question = type === 'Share the joy' ? "🎉 Who do you want to share this with?" : "💬 Who would you like to talk to?";
-        document.getElementById('actionQuestion').textContent = question;
-        
-        let smsBtn = document.getElementById('smsActionBtn');
-        if (!smsBtn) {
-            smsBtn = document.createElement('button');
-            smsBtn.id = 'smsActionBtn';
-            smsBtn.className = 'btn-primary';
-            smsBtn.style.width = '100%';
-            smsBtn.style.marginTop = '10px';
-            document.getElementById('inAppActionArea').appendChild(smsBtn);
-        }
-        
-        smsBtn.style.display = 'block';
-        smsBtn.textContent = type === 'Share the joy' ? "💬 Send Happy News" : "📞 Request a Chat";
-        
-        const message = type === 'Share the joy' ? "I'm feeling so happy right now! ✨" : "I'm feeling a bit sad. Can we talk? 🥺";
-        smsBtn.onclick = () => { 
-            this.initAudio();
-            window.location.href = `sms:?body=${encodeURIComponent(message)}`; 
-        };
-    },
+    // js/activities.js 내 추가/수정
+setupSMSAction(type) {
+    const actionArea = document.getElementById('inAppActionArea');
+    const actionQuestion = document.getElementById('actionQuestion');
+    const actionNote = document.getElementById('actionNote');
+    const cameraBtn = document.getElementById('cameraBtn');
+    
+    if (!actionArea) return;
+
+    // UI 설정
+    actionArea.style.display = 'block';
+    if (cameraBtn) cameraBtn.style.display = 'none';
+    if (actionNote) {
+        actionNote.style.display = 'block';
+        actionNote.placeholder = "가족이나 친구에게 보낼 메시지를 적어보세요...";
+    }
+    
+    if (actionQuestion) {
+        actionQuestion.textContent = "💌 누구에게 이 기쁨을 전할까요?";
+    }
+
+    // 💡 동적 SMS 전송 버튼 생성 (기존 Save 버튼 옆이나 위에 추가)
+    let smsBtn = document.getElementById('smsSendBtn');
+    if (!smsBtn) {
+        smsBtn = document.createElement('button');
+        smsBtn.id = 'smsSendBtn';
+        smsBtn.className = 'btn btn-primary';
+        smsBtn.style.backgroundColor = '#22c55e'; // 초록색 메시지 느낌
+        smsBtn.style.marginTop = '10px';
+        actionArea.appendChild(smsBtn);
+    }
+    
+    smsBtn.textContent = "전송하기 (SMS)";
+    smsBtn.onclick = () => {
+        const message = actionNote.value || "오늘 정말 기분 좋은 일이 있었어! 함께 나누고 싶어 ✨";
+        // 💡 아이폰/안드로이드 공용 SMS 프로토콜
+        // 특정 번호를 지정하려면 "sms:01012345678&body=..." 형식을 사용합니다.
+        window.location.href = `sms:?&body=${encodeURIComponent(message)}`;
+    };
+},
 
     // 5. 유튜브 음악 연결
     setupMusicAction() {
