@@ -67,10 +67,11 @@ const Activities = {
 
     // 3. 활동별 동적 UI 설정
     // 3. 활동별 동적 UI 설정 (스크롤 및 가시성 보강)
+    // 3. 활동별 동적 UI 설정 (가시성 & 자동 스크롤 보강)
     setupActivity(type) {
         console.log(`🏃 활동 시작: ${type}`);
         this.initAudio();
-        if (window.feedback) window.feedback('tap'); // 소리 확인용
+        if (window.feedback) window.feedback('tap');
 
         const actionArea = document.getElementById('inAppActionArea');
         const actionQuestion = document.getElementById('actionQuestion');
@@ -78,18 +79,19 @@ const Activities = {
         const cameraBtn = document.getElementById('cameraBtn');
 
         if (!actionArea) {
-            console.error("❌ 'inAppActionArea' 요소를 찾을 수 없습니다.");
+            console.error("❌ 'inAppActionArea'를 찾을 수 없습니다. index.html을 확인하세요.");
             return;
         }
 
-        // 1단계: 영역 표시 (모든 화면 요소 초기화)
+        // 1단계: 모든 활동 UI를 일단 숨기고 초기화
         actionArea.style.display = 'block';
-        if (actionNote) actionNote.style.display = 'none';
+        if (actionNote) {
+            actionNote.style.display = 'none';
+            actionNote.value = ''; // 이전 텍스트 삭제
+        }
         if (cameraBtn) cameraBtn.style.display = 'none';
 
-        if (window.EmotionActions) window.EmotionActions.reset();
-
-        // 2단계: 활동별 UI 상세 분기
+        // 2단계: 활동별 맞춤 설정
         switch(type) {
             case 'Write it down':
                 actionQuestion.textContent = "✍️ What made you happy?";
@@ -111,8 +113,10 @@ const Activities = {
                 break;
         }
 
-        // 3단계: 💡 사용자가 바로 볼 수 있게 스크롤을 아래로 이동
-        actionArea.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        // 3단계: 💡 사용자가 바로 입력할 수 있게 해당 영역으로 자동 스크롤
+        setTimeout(() => {
+            actionArea.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 100);
     },
 
     // 4. 문자 메시지(SMS) 전송 설정
