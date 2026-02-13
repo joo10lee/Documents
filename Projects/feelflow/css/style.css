@@ -12,58 +12,65 @@
 }
 
 /* 슬림 헤더 */
-.app-header {
-    padding: 50px 24px 10px;
-}
+/* Ver.0213-1500 Optimized Layout */
 
-.header-status {
-    display: flex;
-    justify-content: space-between;
-    font-size: 0.75rem;
-    font-weight: 700;
-    color: #475569;
-    margin-bottom: 12px;
+.app-header {
+    padding: 60px 24px 20px; /* 상단 여백 확보 */
 }
 
 .greeting {
     font-size: 1.8rem;
     font-weight: 850;
-    line-height: 1.1;
     letter-spacing: -1.2px;
+    color: #1e293b;
 }
 
-/* 💡 핵심: 벤토 그리드 레이아웃 */
+/* 6개 감정 그리드: 사이즈 축소 및 중앙 정렬 */
 .emotion-bento {
     display: grid;
-    grid-template-columns: 1fr 1fr; /* 2열 */
-    grid-template-rows: repeat(3, 1fr); /* 3행 */
-    gap: 16px;
-    padding: 20px 24px 100px; /* 하단 네비게이션 공간 확보 */
-    flex: 1;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: repeat(3, 1fr);
+    gap: 12px; /* 간격을 줄여 더 컴팩트하게 */
+    padding: 10px 30px;
+    height: 55vh; /* 화면의 절반 정도만 차지하여 하단 공간 확보 */
 }
 
 .bento-card {
-    background: rgba(255, 255, 255, 0.7);
-    backdrop-filter: blur(15px);
-    -webkit-backdrop-filter: blur(15px);
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(10px);
+    border-radius: 24px; /* 곡률 살짝 조정 */
     border: 1px solid rgba(255, 255, 255, 0.4);
-    border-radius: 32px;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    cursor: pointer;
-    transition: transform 0.2s;
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-.bento-card:active { transform: scale(0.92); }
-.bento-card .emoji { font-size: 3rem; margin-bottom: 4px; }
-.bento-card .label { font-weight: 700; color: #1e293b; }
+/* 요청하신 아이콘 사이즈 축소 */
+.bento-card .emoji {
+    font-size: 2.2rem; /* 기존 3rem에서 축소 */
+    margin-bottom: 4px;
+}
 
-/* 감정별 은은한 배경색 */
-.happy { background: rgba(255, 217, 61, 0.15); }
-.sad { background: rgba(108, 180, 238, 0.15); }
-.anxious { background: rgba(160, 132, 232, 0.15); }
-.angry { background: rgba(255, 107, 107, 0.15); }
-.calm { background: rgba(107, 203, 119, 0.15); }
-.tired { background: rgba(149, 165, 166, 0.15); }
+.bento-card .label {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #475569;
+}
+
+/* 하단 네비게이션: 감정 그리드 뒤(아래)에 안정적으로 배치 */
+.bottom-nav {
+    position: fixed;
+    bottom: 30px;
+    left: 24px;
+    right: 24px;
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(20px);
+    border-radius: 24px;
+    padding: 10px;
+    display: flex;
+    justify-content: space-around;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
+}
