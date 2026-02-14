@@ -358,7 +358,7 @@ const Activities = {
             if (typeof window.finishCheckIn === 'function') {
                 window.finishCheckIn();
             } else {
-                console.error("❌ finishCheckIn 함수를 찾을 수 없습니다.");
+                console.error("❌ finishCheckIn 함수를 찾을 수 없습니다.");           
             }
         }, 2000);
     },

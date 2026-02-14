@@ -115,16 +115,17 @@ window.finishCheckIn = async function() {
 };
 
 // 5. 초기화 및 전역 바인딩
+// app.js의 initApp 부분에 추가
 window.initApp = async function() {
-    const saved = localStorage.getItem('feelflow_progress');
-    if (saved) {
-        const parsed = JSON.parse(saved);
-        FeelFlow.totalXP = parsed.totalXP;
-        FeelFlow.currentLevel = parsed.currentLevel;
-        FeelFlow.medals = parsed.medals;
-    }
+    console.log("🚀 FeelFlow 인프라 초기화 중...");
+    
+    // 로컬 데이터 복구 로직 (생략 가능)
+    // ...
+
     const city = 'Los Gatos'; 
     if (typeof UI !== 'undefined' && UI.fetchWeatherByCity) UI.fetchWeatherByCity(city);
+    
+    // 💡 초기 로드 시에만 홈으로 이동
     goHome();
 };
 
@@ -136,37 +137,40 @@ window.startOver = startOver;
 window.toggleMenu = () => document.getElementById('menuOverlay').classList.toggle('active');
 /*
  */
-window.menuNavigate = (target) => {
+window.menuNavigate = (target, event) => {
+    // 💡 1. 브라우저의 기본 동작(페이지 상단 이동 등) 차단
+    if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
+
     const normalizedTarget = target.trim();
     console.log(`🎯 내비게이션 시도: [${normalizedTarget}]`);
     
+    // 메뉴 닫기 로직
     const overlay = document.getElementById('menuOverlay');
     if (overlay) overlay.classList.remove('active');
 
-    // 💡 UI.js 엔진의 화면 순서와 1:1 매핑 (index.html 섹션 순서에 맞춤)
     const screenMap = {
         'Home': '1',
-        'Routine': '3',   // Routine 화면이 3번째 섹션일 경우
+        'Routine': '3',
         'Daily Routine': '3',
-        'Trophies': '4',  // Trophies 화면이 4번째 섹션일 경우
-        'Settings': '5'   // Settings 화면이 5번째 섹션일 경우
+        'Trophies': '4',
+        'Settings': '5'
     };
 
     const screenIndex = screenMap[normalizedTarget];
 
     if (screenIndex) {
-        console.log(`✅ 매핑 성공: ${normalizedTarget} -> Screen ${screenIndex}`);
-        
-        // 1. 숫자로 화면 전환 시도
+        // 💡 2. 화면 전환 실행
         UI.goToScreen(screenIndex, normalizedTarget);
-
-        // 2. 특정 화면 렌더링 호출
+        
         if (normalizedTarget === 'Trophies' && typeof renderTrophyStats === 'function') {
-            setTimeout(renderTrophyStats, 50); // 화면 전환 애니메이션 후 렌더링
+            setTimeout(renderTrophyStats, 50);
         }
     } else {
-        // ⚠️ 매핑 실패 시 홈으로 복귀
-        console.warn(`❓ 케이스 매칭 실패: ${normalizedTarget}. 홈으로 이동합니다.`);
+        // 매핑 실패 시에만 홈으로 가도록 철저히 격리
+        console.warn(`❓ 매핑 실패: ${normalizedTarget}`);
         goHome();
     }
 };
@@ -182,13 +186,23 @@ const DailyTasks = [
 function renderHomeQuests() {
     const container = document.getElementById('homeQuestList');
     if (!container) return;
-    container.innerHTML = DailyTasks.filter(t => !t.completed).map(t => `
+
+    // 💡 완료되지 않은(completed: false) 태스크만 필터링하여 노출
+    const activeTasks = DailyTasks.filter(t => !t.completed);
+
+    if (activeTasks.length === 0) {
+        container.innerHTML = `<div style="padding:20px; color:#64748b;">All done for now! 🎉</div>`;
+        return;
+    }
+
+    container.innerHTML = activeTasks.map(t => `
         <div class="quick-task-item" onclick="startQuest(${t.id}, '${t.title}')">
             <span>${t.tier === 'gold' ? '🥇' : '🥈'}</span>
             <div style="margin-left:12px; text-align:left;">
-                <div style="font-weight:850;">${t.title}</div>
+                <div style="font-weight:850; font-size:1rem;">${t.title}</div>
                 <div style="font-size:0.75rem; color:#7c3aed;">+${t.xp} XP</div>
             </div>
+            <div class="task-reward">Ready</div>
         </div>
     `).join('');
 }
