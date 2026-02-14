@@ -19,19 +19,19 @@
     <script src="js/app.js"></script>
     <script>
         window.onload = function() {
-            console.log("FeelFlow 인프라 Ver.0213-1810
+            console.log("FeelFlow 인프라 Ver.0213-1815
             if ('serviceWorker' in navigator) {
                 navigator.serviceWorker.register('sw.js').catch(err => console.log('SW fail:', err));
             }
             if (typeof initApp === 'function') initApp();
         };
     </script>  
-    <title>FeelFlow - Build Ver.0213-1810</title>
+    <title>FeelFlow - Build Ver.0213-1815</title>
 </head>
 <body>
     <header class="app-header">
         <div class="header-status">
-            <span></span> <span class="build-tag">Ver.0213-1810</span>
+            <span></span> <span class="build-tag">Ver.0213-1815</span>
         </div>
         <div class="header-main">
             <h1 class="greeting">Hey Joo, <br>how's it going?</h1>
@@ -102,33 +102,12 @@
 
     <main class="screen" id="screen4">
         <div class="result-summary-bar" id="resultSummaryBar">
-            <span id="summaryEmoji">😊</span>
-            <span id="summaryText">Happy Level 5</span>
+            <span id="summaryEmoji"></span>
+            <span id="summaryText"></span>
         </div>
         
-        <div class="mission-header" style="padding: 24px 24px 10px;">
-            <h2 style="font-size: 1.5rem; font-weight: 850;">Choose Your Quest!</h2>
-            <p style="color: #64748B;">Complete to win a <b>Gold Medal 🥇</b></p>
-        </div>
-
-        <div class="strategy-bento" style="display: grid; gap: 16px; padding: 10px 24px;">
-            <button class="bento-card" onclick="Activities.setupActivity('Deep Breathing')" style="flex-direction:row; justify-content:flex-start; padding:24px; gap:20px; background:white;">
-                <span style="font-size:3rem;">🧘</span>
-                <div style="text-align:left;">
-                    <div style="font-weight:850; font-size:1.1rem;">Just Breathe</div>
-                    <div style="color:#7c3aed; font-weight:700; font-size:0.8rem;">🥈 Silver (+30 XP)</div>
-                </div>
-            </button>
-
-            <button class="bento-card" onclick="Activities.setupActivity('Capture the moment')" style="flex-direction:row; justify-content:flex-start; padding:24px; gap:20px; background:#1e293b; color:white;">
-                <span style="font-size:3rem;">🎸</span>
-                <div style="text-align:left;">
-                    <div style="font-weight:850; font-size:1.1rem; color:#FFD700;">Show Your Move</div>
-                    <div style="color:#FFD700; font-weight:700; font-size:0.8rem;">🥇 Gold (+60 XP)</div>
-                </div>
-            </button>
-        </div>
-
+        <div id="strategiesContainer"></div>
+        
         <div class="strategies-footer">
             <button class="btn btn-secondary" onclick="UI.back()">← Back</button>
         </div>
