@@ -19,19 +19,19 @@
     <script src="js/app.js"></script>
     <script>
         window.onload = function() {
-            console.log("FeelFlow 인프라 Ver.0213-1526
+            console.log("FeelFlow 인프라 Ver.0213-1638
             if ('serviceWorker' in navigator) {
                 navigator.serviceWorker.register('sw.js').catch(err => console.log('SW fail:', err));
             }
             if (typeof initApp === 'function') initApp();
         };
     </script>  
-    <title>FeelFlow - Build Ver.0213-1526</title>
+    <title>FeelFlow - Build Ver.0213-1638</title>
 </head>
 <body>
     <header class="app-header">
         <div class="header-status">
-            <span></span> <span class="build-tag">Ver.0213-1526</span>
+            <span></span> <span class="build-tag">Ver.0213-1638</span>
         </div>
         <div class="header-main">
             <h1 class="greeting">Hey Joo, <br>how's it going?</h1>
@@ -81,25 +81,19 @@
         </div>
     </main>
 
-    <main class="screen" id="screen3">
-        <div class="result-card">
-            <div class="result-emoji" id="resultEmoji">😊</div>
-            <p class="result-text">You're feeling</p>
-            <div class="result-intensity" id="resultText">Happy at level 5</div>
-            <p class="result-text">Let's find some helpful strategies!</p>
-            <button class="btn-primary" onclick="goToStrategies()" style="margin-top: 20px;">Explore Strategies</button>
-        </div>
-        <button class="btn btn-secondary" onclick="UI.back()">← Back</button>
-    </main>
-
     <main class="screen" id="screen4">
-        <div class="strategies-intro">
-            <div class="strategies-emoji" id="strategiesEmoji">😰</div>
-            <p class="strategies-subtitle">Choose a strategy to try:</p>
+        <div class="result-summary-bar" id="resultSummaryBar">
+            <span id="summaryEmoji">😊</span>
+            <span id="summaryText">Happy Level 5</span>
         </div>
-        <div class="strategies-container" id="strategiesContainer"></div>
+        
+        <div class="strategies-intro">
+            <p class="strategies-subtitle">Try these strategies for you:</p>
+        </div>
+        <div id="strategiesContainer"></div>
+        
         <div class="strategies-footer">
-            <button class="btn-primary" onclick="finishCheckIn()">Done</button>
+            <button class="btn-primary" onclick="finishCheckIn()">I'm Done</button>
             <button class="btn btn-secondary" onclick="UI.back()">← Back</button>
         </div>
     </main>

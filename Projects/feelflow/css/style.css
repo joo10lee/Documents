@@ -90,6 +90,29 @@
      background: #1e293b; margin-top: -10px; box-shadow: 0 4px 10px rgba(0,0,0,0.2);
  }
  
+/* Ver.0213-1630: Result Summary Bar Style */
+.result-summary-bar {
+    margin: 20px 24px 10px;
+    padding: 12px 20px;
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    animation: slideDown 0.4s ease-out;
+}
+
+#summaryEmoji { font-size: 1.8rem; }
+#summaryText { font-size: 1rem; font-weight: 800; color: #1e293b; }
+
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+
  /* 6. 전략 및 태스크 리스트 (Tracker, History) */
  .section-title { font-size: 1.1rem; font-weight: 850; margin: 20px 24px 12px; color: #1e293b; }
  

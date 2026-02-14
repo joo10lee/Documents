@@ -48,14 +48,33 @@ function updateIntensity(val) {
 }
 
 // 4. 화면 흐름 제어 (ID 기반 무결성 확보)
+/**
+ * [Build 1630] Screen 3을 건너뛰고 Screen 4로 데이터를 스티칭하는 핵심 로직
+ */
 function goToResult() {
     if (typeof feedback === 'function') feedback('tap');
     
-    document.getElementById('resultEmoji').textContent = currentEmotion.emoji;
-    document.getElementById('resultText').textContent = `${currentEmotion.name} at level ${currentEmotion.intensity}`;
+    // 1. Screen 4 상단의 요약 바 업데이트 (모든 감정 대응)
+    const summaryEmoji = document.getElementById('summaryEmoji');
+    const summaryText = document.getElementById('summaryText');
+    const summaryBar = document.getElementById('resultSummaryBar');
+
+    if (summaryEmoji) summaryEmoji.textContent = currentEmotion.emoji;
+    if (summaryText) summaryText.textContent = `${currentEmotion.name} at Level ${currentEmotion.intensity}`;
     
-    // 💡 숫자 2 대신 문자열 ID '3' (Result 화면) 사용
-    UI.goToScreen('3', "Check-in Complete!");
+    // 💡 감정의 컬러를 요약 바 배경에 살짝 스티칭 (시각적 일관성)
+    if (summaryBar) {
+        summaryBar.style.backgroundColor = `${currentEmotion.color}20`; // 20% 투명도
+        summaryBar.style.borderColor = currentEmotion.color;
+    }
+
+    // 2. 해당 감정에 맞는 전략 리스트 렌더링
+    if (typeof window.renderStrategies === 'function') {
+        window.renderStrategies(currentEmotion.name);
+    }
+    
+    // 3. Screen 3을 스킵하고 바로 4번(전략) 화면으로 이동
+    UI.goToScreen('4', "Personalized Strategies");
 }
 
 function goToStrategies() {
