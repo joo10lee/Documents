@@ -1,11 +1,10 @@
 /**
- * FeelFlow Core Module: Ver.0213-6200
- * [Fix] startOver 참조 오류 해결 및 finishCheckIn 로직 통합
+ * FeelFlow Core Module: Ver.0213-6400
+ * [Final] 중복 로직 통합 및 전역 바인딩 무결성 확보
  */
 
 // 1. 전역 상태 관리
 let currentEmotion = { name: '', emoji: '', intensity: 5, color: '' };
-let currentRoutine = 'morning'; 
 
 // 2. 보상 시스템 엔진 (FeelFlow)
 const FeelFlow = {
@@ -16,10 +15,10 @@ const FeelFlow = {
     addXP(amount, tier = null) {
         this.totalXP += amount;
         if (tier) {
-            // 'gold' -> 'Gold Medal' 형식으로 저장하여 트로피 화면과 연동
+            // 'gold' -> 'Gold Medal' 형식 저장 (트로피 화면 includes 필터링 대응)
             this.medals.push(tier.charAt(0).toUpperCase() + tier.slice(1) + " Medal");
         }
-        FeelFlow.checkMedalLevel(); 
+        this.checkMedalLevel(); 
     },
 
     checkMedalLevel() {
@@ -32,7 +31,7 @@ const FeelFlow = {
     }
 };
 
-// 3. 감정 및 흐름 제어 함수
+// 3. 흐름 제어 함수
 function selectEmotion(name, emoji, color) {
     if (window.Activities) window.Activities.initAudio();
     currentEmotion = { name, emoji, color, intensity: 5 };
@@ -41,11 +40,11 @@ function selectEmotion(name, emoji, color) {
 
 function updateIntensity(val) {
     currentEmotion.intensity = parseInt(val);
-    document.getElementById('intensityDisplay').textContent = val;
+    const display = document.getElementById('intensityDisplay');
+    if (display) display.textContent = val;
 }
 
 function goToResult() {
-    // Result Summary Bar 업데이트 로직
     const summaryEmoji = document.getElementById('summaryEmoji');
     const summaryText = document.getElementById('summaryText');
     if (summaryEmoji) summaryEmoji.textContent = currentEmotion.emoji;
@@ -57,9 +56,9 @@ function goToResult() {
     UI.goToScreen('4', "Strategies");
 }
 
-// 4. 💡 통합 데이터 저장 및 보상 지급 로직
+// 4. 통합 데이터 저장 및 보상 지급
 window.finishCheckIn = async function() {
-    console.log("💾 데이터 저장 및 보상 시퀀스 시작");
+    console.log("💾 데이터 저장 시퀀스 시작");
     const note = document.getElementById('actionNote')?.value || "";
     const photo = window.lastCapturedPhoto || null; 
 
@@ -75,7 +74,7 @@ window.finishCheckIn = async function() {
     try {
         if (typeof EmotionAPI !== 'undefined') await EmotionAPI.saveCheckIn(entry);
         
-        // 🥇 보상 지급: 강도 4 이상이면 Gold, 아니면 Silver
+        // 보상 티어 결정: 강도 4 이상이면 Gold
         const tier = currentEmotion.intensity >= 4 ? 'gold' : 'silver';
         FeelFlow.addXP(tier === 'gold' ? 60 : 30, tier); 
         
@@ -87,7 +86,7 @@ window.finishCheckIn = async function() {
     }
 };
 
-// 5. 내비게이션 및 리셋 (Check In Again용)
+// 5. 리셋 및 내비게이션
 function goHome() {
     UI.goToScreen('1', "How are you feeling today?");
     resetAppInput();
@@ -106,7 +105,7 @@ function resetAppInput() {
     if (slider) { slider.value = 5; document.getElementById('intensityDisplay').textContent = '5'; }
 }
 
-// 6. 🍔 메뉴 및 트로피 시스템 연동
+// 6. 🍔 메뉴 및 트로피 시스템
 function toggleMenu() {
     const overlay = document.getElementById('menuOverlay');
     if (overlay) overlay.classList.toggle('active');
@@ -117,18 +116,18 @@ function menuNavigate(target) {
     if (target === 'Home') goHome();
     else if (target === 'Trophies') {
         UI.goToScreen('Trophies', 'Achievement');
-        if (typeof renderTrophyStats === 'function') renderTrophyStats();
+        renderTrophyStats();
     }
 }
 
 // 7. 앱 초기화 및 전역 바인딩
 window.initApp = async function() {
-    const city = 'Los Gatos'; // 기본 지역 설정
+    const city = 'Los Gatos'; 
     if (typeof UI !== 'undefined' && UI.fetchWeatherByCity) UI.fetchWeatherByCity(city);
     goHome();
 };
 
-// 💡 모든 함수를 전역 window 객체에 명시적으로 연결하여 ReferenceError 차단
+// 모든 함수 명시적 바인딩
 window.selectEmotion = selectEmotion;
 window.updateIntensity = updateIntensity;
 window.goToResult = goToResult;
@@ -136,14 +135,51 @@ window.goHome = goHome;
 window.startOver = startOver;
 window.toggleMenu = toggleMenu;
 window.menuNavigate = menuNavigate;
+window.renderTrophyStats = renderTrophyStats;
 
 window.onload = () => { window.initApp(); };
 
-// 8. 퀘스트 및 트로피 데이터 (기존 로직 유지)
+// 8. 데이터 관리
 const DailyTasks = [
     { id: 1, title: 'Morning Stretch', xp: 30, tier: 'silver', completed: false },
-    { id: 2, title: 'Practice Guitar', xp: 60, tier: 'gold', completed: false } // 제이슨의 관심사 반영
+    { id: 2, title: 'Practice Guitar', xp: 60, tier: 'gold', completed: false }
 ];
 
-function renderHomeQuests() { /* ... 기존 renderHomeQuests 코드 ... */ }
-function renderTrophyStats() { /* ... 기존 renderTrophyStats 코드 ... */ }
+function renderHomeQuests() {
+    const container = document.getElementById('homeQuestList');
+    if (!container) return;
+    const activeTasks = DailyTasks.filter(t => !t.completed);
+    container.innerHTML = activeTasks.map(t => `
+        <div class="quick-task-item" onclick="Activities.setupActivity('${t.title}')">
+            <span>${t.tier === 'gold' ? '🥇' : '🥈'}</span>
+            <div style="margin-left:12px; text-align:left;">
+                <div style="font-weight:850;">${t.title}</div>
+                <div style="font-size:0.75rem; color:#7c3aed;">+${t.xp} XP</div>
+            </div>
+        </div>
+    `).join('');
+}
+
+function renderTrophyStats() {
+    const goldCount = FeelFlow.medals.filter(m => m.includes('Gold')).length;
+    const targetGold = 30;
+    const content = document.getElementById('trophyContent');
+    if (!content) return;
+    
+    content.innerHTML = `
+        <div class="medal-grid" style="display:grid; grid-template-columns:repeat(3, 1fr); gap:10px;">
+            <div class="medal-slot">🥇<br><strong>${goldCount}</strong></div>
+            <div class="medal-slot">🥈<br><strong>${FeelFlow.medals.filter(m => m.includes('Silver')).length}</strong></div>
+            <div class="medal-slot">🥉<br><strong>0</strong></div>
+        </div>
+        <div class="goal-tracker" style="margin-top:20px;">
+            <div style="display:flex; justify-content:space-between; font-weight:850;">
+                <span>Goal: LEGO Set 🎁</span>
+                <span>${goldCount}/${targetGold}</span>
+            </div>
+            <div style="height:12px; background:#e2e8f0; border-radius:6px; margin-top:8px; overflow:hidden;">
+                <div style="width:${(goldCount/targetGold)*100}%; height:100%; background:#FFD700;"></div>
+            </div>
+        </div>
+    `;
+}
