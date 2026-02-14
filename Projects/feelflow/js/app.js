@@ -131,6 +131,7 @@ window.initApp = async function() {
 
 window.selectEmotion = selectEmotion;
 window.startQuest = startQuest;
+window.goToResult = goToResult;
 window.updateIntensity = updateIntensity;
 window.goHome = goHome;
 window.startOver = startOver;
@@ -182,6 +183,32 @@ const DailyTasks = [
     { id: 2, title: 'Practice Guitar', xp: 60, tier: 'gold', completed: false },
     { id: 3, title: 'Clean My Room', xp: 30, tier: 'silver', completed: false }
 ];
+
+function goToResult() {
+    console.log("🎯 결과 화면으로 이동 시도");
+
+    // 1. 결과 요약 바(Summary Bar) 업데이트
+    const summaryEmoji = document.getElementById('summaryEmoji');
+    const summaryText = document.getElementById('summaryText');
+    const summaryBar = document.getElementById('resultSummaryBar');
+
+    if (summaryEmoji) summaryEmoji.textContent = currentEmotion.emoji;
+    if (summaryText) summaryText.textContent = `${currentEmotion.name} at Level ${currentEmotion.intensity}`;
+    
+    // 강도에 따른 배경색 반투명 처리 (기존 로직 스티칭)
+    if (summaryBar && currentEmotion.color) {
+        summaryBar.style.backgroundColor = `${currentEmotion.color}20`; 
+        summaryBar.style.borderColor = currentEmotion.color;
+    }
+
+    // 2. 해당 감정에 맞는 추천 전략 렌더링 (ui.js 연동)
+    if (typeof window.renderStrategies === 'function') {
+        window.renderStrategies(currentEmotion.name);
+    }
+
+    // 3. 4번 화면(Strategies/Result)으로 이동
+    UI.goToScreen('4', "Personalized Strategies");
+}
 
 function renderHomeQuests() {
     const container = document.getElementById('homeQuestList');
