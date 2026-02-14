@@ -4,11 +4,11 @@
     <meta charset="UTF-8">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <link rel="apple-touch-icon" href="./apple-touch-icon.png">
     <meta name="apple-mobile-web-app-title" content="FeelFlow">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-    <link rel="manifest" href="manifest.json">
+    <link rel="manifest" href="./manifest.json">
     <link rel="stylesheet" href="css/style.css">
     
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -19,19 +19,26 @@
     <script src="js/app.js"></script>
     <script>
         window.onload = function() {
-            console.log("FeelFlow 인프라 Ver.0213-2005
+            // 💡 끝에 ); 가 빠져있었습니다.
+            console.log("FeelFlow 인프라 Ver.0213-2012
+        
             if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.register('sw.js').catch(err => console.log('SW fail:', err));
+                navigator.serviceWorker.register('sw.js')
+                    .then(reg => console.log('🚀 SW Registered!'))
+                    .catch(err => console.log('❌ SW fail:', err));
             }
-            if (typeof initApp === 'function') initApp();
+            
+            if (typeof initApp === 'function') {
+                initApp();
+            }
         };
     </script>  
-    <title>FeelFlow - Build Ver.0213-2005</title>
+    <title>FeelFlow - Build Ver.0213-2012</title>
 </head>
 <body>
     <header class="app-header">
         <div class="header-status">
-            <span></span> <span class="build-tag">Ver.0213-2005</span>
+            <span></span> <span class="build-tag">Ver.0213-2012</span>
         </div>
         <div class="header-main">
             <h1 class="greeting">Hey Joo, <br>how's it going?</h1>

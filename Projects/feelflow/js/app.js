@@ -67,29 +67,50 @@ function updateIntensity(val) {
     if (display) display.textContent = val;
 }
 
-// 4. 통합 데이터 저장 및 종료 로직
+// 4. 💡 [최종] 데이터 저장 및 보상 지급 파이프라인
 window.finishCheckIn = async function() {
+    console.log("🏁 시퀀스 시작: 데이터 저장 및 보상 판정");
+
+    // 1. 입력 데이터 수집
     const note = document.getElementById('actionNote')?.value || "";
     const photo = window.lastCapturedPhoto || null; 
-    const entry = { emotion: currentEmotion.name, intensity: currentEmotion.intensity, note, photo, timestamp: new Date().toISOString() };
+    const entry = { 
+        emotion: currentEmotion.name, 
+        intensity: currentEmotion.intensity, 
+        note, 
+        photo, 
+        timestamp: new Date().toISOString() 
+    };
 
     try {
+        // 2. API 저장 시도
         if (typeof EmotionAPI !== 'undefined') await EmotionAPI.saveCheckIn(entry);
         
+        // 3. 보상 시스템 연동 (The Heart of FeelFlow)
         if (activeTaskId) {
+            // 태스크 기반 완료 처리
             const task = DailyTasks.find(t => t.id === activeTaskId);
-            if (task) { task.completed = true; FeelFlow.addXP(task.xp, task.tier); }
+            if (task) { 
+                task.completed = true; 
+                FeelFlow.addXP(task.xp, task.tier); 
+                console.log(`🥇 태스크 완료 보상: ${task.tier} (${task.xp} XP)`);
+            }
         } else {
+            // 일반 감정 체크인 보상 (강도 4 이상이면 골드)
             const tier = currentEmotion.intensity >= 4 ? 'gold' : 'silver';
-            FeelFlow.addXP(tier === 'gold' ? 60 : 30, tier); 
+            const xp = tier === 'gold' ? 60 : 30;
+            FeelFlow.addXP(xp, tier); 
+            console.log(`✨ 일반 체크인 보상: ${tier} (${xp} XP)`);
         }
 
+        // 4. 상태 리셋 및 화면 전환
         activeTaskId = null;
         if (window.Activities) window.Activities.stopAll();
         UI.goToScreen('5', "Check-in Complete!"); 
+
     } catch (error) {
-        console.error("❌ 저장 오류:", error);
-        UI.goToScreen('5');
+        console.error("❌ 저장 오류 발생 (Silent Recovery):", error);
+        UI.goToScreen('5'); // 아이를 위해 에러 발생 시에도 성공 화면 노출
     }
 };
 
@@ -171,4 +192,15 @@ function resetAppInput() {
     window.lastCapturedPhoto = null; 
     const slider = document.getElementById('intensitySlider');
     if (slider) { slider.value = 5; document.getElementById('intensityDisplay').textContent = '5'; }
+}
+
+// activities.js 또는 app.js의 진동 호출 부분
+function safeVibrate(pattern) {
+    if (navigator.vibrate) {
+        try {
+            navigator.vibrate(pattern);
+        } catch (e) {
+            console.warn("💓 진동은 사용자 터치 후에만 가능합니다.");
+        }
+    }
 }
