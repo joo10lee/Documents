@@ -305,3 +305,74 @@
     50% { opacity: 1; transform: translate(-50%, -80%) scale(1.2); }
     100% { opacity: 0; transform: translate(-50%, -100%) scale(1); }
 }
+
+/* 루틴 아이템 스타일 */
+.routine-checkbox-item {
+    display: flex;
+    align-items: center;
+    padding: 18px;
+    background: white;
+    border-radius: 20px;
+    margin-bottom: 12px;
+    transition: all 0.3s ease;
+}
+
+.routine-checkbox-item.completed {
+    opacity: 0.5;
+    background: #f8fafc;
+}
+
+.routine-checkbox-item.completed .routine-text {
+    text-decoration: line-through;
+    color: #94a3b8;
+}
+
+/* 커스텀 체크박스 디자인 */
+.custom-checkbox {
+    width: 26px;
+    height: 26px;
+    border: 3px solid #7c3aed;
+    border-radius: 8px;
+    margin-right: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.completed .custom-checkbox {
+    background: #7c3aed;
+}
+
+.completed .custom-checkbox::after {
+    content: '✓';
+    color: white;
+    font-weight: bold;
+}
+
+/* 💡 추가: Routine 탭 스타일 (AM/PM 선택기) */
+.tracker-tabs {
+    display: flex;
+    background: rgba(0,0,0,0.05);
+    padding: 6px;
+    border-radius: 16px;
+    margin: 10px 24px 20px;
+}
+
+.tracker-tab {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: 12px;
+    font-weight: 850;
+    font-size: 0.9rem;
+    background: transparent;
+    color: #64748b;
+    transition: 0.3s;
+}
+
+.tracker-tab.active {
+    background: white;
+    color: #7c3aed;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}

@@ -7,6 +7,28 @@
 let currentEmotion = { name: '', emoji: '', intensity: 5, color: '' };
 let activeTaskId = null; 
 
+// 1. 루틴 데이터 구조 (LocalStorage 연동)
+let DailyRoutines = JSON.parse(localStorage.getItem('feelflow_routines')) || {
+    morning: [
+        { id: 'm1', text: '🪥 Wash Face & Brush Teeth', completed: false },
+        { id: 'm2', text: '🌤️ Check Weather & Dress Up', completed: false },
+        { id: 'm3', text: '🥣 Eat Breakfast', completed: false },
+        { id: 'm4', text: '🧴 Personal Grooming (Deodorant)', completed: false },
+        { id: 'm5', text: '🪞 Mirror Check (Look Good!)', completed: false },
+        { id: 'm6', text: '🎒 Check Backpack Items', completed: false },
+        { id: 'm7', text: '🔑 Shoes & Keys Ready', completed: false }
+    ],
+    evening: [
+        { id: 'e1', text: '💻 Charge Devices for Tomorrow', completed: false },
+        { id: 'e2', text: '📚 Pack Bag for Tomorrow', completed: false },
+        { id: 'e3', text: '🚿 Evening Shower', completed: false },
+        { id: 'e4', text: '🪥 Brush Teeth', completed: false },
+        { id: 'e5', text: '💤 Screens Off & Relax', completed: false }
+    ]
+};
+
+let currentRoutineTab = new Date().getHours() < 12 ? 'morning' : 'evening';
+
 // 1. 사용자의 첫 터치 여부를 저장하는 전역 변수
 window.userInteracted = false;
 
@@ -189,29 +211,85 @@ window.menuNavigate = (target, event) => {
     }
 };
 
+// 2. 루틴 화면 렌더링
 function renderRoutineScreen() {
-    // 💡 HTML에 존재하는 정확한 ID인 'taskList'를 찾습니다.
     const container = document.getElementById('taskList');
+    const tabMorning = document.getElementById('tabMorning');
+    const tabEvening = document.getElementById('tabEvening');
     
-    if (!container) {
-        console.error("❌ taskList 컨테이너를 찾을 수 없습니다.");
-        return;
-    }
+    if (!container) return;
 
-    // DailyTasks 데이터를 기반으로 목록 생성
-    container.innerHTML = DailyTasks.map(t => `
-        <div class="routine-item" onclick="startQuest(${t.id}, '${t.title}')" 
-             style="display:flex; align-items:center; padding:20px; background:white; border-radius:24px; margin-bottom:12px; box-shadow:0 4px 10px rgba(0,0,0,0.05);">
-            <div style="font-size:1.6rem; margin-right:16px;">
-                ${t.completed ? '✅' : (t.tier === 'gold' ? '🥇' : '🥈')}
-            </div>
-            <div style="flex-grow:1; text-align:left;">
-                <div style="font-weight:850; font-size:1.05rem; color:#1e293b;">${t.title}</div>
-                <div style="font-size:0.8rem; color:#7c3aed; font-weight:700;">+${t.xp} XP</div>
-            </div>
-            <div style="color:#cbd5e1;">❯</div>
+    // 탭 활성화 UI 처리
+    tabMorning.classList.toggle('active', currentRoutineTab === 'morning');
+    tabEvening.classList.toggle('active', currentRoutineTab === 'evening');
+
+    const tasks = DailyRoutines[currentRoutineTab];
+    const completedCount = tasks.filter(t => t.completed).length;
+    const progressPercent = (completedCount / tasks.length) * 100;
+
+    // 상단 프로그레스 바 업데이트
+    document.getElementById('progressFraction').textContent = `${completedCount}/${tasks.length}`;
+    document.getElementById('progressBar').style.width = `${progressPercent}%`;
+
+    // 리스트 생성
+    container.innerHTML = tasks.map(t => `
+        <div class="routine-checkbox-item ${t.completed ? 'completed' : ''}" onclick="toggleRoutine('${t.id}')">
+            <div class="custom-checkbox"></div>
+            <span class="routine-text" style="font-weight:850; font-size:1.1rem;">${t.text}</span>
         </div>
-    `).join('');
+    `).join('') + `
+        <div class="add-custom-routine" style="margin-top:15px;">
+            <input type="text" id="customRoutineInput" placeholder="+ Add a task..." 
+                   style="width:100%; padding:15px; border-radius:15px; border:2px dashed #cbd5e1; outline:none;"
+                   onkeypress="if(event.key === 'Enter') addCustomRoutine(this.value)">
+        </div>
+    `;
+}
+
+// 3. 루틴 토글 및 보상 로직
+function toggleRoutine(id) {
+    const tasks = DailyRoutines[currentRoutineTab];
+    const task = tasks.find(t => t.id === id);
+    
+    if (task) {
+        task.completed = !task.completed;
+        if (task.completed) safeVibrate(15);
+        
+        saveRoutines();
+        renderRoutineScreen();
+
+        // 모든 루틴 완료 시 보상 판정
+        if (tasks.every(t => t.completed)) {
+            triggerRoutineReward();
+        }
+    }
+}
+
+function triggerRoutineReward() {
+    // FeelFlow 엔진에 브론즈 메달(30 XP) 추가
+    FeelFlow.addXP(30, 'bronze');
+    
+    // 💡 팝업 메시지 (Joo님의 Q3 요청사항)
+    alert(`🎉 Awesome! You finished your ${currentRoutineTab} routine! \nBronze Medal Earned! (+30 XP)`);
+}
+
+function addCustomRoutine(text) {
+    if (!text.trim()) return;
+    const newId = 'c' + Date.now();
+    DailyRoutines[currentRoutineTab].push({ id: newId, text, completed: false });
+    saveRoutines();
+    renderRoutineScreen();
+    document.getElementById('customRoutineInput').value = '';
+}
+
+function saveRoutines() {
+    localStorage.setItem('feelflow_routines', JSON.stringify(DailyRoutines));
+    // 서버 사이드 저장이 필요할 경우 여기에 EmotionAPI.saveRoutines(DailyRoutines) 추가 가능
+}
+
+function switchRoutine(type) {
+    currentRoutineTab = type;
+    renderRoutineScreen();
 }
 // 6. 데이터 및 렌더링
 const DailyTasks = [
@@ -321,3 +399,7 @@ function safeVibrate(pattern) {
         // 이 '절대 호출 금지'가 콘솔의 Intervention 메시지를 없애는 핵심입니다.
     }
 }
+// 전역 바인딩
+window.switchRoutine = switchRoutine;
+window.toggleRoutine = toggleRoutine;
+window.addCustomRoutine = addCustomRoutine;
