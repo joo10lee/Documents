@@ -326,29 +326,6 @@ function goToResult() {
     UI.goToScreen('4', "Personalized Strategies");
 }
 
-function renderHomeQuests() {
-    const container = document.getElementById('homeQuestList');
-    if (!container) return;
-
-    // 💡 완료되지 않은(completed: false) 태스크만 필터링하여 노출
-    const activeTasks = DailyTasks.filter(t => !t.completed);
-
-    if (activeTasks.length === 0) {
-        container.innerHTML = `<div style="padding:20px; color:#64748b;">All done for now! 🎉</div>`;
-        return;
-    }
-
-    container.innerHTML = activeTasks.map(t => `
-        <div class="quick-task-item" onclick="startQuest(${t.id}, '${t.title}')">
-            <span>${t.tier === 'gold' ? '🥇' : '🥈'}</span>
-            <div style="margin-left:12px; text-align:left;">
-                <div style="font-weight:850; font-size:1rem;">${t.title}</div>
-                <div style="font-size:0.75rem; color:#7c3aed;">+${t.xp} XP</div>
-            </div>
-            <div class="task-reward">Ready</div>
-        </div>
-    `).join('');
-}
 
 function renderTrophyStats() {
     const goldCount = FeelFlow.medals.filter(m => m.includes('Gold')).length;
@@ -490,7 +467,24 @@ function handleHomeCheck(id) {
         }, 3000); // 3초간 취소선 유지
     }
 }
+/**
+ * 🔄 홈 화면 오전/오후 토글 기능
+ */
+function toggleHomeRoutine() {
+    // morning <-> evening 전환
+    homeDisplayTab = (homeDisplayTab === 'morning') ? 'evening' : 'morning';
+    
+    // 가벼운 진동 피드백
+    safeVibrate(10); 
+    
+    // 화면 갱신 (토글된 탭의 퀘스트를 보여줌)
+    renderHomeQuests();
+    
+    console.log(`🌓 Switched to ${homeDisplayTab} routine on Home.`);
+}
 
+// 💡 잊지 말고 전역 바인딩에도 추가하세요!
+window.toggleHomeRoutine = toggleHomeRoutine;
 // 전역 바인딩
 window.switchRoutine = switchRoutine;
 window.toggleRoutine = toggleRoutine;
