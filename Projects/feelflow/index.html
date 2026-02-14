@@ -19,19 +19,19 @@
     <script src="js/app.js"></script>
     <script>
         window.onload = function() {
-            console.log("FeelFlow 인프라 Ver.0213-1722
+            console.log("FeelFlow 인프라 Ver.0213-1738
             if ('serviceWorker' in navigator) {
                 navigator.serviceWorker.register('sw.js').catch(err => console.log('SW fail:', err));
             }
             if (typeof initApp === 'function') initApp();
         };
     </script>  
-    <title>FeelFlow - Build Ver.0213-1722</title>
+    <title>FeelFlow - Build Ver.0213-1738</title>
 </head>
 <body>
     <header class="app-header">
         <div class="header-status">
-            <span></span> <span class="build-tag">Ver.0213-1722</span>
+            <span></span> <span class="build-tag">Ver.0213-1738</span>
         </div>
         <div class="header-main">
             <h1 class="greeting">Hey Joo, <br>how's it going?</h1>
@@ -79,7 +79,7 @@
                 </div>
         </div>
     </main>
-    
+
     <main class="screen" id="screen2">
         <div class="intensity-screen">
             <div class="intensity-card">
@@ -106,13 +106,30 @@
             <span id="summaryText">Happy Level 5</span>
         </div>
         
-        <div class="strategies-intro">
-            <p class="strategies-subtitle">Try these strategies for you:</p>
+        <div class="mission-header" style="padding: 24px 24px 10px;">
+            <h2 style="font-size: 1.5rem; font-weight: 850;">Choose Your Quest!</h2>
+            <p style="color: #64748B;">Complete to win a <b>Gold Medal 🥇</b></p>
         </div>
-        <div id="strategiesContainer"></div>
-        
+
+        <div class="strategy-bento" style="display: grid; gap: 16px; padding: 10px 24px;">
+            <button class="bento-card" onclick="Activities.setupActivity('Deep Breathing')" style="flex-direction:row; justify-content:flex-start; padding:24px; gap:20px; background:white;">
+                <span style="font-size:3rem;">🧘</span>
+                <div style="text-align:left;">
+                    <div style="font-weight:850; font-size:1.1rem;">Just Breathe</div>
+                    <div style="color:#7c3aed; font-weight:700; font-size:0.8rem;">🥈 Silver (+30 XP)</div>
+                </div>
+            </button>
+
+            <button class="bento-card" onclick="Activities.setupActivity('Capture the moment')" style="flex-direction:row; justify-content:flex-start; padding:24px; gap:20px; background:#1e293b; color:white;">
+                <span style="font-size:3rem;">🎸</span>
+                <div style="text-align:left;">
+                    <div style="font-weight:850; font-size:1.1rem; color:#FFD700;">Show Your Move</div>
+                    <div style="color:#FFD700; font-weight:700; font-size:0.8rem;">🥇 Gold (+60 XP)</div>
+                </div>
+            </button>
+        </div>
+
         <div class="strategies-footer">
-            <button class="btn-primary" onclick="finishCheckIn()">I'm Done</button>
             <button class="btn btn-secondary" onclick="UI.back()">← Back</button>
         </div>
     </main>
@@ -141,16 +158,11 @@
     </main>
 
     <main class="screen" id="screenHistory">
-        <div class="history-container">
-            <h2 class="section-title">Emotion Trend</h2>
-            <div class="history-card" style="height: 220px; padding: 15px; background:white; border-radius:24px; margin:0 24px;">
-                <canvas id="emotionChart"></canvas>
-            </div>
-            
-            <h2 class="section-title">Recent Check-ins</h2>
-            <div class="history-list" id="historyList"></div>
-            
-            <button class="btn-danger" onclick="clearHistory()" style="margin: 20px 24px; width: calc(100% - 48px); border:none; padding:15px; border-radius:15px;">Clear History</button>
+        <div class="history-container" style="text-align:center; padding:40px 24px;">
+            <h2 class="section-title" style="font-size:1.8rem;">My Trophy Room</h2>
+            <div id="medalDisplay" style="font-size:5rem; margin:30px 0;">🥇🥈🥉</div>
+            <p style="font-weight:700; color:#64748B;">You've collected 12 Medals this week!</p>
+            <div id="historyList" style="margin-top:30px;"></div>
         </div>
     </main>
 
@@ -204,17 +216,9 @@
             <span class="nav-icon">🏠</span>
             <span class="nav-label">Home</span>
         </button>
-        <button class="nav-btn" id="navTracker" onclick="goToTracker()">
-            <span class="nav-icon">✅</span>
-            <span class="nav-label">Tracker</span>
-        </button>
         <button class="nav-btn" id="navHistory" onclick="goToHistory()">
-            <span class="nav-icon">📅</span>
-            <span class="nav-label">History</span>
-        </button>
-        <button class="nav-btn" id="navSettings" onclick="goToSettings()">
-            <span class="nav-icon">⚙️</span>
-            <span class="nav-label">Settings</span>
+            <span class="nav-icon">🏆</span>
+            <span class="nav-label">Trophies</span>
         </button>
     </nav>
 </body>
