@@ -268,6 +268,11 @@ function clearAllData() {
  * [Fix] checkMedalLevel 함수 누락 및 this 바인딩 오류 해결
  */
 
+/**
+ * FeelFlow Core Module: Ver.0213-3800
+ * [Fix] checkMedalLevel 함수 누락 및 this 바인딩 오류 해결
+ */
+
 const FeelFlow = {
     totalXP: 0,
     currentLevel: 1,
@@ -287,14 +292,15 @@ const FeelFlow = {
     // 2. 💡 [복구] 메달 및 레벨 체크 엔진
     // 이 함수가 누락되어 TypeError가 발생했던 것입니다.
     checkMedalLevel() {
-        const nextLevelXP = this.currentLevel * 100; // 레벨당 100 XP 가이드
+        // 레벨업에 필요한 XP 계산 (예: 레벨 * 100)
+        const nextLevelXP = this.currentLevel * 100; 
         
         if (this.totalXP >= nextLevelXP) {
             this.currentLevel++;
             this.medals.push(`Level ${this.currentLevel} Medal`);
             console.log(`🎊 레벨업! 현재 레벨: ${this.currentLevel}`);
             
-            // 시각적 효과가 UI 모듈에 있다면 호출 (Optional)
+            // 시각적 효과가 UI 모듈에 있다면 호출
             if (typeof UI !== 'undefined' && UI.showLevelUp) {
                 UI.showLevelUp(this.currentLevel);
             }
@@ -309,8 +315,7 @@ const FeelFlow = {
     }
 };
 
-// 전역에서 어디서든 접근 가능하도록 바인딩합니다.
-window.FeelFlow = FeelFlow;
+
 // 전역에서 접근 가능하도록 바인딩
 window.FeelFlow = FeelFlow;
 
