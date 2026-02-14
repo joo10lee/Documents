@@ -263,6 +263,11 @@ function clearAllData() {
  * [Fix] checkMedalLevel 함수 누락 및 this 바인딩 오류 해결
  */
 
+/**
+ * FeelFlow Core Module: Ver.0213-3800
+ * [Fix] checkMedalLevel 함수 누락 및 this 바인딩 오류 해결
+ */
+
 const FeelFlow = {
     totalXP: 0,
     currentLevel: 1,
@@ -270,23 +275,26 @@ const FeelFlow = {
 
     // 1. XP 추가 함수
     addXP(amount) {
+        // 객체 내부의 totalXP 속성에 접근하여 값을 더합니다.
         this.totalXP += amount;
         console.log(`✨ XP 획득: +${amount} (Total: ${this.totalXP})`);
         
         // 💡 핵심: XP 획득 후 반드시 메달/레벨 체크 함수 호출
+        // 'this'를 통해 같은 객체 내의 checkMedalLevel을 실행합니다.
         this.checkMedalLevel(); 
     },
 
     // 2. 💡 [복구] 메달 및 레벨 체크 엔진
+    // 이 함수가 누락되어 TypeError가 발생했던 것입니다.
     checkMedalLevel() {
-        const nextLevelXP = this.currentLevel * 100; // 레벨당 100 XP 가정
+        const nextLevelXP = this.currentLevel * 100; // 레벨당 100 XP 가이드
         
         if (this.totalXP >= nextLevelXP) {
             this.currentLevel++;
             this.medals.push(`Level ${this.currentLevel} Medal`);
             console.log(`🎊 레벨업! 현재 레벨: ${this.currentLevel}`);
             
-            // 시각적 효과가 UI 모듈에 있다면 호출
+            // 시각적 효과가 UI 모듈에 있다면 호출 (Optional)
             if (typeof UI !== 'undefined' && UI.showLevelUp) {
                 UI.showLevelUp(this.currentLevel);
             }
@@ -301,6 +309,8 @@ const FeelFlow = {
     }
 };
 
+// 전역에서 어디서든 접근 가능하도록 바인딩합니다.
+window.FeelFlow = FeelFlow;
 // 전역에서 접근 가능하도록 바인딩
 window.FeelFlow = FeelFlow;
 
