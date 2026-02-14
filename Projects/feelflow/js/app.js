@@ -153,66 +153,66 @@ window.toggleMenu = () => document.getElementById('menuOverlay').classList.toggl
 /*
  */
 window.menuNavigate = (target, event) => {
-    if (event) {
-        event.preventDefault();
-        event.stopPropagation();
-    }
+    if (event) { event.preventDefault(); event.stopPropagation(); }
 
     const normalizedTarget = target.trim();
     const overlay = document.getElementById('menuOverlay');
     if (overlay) overlay.classList.remove('active');
 
+    // 💡 수정: HTML에 정의된 id인 'screenTracker'를 직접 매핑합니다.
     const screenMap = {
-        'Home': '1',
-        'Routine': '3',
-        'Daily Routine': '3',
-        'Trophies': '4',
-        'Settings': '5'
+        'Home': 'screen1',
+        'Routine': 'screenTracker',
+        'Daily Routine': 'screenTracker',
+        'Trophies': 'screenHistory',
+        'Settings': 'screenSettings'
     };
 
-    const screenIndex = screenMap[normalizedTarget];
+    const targetId = screenMap[normalizedTarget];
 
-    if (screenIndex) {
-        // 1. 화면 전환
-        UI.goToScreen(screenIndex, normalizedTarget);
+    if (targetId) {
+        // 1. 화면 전환 (ID를 직접 전달)
+        UI.goToScreen(targetId, normalizedTarget);
         
-        // 2. 💡 [복구 핵심] 루틴 화면일 경우 데이터 렌더링 실행
-        if (screenIndex === '3') {
+        // 2. 💡 [복구 핵심] 루틴 화면일 경우 'taskList'에 렌더링
+        if (targetId === 'screenTracker') {
             setTimeout(() => {
                 if (typeof renderRoutineScreen === 'function') renderRoutineScreen();
-            }, 50);
+            }, 100);
         }
 
-        if (normalizedTarget === 'Trophies' && typeof renderTrophyStats === 'function') {
-            setTimeout(renderTrophyStats, 50);
+        if (targetId === 'screenHistory' && typeof renderTrophyStats === 'function') {
+            setTimeout(renderTrophyStats, 100);
         }
     } else {
         goHome();
     }
 };
-window.onload = () => window.initApp();
 
 function renderRoutineScreen() {
-    // Screen 3에 있는 리스트 컨테이너 ID를 확인해 주세요 (보통 routineList 등)
-    const container = document.getElementById('routineList') || document.getElementById('homeQuestList');
-    if (!container) return;
+    // 💡 HTML에 존재하는 정확한 ID인 'taskList'를 찾습니다.
+    const container = document.getElementById('taskList');
+    
+    if (!container) {
+        console.error("❌ taskList 컨테이너를 찾을 수 없습니다.");
+        return;
+    }
 
+    // DailyTasks 데이터를 기반으로 목록 생성
     container.innerHTML = DailyTasks.map(t => `
-        <div class="routine-item ${t.completed ? 'completed' : ''}" 
-             onclick="${t.completed ? '' : `startQuest(${t.id}, '${t.title}')`}"
-             style="display:flex; align-items:center; padding:20px; background:white; border-radius:20px; margin-bottom:12px; opacity: ${t.completed ? 0.6 : 1};">
-            <div style="font-size:1.5rem; margin-right:15px;">
+        <div class="routine-item" onclick="startQuest(${t.id}, '${t.title}')" 
+             style="display:flex; align-items:center; padding:20px; background:white; border-radius:24px; margin-bottom:12px; box-shadow:0 4px 10px rgba(0,0,0,0.05);">
+            <div style="font-size:1.6rem; margin-right:16px;">
                 ${t.completed ? '✅' : (t.tier === 'gold' ? '🥇' : '🥈')}
             </div>
             <div style="flex-grow:1; text-align:left;">
-                <div style="font-weight:850; font-size:1.1rem;">${t.title}</div>
-                <div style="font-size:0.85rem; color:#7c3aed;">+${t.xp} XP ${t.completed ? '(Completed)' : ''}</div>
+                <div style="font-weight:850; font-size:1.05rem; color:#1e293b;">${t.title}</div>
+                <div style="font-size:0.8rem; color:#7c3aed; font-weight:700;">+${t.xp} XP</div>
             </div>
-            ${!t.completed ? '<div style="color:#7c3aed; font-weight:900;">➔</div>' : ''}
+            <div style="color:#cbd5e1;">❯</div>
         </div>
     `).join('');
 }
-
 // 6. 데이터 및 렌더링
 const DailyTasks = [
     { id: 1, title: 'Morning Stretch', xp: 30, tier: 'silver', completed: false },
