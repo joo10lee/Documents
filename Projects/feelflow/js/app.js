@@ -153,16 +153,12 @@ window.toggleMenu = () => document.getElementById('menuOverlay').classList.toggl
 /*
  */
 window.menuNavigate = (target, event) => {
-    // 💡 1. 브라우저의 기본 동작(페이지 상단 이동 등) 차단
     if (event) {
         event.preventDefault();
         event.stopPropagation();
     }
 
     const normalizedTarget = target.trim();
-    console.log(`🎯 내비게이션 시도: [${normalizedTarget}]`);
-    
-    // 메뉴 닫기 로직
     const overlay = document.getElementById('menuOverlay');
     if (overlay) overlay.classList.remove('active');
 
@@ -177,19 +173,45 @@ window.menuNavigate = (target, event) => {
     const screenIndex = screenMap[normalizedTarget];
 
     if (screenIndex) {
-        // 💡 2. 화면 전환 실행
+        // 1. 화면 전환
         UI.goToScreen(screenIndex, normalizedTarget);
         
+        // 2. 💡 [복구 핵심] 루틴 화면일 경우 데이터 렌더링 실행
+        if (screenIndex === '3') {
+            setTimeout(() => {
+                if (typeof renderRoutineScreen === 'function') renderRoutineScreen();
+            }, 50);
+        }
+
         if (normalizedTarget === 'Trophies' && typeof renderTrophyStats === 'function') {
             setTimeout(renderTrophyStats, 50);
         }
     } else {
-        // 매핑 실패 시에만 홈으로 가도록 철저히 격리
-        console.warn(`❓ 매핑 실패: ${normalizedTarget}`);
         goHome();
     }
 };
 window.onload = () => window.initApp();
+
+function renderRoutineScreen() {
+    // Screen 3에 있는 리스트 컨테이너 ID를 확인해 주세요 (보통 routineList 등)
+    const container = document.getElementById('routineList') || document.getElementById('homeQuestList');
+    if (!container) return;
+
+    container.innerHTML = DailyTasks.map(t => `
+        <div class="routine-item ${t.completed ? 'completed' : ''}" 
+             onclick="${t.completed ? '' : `startQuest(${t.id}, '${t.title}')`}"
+             style="display:flex; align-items:center; padding:20px; background:white; border-radius:20px; margin-bottom:12px; opacity: ${t.completed ? 0.6 : 1};">
+            <div style="font-size:1.5rem; margin-right:15px;">
+                ${t.completed ? '✅' : (t.tier === 'gold' ? '🥇' : '🥈')}
+            </div>
+            <div style="flex-grow:1; text-align:left;">
+                <div style="font-weight:850; font-size:1.1rem;">${t.title}</div>
+                <div style="font-size:0.85rem; color:#7c3aed;">+${t.xp} XP ${t.completed ? '(Completed)' : ''}</div>
+            </div>
+            ${!t.completed ? '<div style="color:#7c3aed; font-weight:900;">➔</div>' : ''}
+        </div>
+    `).join('');
+}
 
 // 6. 데이터 및 렌더링
 const DailyTasks = [
@@ -298,5 +320,4 @@ function safeVibrate(pattern) {
         // 제이슨이 아직 화면을 만지기 전이라면 '절대로' 호출하지 않음
         // 이 '절대 호출 금지'가 콘솔의 Intervention 메시지를 없애는 핵심입니다.
     }
-}
 }
