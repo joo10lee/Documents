@@ -757,43 +757,47 @@
 }
 
 /* 체크 시 즉시 적용되는 스타일 */
+/* 1. 홈 토글 버튼 - 이제 확실히 보일 거예요 */
+.home-routine-toggle {
+    display: flex !important;
+    align-items: center !important;
+    background: rgba(124, 58, 237, 0.1) !important;
+    border: 1.5px solid #7c3aed !important;
+    padding: 4px 12px !important;
+    border-radius: 12px !important;
+    cursor: pointer !important;
+}
+/* 2. 즉시 취소선 및 체크박스 변화 */
 .home-quest-item.checked-strikethrough .routine-text {
     text-decoration: line-through !important;
-    color: #94a3b8 !important; /* 글자색을 연하게 */
-    transition: all 0.2s ease;
+    color: #94a3b8 !important;
+    opacity: 0.6;
 }
 
 .home-quest-item.checked-strikethrough .custom-checkbox {
-    background: #10b981;
-    border-color: #10b981;
-}
-
-.home-quest-item.checked-strikethrough .custom-checkbox::after {
-    content: '✓';
-    color: white;
-    font-size: 0.8rem;
-    font-weight: bold;
-}
-
-/* 3초 후 사라지는 애니메이션 */
-.home-quest-item.fade-out {
-    opacity: 0;
-    transform: translateX(30px);
-    transition: all 0.5s ease;
-}
-
-/* 홈 화면 퀘스트 토글 버튼 */
-.home-routine-toggle {
-    display: flex;
+    background: #10b981 !important;
+    border-color: #10b981 !important;
+    display: flex !important;
     align-items: center;
-    background: rgba(124, 58, 237, 0.1);
-    border: 1px solid rgba(124, 58, 237, 0.2);
-    border-radius: 12px;
-    padding: 4px 10px;
-    cursor: pointer;
-    gap: 6px;
-    transition: all 0.2s;
+    justify-content: center;
 }
+
+/* 체크박스 안의 'V' 표시 */
+.home-quest-item.checked-strikethrough .custom-checkbox::after {
+    content: '✓' !important;
+    color: white !important;
+    font-size: 0.9rem !important;
+    font-weight: 900 !important;
+}
+
+/* 3. 3초 뒤 사라지는 효과 */
+.home-quest-item.fade-out {
+    opacity: 0 !important;
+    transform: translateX(30px) !important;
+    transition: all 0.5s ease !important;
+}
+
+
 
 .home-routine-toggle:active {
     transform: scale(0.95);
