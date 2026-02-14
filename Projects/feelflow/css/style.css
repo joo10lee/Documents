@@ -201,6 +201,43 @@
     border-radius: 8px;
 }
 
+/* Ver.0213-3300: 3-Quest Bento Layout */
+.strategy-grid {
+    display: grid;
+    gap: 16px;
+    padding: 10px 24px;
+    grid-template-columns: 1fr 1fr; /* 2열 구조 */
+}
+
+/* 🥇 1번째 카드 (Hero): 가로로 꽉 채움 */
+.strategy-grid .hero-card {
+    grid-column: span 2;
+    padding: 30px 24px !important;
+    flex-direction: row !important;
+    justify-content: flex-start !important;
+    gap: 20px;
+    position: relative;
+    overflow: hidden;
+}
+
+.hero-card .quest-icon { font-size: 3.5rem; }
+
+/* 🥈 2, 3번째 카드 (Sub): 1열씩 차지 */
+.bento-card.silver-tier {
+    background: white;
+    padding: 20px;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.recommend-tag {
+    position: absolute; top: 12px; right: 12px;
+    background: #FFD700; color: #000;
+    font-size: 0.6rem; font-weight: 900;
+    padding: 4px 8px; border-radius: 8px;
+}
+
 /* 🏅 골드 메달 획득 시 애니메이션 */
 @keyframes medalBounce {
     0%, 100% { transform: scale(1); }
