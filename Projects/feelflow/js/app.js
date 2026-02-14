@@ -268,11 +268,14 @@ function resetAppInput() {
 
 // activities.js 또는 app.js의 진동 호출 부분
 function safeVibrate(pattern) {
-    if (navigator.vibrate) {
+    // 💡 사용자가 한 번이라도 클릭했는지 여부를 체크하는 속성 (최신 브라우저)
+    const hasUserActed = navigator.userActivation ? navigator.userActivation.isActive : true;
+
+    if (navigator.vibrate && hasUserActed) {
         try {
             navigator.vibrate(pattern);
         } catch (e) {
-            console.warn("💓 진동은 사용자 터치 후에만 가능합니다.");
+            // 조용히 무시
         }
     }
 }
