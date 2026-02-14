@@ -6,6 +6,8 @@
 // 1. 전역 상태 관리
 let currentEmotion = { name: '', emoji: '', intensity: 5, color: '' };
 let activeTaskId = null; 
+// 💡 [추가] 홈 화면에서 현재 보고 있는 루틴 탭 상태 (오전/오후)
+let homeDisplayTab = new Date().getHours() < 12 ? 'morning' : 'evening';
 
 // 1. 루틴 데이터 구조 (LocalStorage 연동)
 let DailyRoutines = JSON.parse(localStorage.getItem('feelflow_routines')) || {
