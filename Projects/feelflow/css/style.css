@@ -201,35 +201,39 @@
     border-radius: 8px;
 }
 
-/* Ver.0213-3300: 3-Quest Bento Layout */
+/* strategy-grid가 적용된 컨테이너 설정 */
 .strategy-grid {
-    display: grid;
+    display: grid !important;
     gap: 16px;
     padding: 10px 24px;
     grid-template-columns: 1fr 1fr; /* 2열 구조 */
 }
 
-/* 🥇 1번째 카드 (Hero): 가로로 꽉 채움 */
+/* 🥇 1번째 카드 (Gold/Hero): 가로로 꽉 채우기 (2칸 차지) */
 .strategy-grid .hero-card {
     grid-column: span 2;
-    padding: 30px 24px !important;
-    flex-direction: row !important;
+    padding: 28px 24px !important;
+    flex-direction: row !important; /* 가로 배치 */
     justify-content: flex-start !important;
     gap: 20px;
     position: relative;
-    overflow: hidden;
+    border-radius: 32px;
 }
 
 .hero-card .quest-icon { font-size: 3.5rem; }
 
-/* 🥈 2, 3번째 카드 (Sub): 1열씩 차지 */
+/* 🥈 2, 3번째 카드 (Silver): 나란히 배치 */
 .bento-card.silver-tier {
+    grid-column: span 1;
     background: white;
-    padding: 20px;
-    flex-direction: column;
+    padding: 24px 16px;
+    flex-direction: column; /* 세로 배치 */
     align-items: center;
     text-align: center;
+    border-radius: 28px;
 }
+
+.silver-tier .quest-icon { font-size: 2.5rem; margin-bottom: 8px; }
 
 .recommend-tag {
     position: absolute; top: 12px; right: 12px;

@@ -61,44 +61,33 @@ const Activities = {
         const container = document.getElementById('strategiesContainer');
         if (!container) return;
     
+        // 💡 감정별 맞춤형 퀘스트 데이터 (Sad와 Anxious 구분)
         const fullStrategyMap = {
             'Anxious': [
                 { title: 'Capture the moment', icon: '📸', tier: 'gold', xp: 60, color: '#1e293b' },
                 { title: 'Deep Breathing', icon: '🌬️', tier: 'silver', xp: 30, color: '#fff' },
                 { title: '5-4-3-2-1 Grounding', icon: '🖐️', tier: 'silver', xp: 30, color: '#fff' }
-                // 💡 불안할 땐 감각을 분산시키는 그라운딩과 호흡 제공
             ],
             'Sad': [
                 { title: 'Capture the moment', icon: '📸', tier: 'gold', xp: 60, color: '#1e293b' },
                 { title: 'Listen to music', icon: '🎵', tier: 'silver', xp: 30, color: '#fff' },
                 { title: 'Big Hug', icon: '🫂', tier: 'silver', xp: 30, color: '#fff' }
-                // 💡 슬플 땐 정서적 위로(음악)와 스킨십(HUG) 제공
             ],
             'Angry': [
                 { title: 'Capture the moment', icon: '📸', tier: 'gold', xp: 60, color: '#1e293b' },
                 { title: 'Push the Wall', icon: '🧱', tier: 'silver', xp: 30, color: '#fff' },
                 { title: 'Squeeze & Release', icon: '✊', tier: 'silver', xp: 30, color: '#fff' }
             ],
-            'Happy': [
-                { title: 'Capture the moment', icon: '📸', tier: 'gold', xp: 60, color: '#1e293b' },
-                { title: 'Share the joy', icon: '💌', tier: 'silver', xp: 30, color: '#fff' },
-                { title: 'Write it down', icon: '✍️', tier: 'silver', xp: 30, color: '#fff' }
-            ],
-            'Calm': [
-                { title: 'Capture the moment', icon: '📸', tier: 'gold', xp: 60, color: '#1e293b' },
-                { title: 'Listen to music', icon: '🎵', tier: 'silver', xp: 30, color: '#fff' },
-                { title: 'Write it down', icon: '✍️', tier: 'silver', xp: 30, color: '#fff' }
-            ],
-            'Tired': [
+            'default': [
                 { title: 'Capture the moment', icon: '📸', tier: 'gold', xp: 60, color: '#1e293b' },
                 { title: 'Deep Breathing', icon: '🌬️', tier: 'silver', xp: 30, color: '#fff' },
-                { title: 'Take a Break', icon: '🧘', tier: 'silver', xp: 30, color: '#fff' }
+                { title: 'Write it down', icon: '✍️', tier: 'silver', xp: 30, color: '#fff' }
             ]
         };
     
-        const quests = fullStrategyMap[emotion] || fullStrategyMap['Anxious'];
+        const quests = fullStrategyMap[emotion] || fullStrategyMap['default'];
         
-        // 💡 레이아웃 엔진 활성화 (이 줄이 없으면 리스트로 보입니다)
+        // 💡 클래스 강제 주입: 이 줄이 있어야 CSS 그리드가 작동합니다.
         container.className = `strategy-grid grid-${quests.length}`;
         
         container.innerHTML = quests.map((q, idx) => `
@@ -118,7 +107,7 @@ const Activities = {
             </button>
         `).join('');
     },
-    
+
     // 3. 활동 디스패처 (모든 함수 매핑)
     setupActivity(type) {
         this.stopAll();
