@@ -5,6 +5,21 @@
 
 let audioCtx = null;
 
+/**
+ * 💓 Safe Vibrate: 브라우저 차단 정책 우회 및 에러 방지
+ */
+function safeVibrate(pattern) {
+    if (typeof navigator !== 'undefined' && navigator.vibrate) {
+        try {
+            // 브라우저가 차단하더라도 앱이 멈추지 않도록 try-catch 적용
+            navigator.vibrate(pattern);
+        } catch (e) {
+            // 인터벤션 발생 시 로그만 남기고 사용자 흐름은 유지
+            console.log("🤫 Vibration delayed: User gesture required.");
+        }
+    }
+}
+
 const Activities = {
     currentStream: null,
     currentFacingMode: 'user', 
@@ -69,7 +84,8 @@ const Activities = {
             this.currentStream.getTracks().forEach(track => track.stop());
             this.currentStream = null;
         }
-        if (navigator.vibrate) navigator.vibrate(0);
+        // 💡 수정: 직접 호출 대신 safeVibrate 사용 (초기 로드 에러 방지)
+        if (typeof safeVibrate === 'function') safeVibrate(0);
     },
 
     renderStrategies(emotion) {
@@ -360,15 +376,16 @@ const Activities = {
     completeAction(tier, xp) {
         console.log(`🎁 보상 지급: ${tier} 티어, ${xp} XP`);
         
-        // 1. XP 지급 (전역 객체 확인)
+        // 1. XP 및 메달 지급 (💡 tier 인자를 반드시 추가해야 합니다!)
         if (typeof FeelFlow !== 'undefined' && FeelFlow.addXP) {
-            FeelFlow.addXP(xp);
+            // tier가 'gold'면 금메달 +1, 'silver'면 은메달 +1이 함께 처리됩니다.
+            FeelFlow.addXP(xp, tier); 
         }
 
         // 2. 축하 애니메이션 실행
         this.showCelebration(tier, xp);
 
-        // 3. 💡 핵심: 2초 후 전역 종료 함수 호출
+        // 3. 2초 후 전역 종료 함수 호출 (데이터 저장 및 화면 전환)
         setTimeout(() => {
             if (typeof window.finishCheckIn === 'function') {
                 window.finishCheckIn();
@@ -397,21 +414,6 @@ const Activities = {
  * 💓 Safe Vibrate Wrapper
  * 사용자 제스처 없이 호출되어 브라우저가 차단하는 것을 방어합니다.
  */
-function safeVibrate(pattern) {
-    // 1. 진동 API 지원 여부 확인
-    if (!navigator.vibrate) return;
-
-    try {
-        // 2. 진동 시도
-        const success = navigator.vibrate(pattern);
-        if (!success) {
-            console.warn("💓 진동이 차단되었습니다 (사용자 터치 필요)");
-        }
-    } catch (e) {
-        // 3. 인터벤션 에러 발생 시 조용히 넘김 (콘솔 스팸 방지)
-        console.log("🤫 Vibration blocked by browser policy (initialization phase).");
-    }
-}
 
 window.Activities = Activities;
 window.renderStrategies = (e) => Activities.renderStrategies(e);
