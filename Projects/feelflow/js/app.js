@@ -39,9 +39,10 @@ const FeelFlow = {
 
 // 3. 흐름 제어 및 내비게이션
 function goHome() {
+    console.trace("🏠 goHome 호출됨 (누가 호출했는지 확인용)"); // 💡 호출 경로 추적
     UI.goToScreen('1', "How are you feeling today?");
     resetAppInput();
-    renderHomeQuests();
+    if (typeof renderHomeQuests === 'function') renderHomeQuests();
 }
 
 function startOver() {

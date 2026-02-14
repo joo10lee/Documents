@@ -7,10 +7,11 @@ NOW=$(date +'%m%d-%H%M')
 # macOS 전용 -E (Extended Regex) 옵션을 사용하여 Ver. 뒤의 내용을 무조건 치환합니다.
 # 이 방식은 {{BUILD_ID}}가 이미 숫자로 바뀌어 있어도 다시 최신 숫자로 덮어씁니다.
 if [[ "$OSTYPE" == "darwin"* ]]; then
-  sed -i '' -E "s/Ver\.[^<]*/Ver\.$NOW/g" index.html
+  # macOS용: Ver. 뒤의 숫자와 하이픈 패턴만 찾아 치환
+  sed -i '' -E "s/Ver\.[0-9]{4}-[0-9]{4}/Ver\.$NOW/g" index.html
 else
-  # 리눅스 환경 대응
-  sed -i -r "s/Ver\.[^<]*/Ver\.$NOW/g" index.html
+  # 리눅스용
+  sed -i -r "s/Ver\.[0-9]{4}-[0-9]{4}/Ver\.$NOW/g" index.html
 fi
 
 echo "✅ [Build ID Updated] 현재 버전: Ver.$NOW"

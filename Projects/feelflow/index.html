@@ -19,25 +19,28 @@
     <script src="js/app.js"></script>
     <script>
         window.onload = function() {
-            // 💡 Ver.0213-2047
-            console.log("FeelFlow 인프라 Ver.0213-2047
+            // 💡 끝에 "); 가 빠져있어 문장이 닫히지 않았습니다. 이를 수정합니다.
+            console.log("FeelFlow 인프라 Ver.0214-0002"); 
         
             if ('serviceWorker' in navigator) {
-                // 경로를 './sw.js'로 표기하여 상대 경로를 명시하는 것이 안전합니다.
+                // 상대 경로인 './sw.js'를 사용하여 깃허브 페이지 배포 호환성을 높입니다.
                 navigator.serviceWorker.register('./sw.js')
                     .then(reg => console.log('🚀 SW Registered!'))
                     .catch(err => console.log('❌ SW fail:', err));
             }
             
-            if (typeof initApp === 'function') initApp();
+            // app.js가 정상적으로 로드되었다면 초기화 함수를 호출합니다.
+            if (typeof initApp === 'function') {
+                initApp();
+            }
         };
     </script>  
-    <title>FeelFlow - Build Ver.0213-2047</title>
+    <title>FeelFlow - Build Ver.0214-0002</title>
 </head>
 <body>
     <header class="app-header">
         <div class="header-status">
-            <span></span> <span class="build-tag">Ver.0213-2047</span>
+            <span></span> <span class="build-tag">Ver.0214-0002</span>
         </div>
         <div class="header-main">
             <h1 class="greeting">Hey Joo, <br>how's it going?</h1>
@@ -53,10 +56,10 @@
     <div id="menuOverlay" class="menu-overlay">
         <button class="menu-close" onclick="toggleMenu()">×</button>
         <nav class="menu-content">
-            <a href="javascript:void(0)" onclick="menuNavigate('Home', event)">🏠 Home</a>
-            <a href="javascript:void(0)" onclick="menuNavigate('Routine', event)">📅 Daily Routine</a>
-            <a href="javascript:void(0)" onclick="menuNavigate('Trophies', event)">🏆 My Trophies</a>
-            <a href="javascript:void(0)" onclick="menuNavigate('Settings', event)">⚙️ Settings</a>
+            <button class="menu-item" onclick="menuNavigate('Home', event)">🏠 Home</button>
+            <button class="menu-item" onclick="menuNavigate('Routine', event)">📅 Daily Routine</button>
+            <button class="menu-item" onclick="menuNavigate('Trophies', event)">🏆 My Trophies</button>
+            <button class="menu-item" onclick="menuNavigate('Settings', event)">⚙️ Settings</button>
         </nav>
     </div>
 

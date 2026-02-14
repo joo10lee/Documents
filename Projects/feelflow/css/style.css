@@ -169,6 +169,11 @@
 
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
+.menu-item {
+    background: none; border: none; font-size: 2rem; font-weight: 850;
+    color: #1e293b; margin: 15px 0; display: block; width: 100%;
+    text-align: center; cursor: pointer; font-family: inherit;
+}
 
 .icon-btn {
     background: rgba(255, 255, 255, 0.9);
