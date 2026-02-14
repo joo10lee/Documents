@@ -134,42 +134,50 @@ window.updateIntensity = updateIntensity;
 window.goHome = goHome;
 window.startOver = startOver;
 window.toggleMenu = () => document.getElementById('menuOverlay').classList.toggle('active');
+/**
+ * 🧭 [Fix] Robust Navigation Engine
+ * HTML의 텍스트와 JS의 케이스를 완벽하게 스티칭합니다.
+ */
 window.menuNavigate = (target) => {
-    console.log(`🧭 내비게이션 시도: ${target}`);
+    // 1. 입력값 정규화 (공백 제거 및 소문자 변환으로 오타 방지)
+    const normalizedTarget = target.trim();
+    console.log(`🎯 내비게이션 타겟: [${normalizedTarget}]`);
     
-    // 1. 메뉴 오버레이 닫기
     const overlay = document.getElementById('menuOverlay');
     if (overlay) overlay.classList.remove('active');
 
-    // 2. 타겟별 화면 이동 및 데이터 로드
-    switch(target) {
+    switch(normalizedTarget) {
+        // HTML에서 'Home' 또는 'home'으로 보낼 때
         case 'Home':
-            goHome(); // 홈 화면으로 이동 및 퀘스트 리스트 갱신
+        case 'home':
+            goHome();
             break;
 
+        // HTML에서 'Routine' 또는 'Daily Routine'으로 보낼 때
         case 'Routine':
-            // 💡 Routine 화면 ID가 'Routine' 또는 '3'인지 HTML과 맞춰야 합니다.
+        case 'Daily Routine':
+            // 💡 UI.goToScreen의 첫 번째 인자가 index.html의 section ID와 일치해야 합니다.
             UI.goToScreen('Routine', 'Daily Routine'); 
-            // 필요한 경우 전체 루틴 리스트를 따로 렌더링하는 함수를 호출할 수 있습니다.
             break;
 
+        // HTML에서 'Trophies' 또는 'Trophie' (오타)로 보낼 때
         case 'Trophies':
-            // 트로피 화면으로 이동 후 통계 렌더링 엔진 깨우기
+        case 'Trophie':
+        case 'Achievement':
             UI.goToScreen('Trophies', 'My Achievements'); 
             if (typeof renderTrophyStats === 'function') renderTrophyStats();
             break;
 
         case 'Settings':
-            // 설정 화면으로 이동
             UI.goToScreen('Settings', 'Settings');
             break;
 
         default:
-            console.warn(`❓ 알 수 없는 메뉴 타겟: ${target}`);
-            goHome();
+            // ⚠️ 여기서 홈으로 가버리는 현상이 발생 중입니다.
+            console.warn(`❓ 케이스 매칭 실패: ${normalizedTarget}. HTML의 onclick 인자를 확인하세요.`);
+            goHome(); 
     }
 };
-
 window.onload = () => window.initApp();
 
 // 6. 데이터 및 렌더링
