@@ -57,11 +57,11 @@ const Activities = {
         if (navigator.vibrate) navigator.vibrate(0);
     },
 
-    // 2. 전략 렌더링 (감정별 3-버튼 벤토 레이아웃)
     renderStrategies(emotion) {
         const container = document.getElementById('strategiesContainer');
         if (!container) return;
-
+    
+        // 💡 모든 감정에 대해 Gold(🥇) 1개 + Silver(🥈) 2개 체제로 통일
         const fullStrategyMap = {
             'Happy': [
                 { title: 'Capture the moment', icon: '📸', tier: 'gold', xp: 60, color: '#1e293b' },
@@ -69,14 +69,14 @@ const Activities = {
                 { title: 'Write it down', icon: '✍️', tier: 'silver', xp: 30, color: '#fff' }
             ],
             'Sad': [
-                { title: 'Big Hug', icon: '🫂', tier: 'silver', xp: 30, color: '#fff' },
+                { title: 'Capture the moment', icon: '📸', tier: 'gold', xp: 60, color: '#1e293b' },
                 { title: 'Listen to music', icon: '🎵', tier: 'silver', xp: 30, color: '#fff' },
-                { title: 'Talk to someone', icon: '💬', tier: 'silver', xp: 30, color: '#fff' }
+                { title: 'Big Hug', icon: '🫂', tier: 'silver', xp: 30, color: '#fff' }
             ],
             'Anxious': [
+                { title: 'Capture the moment', icon: '📸', tier: 'gold', xp: 60, color: '#1e293b' },
                 { title: 'Deep Breathing', icon: '🌬️', tier: 'silver', xp: 30, color: '#fff' },
-                { title: '5-4-3-2-1 Grounding', icon: '🖐️', tier: 'silver', xp: 30, color: '#fff' },
-                { title: 'Hold Something Cold', icon: '❄️', tier: 'silver', xp: 30, color: '#fff' }
+                { title: '5-4-3-2-1 Grounding', icon: '🖐️', tier: 'silver', xp: 30, color: '#fff' }
             ],
             'Angry': [
                 { title: 'Capture the moment', icon: '📸', tier: 'gold', xp: 60, color: '#1e293b' },
@@ -84,30 +84,36 @@ const Activities = {
                 { title: 'Squeeze & Release', icon: '✊', tier: 'silver', xp: 30, color: '#fff' }
             ],
             'Calm': [
+                { title: 'Capture the moment', icon: '📸', tier: 'gold', xp: 60, color: '#1e293b' },
                 { title: 'Listen to music', icon: '🎵', tier: 'silver', xp: 30, color: '#fff' },
                 { title: 'Write it down', icon: '✍️', tier: 'silver', xp: 30, color: '#fff' }
             ],
             'Tired': [
+                { title: 'Capture the moment', icon: '📸', tier: 'gold', xp: 60, color: '#1e293b' },
                 { title: 'Deep Breathing', icon: '🌬️', tier: 'silver', xp: 30, color: '#fff' },
-                { title: 'Listen to music', icon: '🎵', tier: 'silver', xp: 30, color: '#fff' },
-                { title: 'Take a Break', icon: '🧘', tier: 'silver', xp: 30, color: '#fff' }
+                { title: 'Listen to music', icon: '🎵', tier: 'silver', xp: 30, color: '#fff' }
             ]
         };
-
-        const quests = fullStrategyMap[emotion] || [{ title: 'Deep Breathing', icon: '🧘', tier: 'silver', xp: 30, color: '#fff' }];
+    
+        const quests = fullStrategyMap[emotion] || fullStrategyMap['Happy'];
         
+        // 💡 레이아웃을 위한 그리드 클래스 적용
         container.className = `strategy-grid grid-${quests.length}`;
+        
         container.innerHTML = quests.map((q, idx) => `
-            <button class="bento-card ${q.tier}-tier ${idx === 0 && quests.length === 3 ? 'hero-card' : ''}" 
+            <button class="bento-card ${q.tier}-tier ${idx === 0 ? 'hero-card' : ''}" 
                     onclick="Activities.setupActivity('${q.title}')" 
-                    style="background:${q.color}; ${q.tier==='gold'?'color:white;':''}">
+                    style="background:${q.color}; ${q.tier==='gold' ? 'color:white;' : ''}">
                 <span class="quest-icon">${q.icon}</span>
                 <div class="quest-info" style="text-align:left;">
-                    <div class="quest-title" style="font-weight:850;">${q.title}</div>
-                    <div class="quest-reward" style="font-weight:700; font-size:0.8rem; color:${q.tier==='gold'?'#FFD700':'#7c3aed'}">
-                        ${q.tier==='gold'?'🥇 Gold':'🥈 Silver'} (+${q.xp} XP)
+                    <div class="quest-title" style="font-weight:850; font-size: ${idx === 0 ? '1.2rem' : '0.95rem'};">
+                        ${q.title}
+                    </div>
+                    <div class="quest-reward" style="font-weight:700; font-size:0.8rem; color:${q.tier==='gold' ? '#FFD700' : '#7c3aed'}">
+                        ${q.tier==='gold' ? '🥇 Gold' : '🥈 Silver'} (+${q.xp} XP)
                     </div>
                 </div>
+                ${idx === 0 ? '<div class="recommend-tag" style="position:absolute; top:12px; right:12px; background:#FFD700; color:#000; font-size:0.6rem; font-weight:900; padding:4px 8px; border-radius:8px;">RECOMMENDED</div>' : ''}
             </button>
         `).join('');
     },
