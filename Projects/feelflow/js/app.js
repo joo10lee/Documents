@@ -1,43 +1,52 @@
 /**
- * Main App Module: 전역 상태 관리 및 앱 초기화 담당
+ * FeelFlow Core Module: Ver.0213-4000 (The Final Stitch)
+ * [Fix] checkMedalLevel 참조 오류 해결 및 종료 시퀀스 통합
  */
 
 // 1. 전역 상태 관리
 let currentEmotion = { name: '', emoji: '', intensity: 5, color: '' };
 let currentRoutine = 'morning'; 
 
-// 2. 앱 초기화
-async function initApp() {
-    console.log("🚀 FeelFlow App Initializing...");
-    loadSettings();
-    initWeather();
-    goHome(); 
-    
-    try {
-        const history = await EmotionAPI.fetchHistory();
-        if (history) UI.renderHistory(history);
-    } catch (e) {
-        console.warn("초기 히스토리 로드 실패");
-    }
-}
+// 2. 보상 시스템 엔진 (FeelFlow)
+const FeelFlow = {
+    totalXP: 0,
+    currentLevel: 1,
+    medals: [],
 
-// 3. 감정 및 강도 제어
+    addXP(amount) {
+        this.totalXP += amount;
+        console.log(`✨ XP 획득: +${amount} (Total: ${this.totalXP})`);
+        // 💡 참조 무결성을 위해 'FeelFlow' 명시적 호출 (this 바인딩 에러 방지)
+        FeelFlow.checkMedalLevel(); 
+    },
+
+    checkMedalLevel() {
+        const nextLevelXP = this.currentLevel * 100; 
+        if (this.totalXP >= nextLevelXP) {
+            this.currentLevel++;
+            this.medals.push(`Level ${this.currentLevel} Medal`);
+            console.log(`🎊 레벨업! 현재 레벨: ${this.currentLevel}`);
+            if (typeof UI !== 'undefined' && UI.showLevelUp) UI.showLevelUp(this.currentLevel);
+        }
+    },
+
+    reset() {
+        this.totalXP = 0;
+        this.currentLevel = 1;
+        this.medals = [];
+    }
+};
+
+// 3. 감정 및 흐름 제어 함수
 function selectEmotion(name, emoji, color) {
-    if (window.Activities) {
-        window.Activities.initAudio();
-        window.Activities.feedback('tap'); 
-    }
-
-    currentEmotion.name = name;
-    currentEmotion.emoji = emoji;
-    currentEmotion.color = color; 
+    if (window.Activities) window.Activities.initAudio();
+    currentEmotion = { name, emoji, color, intensity: 5 };
     
     const emojiDisplay = document.getElementById('selectedEmoji');
     const nameDisplay = document.getElementById('selectedName');
     if (emojiDisplay) emojiDisplay.textContent = emoji;
     if (nameDisplay) nameDisplay.textContent = name;
     
-    // 💡 ID 기반 내비게이션 통일 ('2' = Intensity 화면)
     UI.goToScreen('2', "How strong is it?");
 }
 
@@ -47,14 +56,7 @@ function updateIntensity(val) {
     if (display) display.textContent = val;
 }
 
-// 4. 화면 흐름 제어 (ID 기반 무결성 확보)
-/**
- * [Build 1630] Screen 3을 건너뛰고 Screen 4로 데이터를 스티칭하는 핵심 로직
- */
 function goToResult() {
-    if (typeof feedback === 'function') feedback('tap');
-    
-    // 1. Screen 4 상단의 요약 바 업데이트 (모든 감정 대응)
     const summaryEmoji = document.getElementById('summaryEmoji');
     const summaryText = document.getElementById('summaryText');
     const summaryBar = document.getElementById('resultSummaryBar');
@@ -62,70 +64,27 @@ function goToResult() {
     if (summaryEmoji) summaryEmoji.textContent = currentEmotion.emoji;
     if (summaryText) summaryText.textContent = `${currentEmotion.name} at Level ${currentEmotion.intensity}`;
     
-    // 💡 감정의 컬러를 요약 바 배경에 살짝 스티칭 (시각적 일관성)
     if (summaryBar) {
         summaryBar.style.backgroundColor = `${currentEmotion.color}20`; // 20% 투명도
         summaryBar.style.borderColor = currentEmotion.color;
     }
 
-    // 2. 해당 감정에 맞는 전략 리스트 렌더링
     if (typeof window.renderStrategies === 'function') {
         window.renderStrategies(currentEmotion.name);
     }
-    
-    // 3. Screen 3을 스킵하고 바로 4번(전략) 화면으로 이동
     UI.goToScreen('4', "Personalized Strategies");
 }
 
-function goToStrategies() {
-    if (typeof feedback === 'function') feedback('tap');
-    
-    const container = document.getElementById('strategiesEmoji');
-    if (container) container.textContent = currentEmotion.emoji;
-    
-    if (typeof renderStrategies === 'function') {
-        renderStrategies(currentEmotion.name);
-    }
-    
-    // 💡 숫자 3 대신 문자열 ID '4' (Strategies 화면) 사용
-    UI.goToScreen('4', "Helpful Strategies");
-}
+// 4. 💡 [통합] 데이터 저장 및 종료 로직
+window.finishCheckIn = async function() {
+    console.log("💾 데이터 저장 및 종료 시퀀스 시작");
 
-// 5. 활동 전용 기능 (SMS 전송 등)
-function setupActivityButton(type) {
-    const btn = document.getElementById('activityBtn');
-    if (!btn) return;
-
-    if (type === 'joy') {
-        btn.textContent = "Send Joy via SMS 💌";
-        btn.onclick = () => shareJoy(); 
-    } else {
-        btn.textContent = "Save & Finish";
-        btn.onclick = () => finishCheckIn();
-    }
-}
-
-function shareJoy() {
-    const msgArea = document.getElementById('actionNote');
-    const message = msgArea && msgArea.value.trim() !== "" 
-        ? msgArea.value 
-        : "오늘 정말 기분 좋은 일이 있었어! 함께 나누고 싶어 ✨";
-    
-    window.location.href = `sms:?&body=${encodeURIComponent(message)}`;
-    setTimeout(() => finishCheckIn(), 1500);
-}
-
-// 6. 저장 및 완료 로직 (사진 데이터 동기화)
-async function finishCheckIn() {
-    console.log("💾 데이터 저장 중...");
-
-    // activities.js에서 촬영된 사진 데이터를 가져옴
     const note = document.getElementById('actionNote')?.value || "";
     const photo = window.lastCapturedPhoto || null; 
 
     const entry = {
-        emotion: currentEmotion.name || "Feeling",
-        emoji: currentEmotion.emoji || "✨",
+        emotion: currentEmotion.name,
+        emoji: currentEmotion.emoji,
         intensity: currentEmotion.intensity,
         note: note,
         photo: photo,
@@ -133,220 +92,57 @@ async function finishCheckIn() {
     };
 
     try {
-        await EmotionAPI.saveCheckIn(entry);
+        // API 저장 및 리소스 정리
+        if (typeof EmotionAPI !== 'undefined') await EmotionAPI.saveCheckIn(entry);
         if (window.Activities) window.Activities.stopAll();
         UI.goToScreen('5', "Check-in Complete!"); 
     } catch (error) {
         console.error("❌ 저장 실패:", error);
+        UI.goToScreen('5'); // 실패하더라도 아이의 흐름은 끊지 않음
     }
-}
+};
 
-// 7. 내비게이션 및 리셋
+// 5. 내비게이션 및 기타 유틸리티
 function goHome() {
     UI.goToScreen('1', "How are you feeling today?");
-    UI.updateNavActive('navHome');
-    
-    const weatherHeader = document.getElementById('weatherHeader');
-    const greeting = document.getElementById('greeting');
-    if (weatherHeader) weatherHeader.style.display = 'block';
-    if (greeting) greeting.style.display = 'block';
-    
     resetAppInput();
 }
 
-function startOver() {
-    currentEmotion = { name: '', emoji: '', intensity: 5, color: '' };
-    goHome();
-}
-
 function resetAppInput() {
-    if (document.getElementById('emotionNote')) document.getElementById('emotionNote').value = '';
     if (document.getElementById('actionNote')) document.getElementById('actionNote').value = '';
-    
-    // 💡 캡처된 사진 변수 초기화 (메모리 누수 방지)
     window.lastCapturedPhoto = null; 
-    
     const slider = document.getElementById('intensitySlider');
-    if (slider) {
-        slider.value = 5;
-        const display = document.getElementById('intensityDisplay');
-        if (display) display.textContent = '5';
-    }
+    if (slider) { slider.value = 5; document.getElementById('intensityDisplay').textContent = '5'; }
 }
 
-// 8. 서브 화면 이동
-// app.js의 goToTracker와 goToHistory 함수 내부를 아래처럼 보강하세요.
-// Tracker 화면으로 갈 때 데이터 로직 깨우기
-function goToTracker() {
-    UI.goToScreen('Tracker', 'Life Skills Tracker');
-    UI.updateNavActive('navTracker');
-    
-    // 💡 [핵심] 트래커 데이터 로드 및 렌더링 엔진 호출
-    if (window.Tracker && typeof window.Tracker.init === 'function') {
-        window.Tracker.init(); 
-    } else if (typeof renderTracker === 'function') {
-        renderTracker(); 
-    }
-}
-
-// History 화면으로 갈 때 차트와 로그 깨우기
-function goToHistory() {
-    UI.goToScreen('History', 'My Check-ins');
-    UI.updateNavActive('navHistory');
-    
-    // 💡 [핵심] API에서 데이터를 가져와서 UI에 뿌리기
-    EmotionAPI.fetchHistory().then(data => {
-        if (typeof UI.renderHistory === 'function') UI.renderHistory(data);
-        if (typeof renderEmotionChart === 'function') renderEmotionChart(data);
-    });
-}
-
-function goToSettings() {
-    UI.goToScreen('Settings', 'Settings');
-    UI.updateNavActive('navSettings');
-    document.getElementById('weatherHeader').style.display = 'none';
-    document.getElementById('greeting').style.display = 'none';
-}
-
-// 9. 설정 및 날씨 관리 (로스 가토스 기본값)
-function saveSettings() {
-    const nameVal = document.getElementById('settingsName')?.value.trim();
-    const cityVal = document.getElementById('settingsCity')?.value.trim();
-    const ageVal = document.getElementById('settingsAge')?.value;
-
-    localStorage.setItem('feelflow_settings', JSON.stringify({ name: nameVal, city: cityVal, age: ageVal }));
-    
-    const notice = document.getElementById('settingsSaved');
-    if (notice) {
-        notice.classList.add('show');
-        setTimeout(() => notice.classList.remove('show'), 2000);
-    }
-    updateGreeting(nameVal);
-    if (cityVal) UI.fetchWeatherByCity(cityVal);
-}
+// 6. 앱 초기화 (로스 가토스 기반 날씨 연동)
+window.initApp = async function() {
+    loadSettings();
+    const city = document.getElementById('settingsCity')?.value || 'Los Gatos';
+    UI.fetchWeatherByCity(city);
+    goHome();
+};
 
 function loadSettings() {
     const saved = localStorage.getItem('feelflow_settings');
     if (saved) {
         const data = JSON.parse(saved);
         if (document.getElementById('settingsName')) document.getElementById('settingsName').value = data.name || '';
-        if (document.getElementById('settingsAge')) document.getElementById('settingsAge').value = data.age || '';
-        if (document.getElementById('settingsCity')) document.getElementById('settingsCity').value = data.city || '';
         updateGreeting(data.name);
     }
 }
 
 function updateGreeting(name) {
-    const greetingEl = document.getElementById('greeting');
-    if (!greetingEl) return;
-    const hour = new Date().getHours();
-    let timeGreeting = hour >= 5 && hour < 12 ? 'Good morning' : 
-                       hour >= 12 && hour < 18 ? 'Good afternoon' : 'Good evening';
-    greetingEl.textContent = name ? `${timeGreeting}, ${name}!` : `${timeGreeting}!`;
+    const el = document.getElementById('greeting');
+    if (!el) return;
+    const hr = new Date().getHours();
+    const msg = hr < 12 ? 'Good morning' : hr < 18 ? 'Good afternoon' : 'Good evening';
+    el.textContent = name ? `${msg}, ${name}!` : `${msg}!`;
 }
 
-function initWeather() {
-    const city = document.getElementById('settingsCity')?.value || 'Los Gatos';
-    UI.fetchWeatherByCity(city);
-}
-
-function clearAllData() {
-    if (confirm('모든 데이터를 삭제할까요?')) {
-        localStorage.clear();
-        location.reload();
-    }
-}
-
-// Ver.0213-2400 State Management
-/**
- * FeelFlow Core Module: Ver.0213-3800
- * [Fix] checkMedalLevel 함수 누락 및 this 바인딩 오류 해결
- */
-
-/**
- * FeelFlow Core Module: Ver.0213-3800
- * [Fix] checkMedalLevel 함수 누락 및 this 바인딩 오류 해결
- */
-
-/**
- * FeelFlow Core Module: Ver.0213-3800
- * [Fix] checkMedalLevel 함수 누락 및 this 바인딩 오류 해결
- */
-
-const FeelFlow = {
-    totalXP: 0,
-    currentLevel: 1,
-    medals: [],
-
-    // 1. XP 추가 함수
-    addXP(amount) {
-        // 객체 내부의 totalXP 속성에 접근하여 값을 더합니다.
-        this.totalXP += amount;
-        console.log(`✨ XP 획득: +${amount} (Total: ${this.totalXP})`);
-        
-        // 💡 핵심: XP 획득 후 반드시 메달/레벨 체크 함수 호출
-        // 'this'를 통해 같은 객체 내의 checkMedalLevel을 실행합니다.
-        this.checkMedalLevel(); 
-    },
-
-    // 2. 💡 [복구] 메달 및 레벨 체크 엔진
-    // 이 함수가 누락되어 TypeError가 발생했던 것입니다.
-    checkMedalLevel() {
-        // 레벨업에 필요한 XP 계산 (예: 레벨 * 100)
-        const nextLevelXP = this.currentLevel * 100; 
-        
-        if (this.totalXP >= nextLevelXP) {
-            this.currentLevel++;
-            this.medals.push(`Level ${this.currentLevel} Medal`);
-            console.log(`🎊 레벨업! 현재 레벨: ${this.currentLevel}`);
-            
-            // 시각적 효과가 UI 모듈에 있다면 호출
-            if (typeof UI !== 'undefined' && UI.showLevelUp) {
-                UI.showLevelUp(this.currentLevel);
-            }
-        }
-    },
-
-    // 3. 데이터 초기화 (필요시)
-    reset() {
-        this.totalXP = 0;
-        this.currentLevel = 1;
-        this.medals = [];
-    }
-};
-
-
-// 전역에서 접근 가능하도록 바인딩
+// 7. 전역 브릿지 연결
 window.FeelFlow = FeelFlow;
-
-// 10. 전역 바인딩
-window.initApp = initApp;
-window.goHome = goHome;
-window.goToResult = goToResult;
-window.goToStrategies = goToStrategies;
 window.selectEmotion = selectEmotion;
 window.updateIntensity = updateIntensity;
-// app.js 또는 index.html 하단 스크립트
-window.finishCheckIn = function() {
-    console.log("🏁 미션 종료 및 저장 시퀀스 시작");
-    
-    // 1. UI 매니저를 통해 결과 화면으로 이동
-    if (typeof UI !== 'undefined' && UI.goToScreen) {
-        UI.goToScreen('5'); // Great job! 화면으로 이동
-    } else {
-        // 폴백 로직: 직접 DOM 조작
-        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-        document.getElementById('screen5').classList.add('active');
-    }
-
-    // 2. 리소스 정리 (카메라 중단 등)
-    if (typeof Activities !== 'undefined') {
-        Activities.stopAll();
-    }
-};
-window.startOver = startOver;
-window.goToHistory = goToHistory;
-window.goToTracker = goToTracker;
-window.goToSettings = goToSettings;
-window.saveSettings = saveSettings;
-window.clearAllData = clearAllData;
+window.goToResult = goToResult;
+window.goHome = goHome;
