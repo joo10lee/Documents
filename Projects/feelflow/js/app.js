@@ -146,3 +146,63 @@ window.selectEmotion = selectEmotion;
 window.updateIntensity = updateIntensity;
 window.goToResult = goToResult;
 window.goHome = goHome;
+
+// 태스크 데이터 구조 보강
+const DailyTasks = [
+    { id: 1, title: 'Morning Stretch', xp: 30, tier: 'silver', completed: false, category: 'morning' },
+    { id: 2, title: 'Practice Guitar', xp: 60, tier: 'gold', completed: false, category: 'music' }, // 제이슨의 음악 관심사 반영
+    { id: 3, title: 'Clean My Room', xp: 30, tier: 'silver', completed: true, category: 'routine' }
+];
+
+function renderHomeQuests() {
+    const container = document.getElementById('homeQuestList');
+    if (!container) return;
+
+    // 💡 완료되지 않은(completed: false) 태스크만 필터링
+    const activeTasks = DailyTasks.filter(t => !t.completed);
+
+    container.innerHTML = activeTasks.map(t => `
+        <div class="quick-task-item" onclick="Activities.setupActivity('${t.title}')">
+            <span>${t.tier === 'gold' ? '🥇' : '🥈'}</span>
+            <div style="margin-left:12px;">
+                <div style="font-weight:850; font-size:1rem;">${t.title}</div>
+                <div style="font-size:0.75rem; color:#7c3aed;">+${t.xp} XP</div>
+            </div>
+        </div>
+    `).join('');
+}
+
+// goToHistory나 goToTracker처럼 트로피 화면으로 갈 때 아래를 호출해야 합니다.
+function goToTrophies() {
+    UI.goToScreen('Trophies', 'My Achievement');
+    renderTrophyStats(); // 💡 이 시점에 렌더링 함수를 깨워야 데이터가 반영됩니다.
+}
+
+function renderTrophyStats() {
+    const goldCount = FeelFlow.medals.filter(m => m.includes('Gold')).length;
+    const silverCount = FeelFlow.medals.filter(m => m.includes('Silver')).length;
+    const targetGold = 30; // 부모가 설정한 목표치
+
+    document.getElementById('trophyContent').innerHTML = `
+        <div class="trophy-card">
+            <h3>Today's Potential</h3>
+            <p>You can still win 🥇 x2 and 🥈 x3 today!</p>
+        </div>
+        
+        <div class="medal-grid" style="display:grid; grid-template-columns:repeat(3, 1fr); gap:10px;">
+            <div class="medal-slot">🥇<br><strong>${goldCount}</strong></div>
+            <div class="medal-slot">🥈<br><strong>${silverCount}</strong></div>
+            <div class="medal-slot">🥉<br><strong>0</strong></div>
+        </div>
+
+        <div class="goal-tracker" style="margin-top:20px;">
+            <div style="display:flex; justify-content:space-between; font-weight:850;">
+                <span>Goal: LEGO Set 🎁</span>
+                <span>${goldCount}/${targetGold}</span>
+            </div>
+            <div class="progress-bar-bg" style="height:12px; background:#e2e8f0; border-radius:6px; margin-top:8px;">
+                <div style="width:${(goldCount/targetGold)*100}%; height:100%; background:#FFD700; border-radius:6px;"></div>
+            </div>
+        </div>
+    `;
+}

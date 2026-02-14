@@ -19,25 +19,42 @@
     <script src="js/app.js"></script>
     <script>
         window.onload = function() {
-            console.log("FeelFlow 인프라 Ver.0213-1840
+            console.log("FeelFlow 인프라 Ver.0213-1935
             if ('serviceWorker' in navigator) {
                 navigator.serviceWorker.register('sw.js').catch(err => console.log('SW fail:', err));
             }
             if (typeof initApp === 'function') initApp();
         };
     </script>  
-    <title>FeelFlow - Build Ver.0213-1840</title>
+    <title>FeelFlow - Build Ver.0213-1935</title>
 </head>
 <body>
     <header class="app-header">
         <div class="header-status">
-            <span></span> <span class="build-tag">Ver.0213-1840</span>
+            <span></span> <span class="build-tag">Ver.0213-1935</span>
         </div>
         <div class="header-main">
             <h1 class="greeting">Hey Joo, <br>how's it going?</h1>
         </div>
     </header>
     
+    <button class="hamburger-trigger" onclick="toggleMenu()">
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+    </button>
+    
+    <div id="menuOverlay" class="menu-overlay">
+        <button class="menu-close" onclick="toggleMenu()">×</button>
+        <nav class="menu-content">
+            <a href="#" onclick="menuNavigate('Home')">🏠 Home</a>
+            <a href="#" onclick="menuNavigate('Routine')">📅 Daily Routine</a>
+            <a href="#" onclick="menuNavigate('Trophies')">🏆 My Trophies</a>
+            <a href="#" onclick="menuNavigate('Settings')">⚙️ Settings</a>
+        </nav>
+    </div>
+
+
     <main class="screen active" id="screen1">
         <div class="xp-container" style="padding: 10px 24px;">
             <div class="xp-header" style="display:flex; justify-content:space-between; font-size:0.8rem; font-weight:850; margin-bottom:6px;">
@@ -111,7 +128,7 @@
         <div class="strategies-footer">
             <button class="btn btn-secondary" onclick="UI.back()">← Back</button>
         </div>
-    </main>
+    </main> 
 
     <main class="screen" id="screen5">
         <div class="result-card">
@@ -190,15 +207,6 @@
         </div>
     </main>
 
-    <nav class="bottom-nav">
-        <button class="nav-btn active" id="navHome" onclick="goHome()">
-            <span class="nav-icon">🏠</span>
-            <span class="nav-label">Home</span>
-        </button>
-        <button class="nav-btn" id="navHistory" onclick="goToHistory()">
-            <span class="nav-icon">🏆</span>
-            <span class="nav-label">Trophies</span>
-        </button>
-    </nav>
+    
 </body>
 </html>
