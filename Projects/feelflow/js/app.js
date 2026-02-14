@@ -134,48 +134,40 @@ window.updateIntensity = updateIntensity;
 window.goHome = goHome;
 window.startOver = startOver;
 window.toggleMenu = () => document.getElementById('menuOverlay').classList.toggle('active');
-/**
- * 🧭 [Fix] Robust Navigation Engine
- * HTML의 텍스트와 JS의 케이스를 완벽하게 스티칭합니다.
+/*
  */
 window.menuNavigate = (target) => {
-    // 1. 입력값 정규화 (공백 제거 및 소문자 변환으로 오타 방지)
     const normalizedTarget = target.trim();
-    console.log(`🎯 내비게이션 타겟: [${normalizedTarget}]`);
+    console.log(`🎯 내비게이션 시도: [${normalizedTarget}]`);
     
     const overlay = document.getElementById('menuOverlay');
     if (overlay) overlay.classList.remove('active');
 
-    switch(normalizedTarget) {
-        // HTML에서 'Home' 또는 'home'으로 보낼 때
-        case 'Home':
-        case 'home':
-            goHome();
-            break;
+    // 💡 UI.js 엔진의 화면 순서와 1:1 매핑 (index.html 섹션 순서에 맞춤)
+    const screenMap = {
+        'Home': '1',
+        'Routine': '3',   // Routine 화면이 3번째 섹션일 경우
+        'Daily Routine': '3',
+        'Trophies': '4',  // Trophies 화면이 4번째 섹션일 경우
+        'Settings': '5'   // Settings 화면이 5번째 섹션일 경우
+    };
 
-        // HTML에서 'Routine' 또는 'Daily Routine'으로 보낼 때
-        case 'Routine':
-        case 'Daily Routine':
-            // 💡 UI.goToScreen의 첫 번째 인자가 index.html의 section ID와 일치해야 합니다.
-            UI.goToScreen('Routine', 'Daily Routine'); 
-            break;
+    const screenIndex = screenMap[normalizedTarget];
 
-        // HTML에서 'Trophies' 또는 'Trophie' (오타)로 보낼 때
-        case 'Trophies':
-        case 'Trophie':
-        case 'Achievement':
-            UI.goToScreen('Trophies', 'My Achievements'); 
-            if (typeof renderTrophyStats === 'function') renderTrophyStats();
-            break;
+    if (screenIndex) {
+        console.log(`✅ 매핑 성공: ${normalizedTarget} -> Screen ${screenIndex}`);
+        
+        // 1. 숫자로 화면 전환 시도
+        UI.goToScreen(screenIndex, normalizedTarget);
 
-        case 'Settings':
-            UI.goToScreen('Settings', 'Settings');
-            break;
-
-        default:
-            // ⚠️ 여기서 홈으로 가버리는 현상이 발생 중입니다.
-            console.warn(`❓ 케이스 매칭 실패: ${normalizedTarget}. HTML의 onclick 인자를 확인하세요.`);
-            goHome(); 
+        // 2. 특정 화면 렌더링 호출
+        if (normalizedTarget === 'Trophies' && typeof renderTrophyStats === 'function') {
+            setTimeout(renderTrophyStats, 50); // 화면 전환 애니메이션 후 렌더링
+        }
+    } else {
+        // ⚠️ 매핑 실패 시 홈으로 복귀
+        console.warn(`❓ 케이스 매칭 실패: ${normalizedTarget}. 홈으로 이동합니다.`);
+        goHome();
     }
 };
 window.onload = () => window.initApp();
