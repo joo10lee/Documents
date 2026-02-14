@@ -135,9 +135,39 @@ window.goHome = goHome;
 window.startOver = startOver;
 window.toggleMenu = () => document.getElementById('menuOverlay').classList.toggle('active');
 window.menuNavigate = (target) => {
-    document.getElementById('menuOverlay').classList.remove('active');
-    if (target === 'Home') goHome();
-    else if (target === 'Trophies') { UI.goToScreen('Trophies', 'Achievements'); renderTrophyStats(); }
+    console.log(`🧭 내비게이션 시도: ${target}`);
+    
+    // 1. 메뉴 오버레이 닫기
+    const overlay = document.getElementById('menuOverlay');
+    if (overlay) overlay.classList.remove('active');
+
+    // 2. 타겟별 화면 이동 및 데이터 로드
+    switch(target) {
+        case 'Home':
+            goHome(); // 홈 화면으로 이동 및 퀘스트 리스트 갱신
+            break;
+
+        case 'Routine':
+            // 💡 Routine 화면 ID가 'Routine' 또는 '3'인지 HTML과 맞춰야 합니다.
+            UI.goToScreen('Routine', 'Daily Routine'); 
+            // 필요한 경우 전체 루틴 리스트를 따로 렌더링하는 함수를 호출할 수 있습니다.
+            break;
+
+        case 'Trophies':
+            // 트로피 화면으로 이동 후 통계 렌더링 엔진 깨우기
+            UI.goToScreen('Trophies', 'My Achievements'); 
+            if (typeof renderTrophyStats === 'function') renderTrophyStats();
+            break;
+
+        case 'Settings':
+            // 설정 화면으로 이동
+            UI.goToScreen('Settings', 'Settings');
+            break;
+
+        default:
+            console.warn(`❓ 알 수 없는 메뉴 타겟: ${target}`);
+            goHome();
+    }
 };
 
 window.onload = () => window.initApp();
