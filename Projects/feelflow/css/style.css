@@ -755,3 +755,56 @@
     color: #7c3aed;
     box-shadow: 0 4px 10px rgba(0,0,0,0.05);
 }
+
+/* 체크 시 즉시 적용되는 스타일 */
+.home-quest-item.checked-strikethrough .routine-text {
+    text-decoration: line-through !important;
+    color: #94a3b8 !important; /* 글자색을 연하게 */
+    transition: all 0.2s ease;
+}
+
+.home-quest-item.checked-strikethrough .custom-checkbox {
+    background: #10b981;
+    border-color: #10b981;
+}
+
+.home-quest-item.checked-strikethrough .custom-checkbox::after {
+    content: '✓';
+    color: white;
+    font-size: 0.8rem;
+    font-weight: bold;
+}
+
+/* 3초 후 사라지는 애니메이션 */
+.home-quest-item.fade-out {
+    opacity: 0;
+    transform: translateX(30px);
+    transition: all 0.5s ease;
+}
+
+/* 홈 화면 퀘스트 토글 버튼 */
+.home-routine-toggle {
+    display: flex;
+    align-items: center;
+    background: rgba(124, 58, 237, 0.1);
+    border: 1px solid rgba(124, 58, 237, 0.2);
+    border-radius: 12px;
+    padding: 4px 10px;
+    cursor: pointer;
+    gap: 6px;
+    transition: all 0.2s;
+}
+
+.home-routine-toggle:active {
+    transform: scale(0.95);
+    background: rgba(124, 58, 237, 0.2);
+}
+
+.toggle-label {
+    font-size: 0.75rem;
+    font-weight: 900;
+    color: #7c3aed;
+    text-transform: uppercase;
+}
+
+.toggle-icon { font-size: 0.8rem; }
