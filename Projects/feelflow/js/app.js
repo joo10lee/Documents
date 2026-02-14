@@ -258,29 +258,51 @@ function clearAllData() {
 }
 
 // Ver.0213-2400 State Management
+/**
+ * FeelFlow Core Module: Ver.0213-3800
+ * [Fix] checkMedalLevel 함수 누락 및 this 바인딩 오류 해결
+ */
+
 const FeelFlow = {
-    state: {
-        mode: 'child', // 'child' | 'guardian'
-        xp: parseInt(localStorage.getItem('ff_xp')) || 0,
-        medals: JSON.parse(localStorage.getItem('ff_medals')) || { bronze: 0, silver: 0, gold: 0 },
-        todayCompleted: []
-    },
+    totalXP: 0,
+    currentLevel: 1,
+    medals: [],
 
-    // 💡 모드 전환 (부모 모드 진입 시에는 향후 비밀번호 로직 스티칭 가능)
-    switchMode(targetMode) {
-        this.state.mode = targetMode;
-        document.body.setAttribute('data-mode', targetMode);
-        this.initModeUI();
-    },
-
-    // 💡 XP 및 메달 시스템 (Effort Tier 연동)
+    // 1. XP 추가 함수
     addXP(amount) {
-        this.state.xp += amount;
-        localStorage.setItem('ff_xp', this.state.xp);
-        this.checkMedalLevel();
-        UI.updateXPDisplay(); // UI 실시간 반영
+        this.totalXP += amount;
+        console.log(`✨ XP 획득: +${amount} (Total: ${this.totalXP})`);
+        
+        // 💡 핵심: XP 획득 후 반드시 메달/레벨 체크 함수 호출
+        this.checkMedalLevel(); 
+    },
+
+    // 2. 💡 [복구] 메달 및 레벨 체크 엔진
+    checkMedalLevel() {
+        const nextLevelXP = this.currentLevel * 100; // 레벨당 100 XP 가정
+        
+        if (this.totalXP >= nextLevelXP) {
+            this.currentLevel++;
+            this.medals.push(`Level ${this.currentLevel} Medal`);
+            console.log(`🎊 레벨업! 현재 레벨: ${this.currentLevel}`);
+            
+            // 시각적 효과가 UI 모듈에 있다면 호출
+            if (typeof UI !== 'undefined' && UI.showLevelUp) {
+                UI.showLevelUp(this.currentLevel);
+            }
+        }
+    },
+
+    // 3. 데이터 초기화 (필요시)
+    reset() {
+        this.totalXP = 0;
+        this.currentLevel = 1;
+        this.medals = [];
     }
 };
+
+// 전역에서 접근 가능하도록 바인딩
+window.FeelFlow = FeelFlow;
 
 // 10. 전역 바인딩
 window.initApp = initApp;
