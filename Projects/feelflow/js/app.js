@@ -7,6 +7,19 @@
 let currentEmotion = { name: '', emoji: '', intensity: 5, color: '' };
 let activeTaskId = null; 
 
+// 1. 사용자의 첫 터치 여부를 저장하는 전역 변수
+window.userInteracted = false;
+
+// 2. 사용자가 화면을 터치하거나 클릭하면 즉시 true로 변경 (딱 한 번만 실행)
+['touchstart', 'click', 'mousedown'].forEach(eventType => {
+    window.addEventListener(eventType, () => {
+        if (!window.userInteracted) {
+            window.userInteracted = true;
+            console.log("📱 User interaction detected. Vibration unlocked!");
+        }
+    }, { once: true }); // 메모리 절약을 위해 한 번만 실행
+});
+
 // 2. 보상 시스템 엔진 (FeelFlow)
 const FeelFlow = {
     totalXP: 0,
@@ -267,26 +280,23 @@ function resetAppInput() {
 }
 
 // activities.js 또는 app.js의 진동 호출 부분
-/**
- * 💓 업그레이드된 Safe Vibrate
- * 브라우저의 Intervention 경고조차 발생하지 않도록 사전 차단합니다.
- */
+
 function safeVibrate(pattern) {
-    // 1. 진동 API가 없으면 즉시 종료
     if (!navigator.vibrate) return;
 
-    // 2. 💡 핵심: 사용자가 화면을 한 번이라도 클릭/터치했는지 확인
-    // (최신 브라우저 표준: navigator.userActivation.isActive)
-    const isUserActive = (navigator.userActivation && navigator.userActivation.isActive);
+    // 💡 브라우저 표준 API와 우리의 수동 플래그를 모두 체크 (Double Shield)
+    const isBrowserActive = (navigator.userActivation && navigator.userActivation.isActive);
+    const isReady = isBrowserActive || window.userInteracted;
 
-    if (isUserActive) {
+    if (isReady) {
         try {
-            navigator.vibrate(pattern);
+            navigator.vibrate(pattern); 
         } catch (e) {
-            console.log("🤫 Vibration suppressed safely.");
+            // 조용히 넘김
         }
     } else {
-        // 사용자가 아직 화면을 만지지 않았다면, 로그조차 남기지 않고 조용히 리턴합니다.
-        // 이를 통해 콘솔의 [Intervention] 메시지를 원천 차단합니다.
+        // 제이슨이 아직 화면을 만지기 전이라면 '절대로' 호출하지 않음
+        // 이 '절대 호출 금지'가 콘솔의 Intervention 메시지를 없애는 핵심입니다.
     }
+}
 }
