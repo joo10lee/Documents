@@ -27,12 +27,27 @@ const Activities = {
         };
         const cfg = sounds[type];
         if (!cfg || !audioCtx) return;
+
+        // 1. 오디오 재생 로직 (기존 유지)
         if (Array.isArray(cfg.freq)) {
-            cfg.freq.forEach((f, i) => this.playTone(f, cfg.dur, audioCtx.currentTime + (i * 0.1)));
+            cfg.freq.forEach((f, i) => {
+                // 각 톤의 시작 시간($t_i$) 계산: $t_i = t_{now} + (i \times 0.1)$
+                this.playTone(f, cfg.dur, audioCtx.currentTime + (i * 0.1));
+            });
         } else {
             this.playTone(cfg.freq, cfg.dur, audioCtx.currentTime);
         }
-        if (navigator.vibrate) navigator.vibrate(cfg.vib);
+
+        // 2. 💡 [수정] 직접 호출 대신 safeVibrate 래퍼 사용
+        // 사용자 제스처 전 호출 시 발생하는 Intervention 에러를 방어합니다.
+        if (typeof safeVibrate === 'function') {
+            safeVibrate(cfg.vib);
+        } else {
+            // safeVibrate가 정의되지 않았을 경우를 대비한 최소한의 방어 코드
+            if (navigator.vibrate) {
+                try { navigator.vibrate(cfg.vib); } catch (e) { /* 조용히 무시 */ }
+            }
+        }
     },
 
     playTone(freq, dur, startTime) {
@@ -377,6 +392,26 @@ const Activities = {
         setTimeout(() => burst.remove(), 2500);
     }
 };
+
+/**
+ * 💓 Safe Vibrate Wrapper
+ * 사용자 제스처 없이 호출되어 브라우저가 차단하는 것을 방어합니다.
+ */
+function safeVibrate(pattern) {
+    // 1. 진동 API 지원 여부 확인
+    if (!navigator.vibrate) return;
+
+    try {
+        // 2. 진동 시도
+        const success = navigator.vibrate(pattern);
+        if (!success) {
+            console.warn("💓 진동이 차단되었습니다 (사용자 터치 필요)");
+        }
+    } catch (e) {
+        // 3. 인터벤션 에러 발생 시 조용히 넘김 (콘솔 스팸 방지)
+        console.log("🤫 Vibration blocked by browser policy (initialization phase).");
+    }
+}
 
 window.Activities = Activities;
 window.renderStrategies = (e) => Activities.renderStrategies(e);
