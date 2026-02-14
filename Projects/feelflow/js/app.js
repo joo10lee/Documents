@@ -399,6 +399,70 @@ function safeVibrate(pattern) {
         // 이 '절대 호출 금지'가 콘솔의 Intervention 메시지를 없애는 핵심입니다.
     }
 }
+
+/**
+ * 🏠 홈 화면 전용: 스마트 퀘스트 엔진
+ */
+
+// 1. 홈 화면 퀘스트 렌더링 (최대 3개 노출)
+function renderHomeQuests() {
+    const container = document.getElementById('quickTaskList');
+    if (!container) return;
+
+    // 현재 탭(Morning/Evening)에서 아직 완료되지 않은 항목만 추출
+    const activeTasks = DailyRoutines[currentRoutineTab].filter(t => !t.completed);
+    
+    // Q2: 최대 3개까지만 보여줌
+    const displayTasks = activeTasks.slice(0, 3);
+
+    if (displayTasks.length === 0 && DailyRoutines[currentRoutineTab].every(t => t.completed)) {
+        container.innerHTML = `<div style="padding:20px; color:#10b981; font-weight:850;">All Done! 🎉</div>`;
+        return;
+    }
+
+    container.innerHTML = displayTasks.map(t => `
+        <div id="home-task-${t.id}" class="home-quest-item" 
+             onclick="handleHomeCheck('${t.id}')"
+             style="display:flex; align-items:center; padding:18px; background:white; border-radius:22px; margin-bottom:10px; box-shadow:0 4px 10px rgba(0,0,0,0.03); cursor:pointer;">
+            <div class="custom-checkbox" style="width:22px; height:22px;"></div>
+            <div style="text-align:left;">
+                <div class="routine-text" style="font-weight:850; font-size:1rem;">${t.text}</div>
+            </div>
+        </div>
+    `).join('');
+}
+
+// 2. 홈 화면 체크 핸들러 (3초 지연 로직)
+function handleHomeCheck(id) {
+    const taskElement = document.getElementById(`home-task-${id}`);
+    const tasks = DailyRoutines[currentRoutineTab];
+    const task = tasks.find(t => t.id === id);
+
+    if (task && !task.completed) {
+        // 1) 즉시 데이터 업데이트 (동기화)
+        task.completed = true;
+        safeVibrate(15);
+        
+        // 2) 즉시 시각적 효과 적용 (취소선)
+        if (taskElement) taskElement.classList.add('checked-strikethrough');
+
+        // 3) 3초 후 애니메이션 및 데이터 갱신
+        setTimeout(() => {
+            if (taskElement) taskElement.classList.add('fade-out');
+            
+            setTimeout(() => {
+                saveRoutines();
+                renderHomeQuests(); // Q2: 지워진 자리에 다음 아이템이 자동으로 채워짐
+                
+                // Q3: 7개(전체)가 완료되었는지 체크하여 보상 지급
+                if (tasks.every(t => t.completed)) {
+                    triggerRoutineReward();
+                }
+            }, 500); // fade-out 애니메이션 시간
+        }, 3000); // Q1: 3초 대기
+    }
+}
+
 // 전역 바인딩
 window.switchRoutine = switchRoutine;
 window.toggleRoutine = toggleRoutine;
