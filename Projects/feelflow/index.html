@@ -19,19 +19,19 @@
     <script src="js/app.js"></script>
     <script>
         window.onload = function() {
-            console.log("FeelFlow 인프라 Ver.0213-1638
+            console.log("FeelFlow 인프라 Ver.0213-1717
             if ('serviceWorker' in navigator) {
                 navigator.serviceWorker.register('sw.js').catch(err => console.log('SW fail:', err));
             }
             if (typeof initApp === 'function') initApp();
         };
     </script>  
-    <title>FeelFlow - Build Ver.0213-1638</title>
+    <title>FeelFlow - Build Ver.0213-1717</title>
 </head>
 <body>
     <header class="app-header">
         <div class="header-status">
-            <span></span> <span class="build-tag">Ver.0213-1638</span>
+            <span></span> <span class="build-tag">Ver.0213-1717</span>
         </div>
         <div class="header-main">
             <h1 class="greeting">Hey Joo, <br>how's it going?</h1>
@@ -39,25 +39,37 @@
     </header>
     
     <main class="screen active" id="screen1">
+        <div class="xp-container" style="padding: 10px 24px;">
+            <div class="xp-header" style="display:flex; justify-content:space-between; font-size:0.8rem; font-weight:850; margin-bottom:6px;">
+                <span>Level 1 Adventurer</span>
+                <span id="xpText">0 XP</span>
+            </div>
+            <div class="xp-bar-bg" style="height:12px; background:rgba(0,0,0,0.05); border-radius:6px; overflow:hidden;">
+                <div id="xpFill" style="width: 0%; height:100%; background:linear-gradient(90deg, #7c3aed, #a78bfa); transition:0.5s;"></div>
+            </div>
+        </div>
+    
         <div class="emotion-bento">
-            <button class="bento-card happy" onclick="Activities.initAudio(); selectEmotion('Happy', '😊', '#FFD93D')">
+            <button class="bento-card happy" onclick="selectEmotion('Happy', '😊', '#FFD93D')">
                 <span class="emoji">😊</span> <span class="label">Happy</span>
             </button>
-            <button class="bento-card sad" onclick="Activities.initAudio(); selectEmotion('Sad', '😢', '#6CB4EE')">
-                <span class="emoji">😢</span> <span class="label">Sad</span>
-            </button>
-            <button class="bento-card anxious" onclick="Activities.initAudio(); selectEmotion('Anxious', '😰', '#A084E8')">
+            <button class="bento-card anxious" onclick="selectEmotion('Anxious', '😰', '#A084E8')">
                 <span class="emoji">😰</span> <span class="label">Anxious</span>
             </button>
-            <button class="bento-card angry" onclick="Activities.initAudio(); selectEmotion('Angry', '😠', '#FF6B6B')">
-                <span class="emoji">😠</span> <span class="label">Angry</span>
-            </button>
-            <button class="bento-card calm" onclick="Activities.initAudio(); selectEmotion('Calm', '😌', '#6BCB77')">
-                <span class="emoji">😌</span> <span class="label">Calm</span>
-            </button>
-            <button class="bento-card tired" onclick="Activities.initAudio(); selectEmotion('Tired', '😫', '#95A5A6')">
-                <span class="emoji">😫</span> <span class="label">Tired</span>
-            </button>
+            </div>
+    
+        <div class="quick-mission-section" style="padding: 10px 24px 20px;">
+            <h3 class="section-title" style="margin-left:0; display:flex; justify-content:space-between;">
+                Today's Quest ⚔️
+                <span id="medalStatus" style="font-size:1.2rem;">🥉</span>
+            </h3>
+            <div id="quickTaskList" class="quick-task-grid">
+                <div class="quick-task-item" onclick="Tracker.toggle('m1')">
+                    <span class="task-check">⚪</span>
+                    <span class="task-name">Morning Breathing</span>
+                    <span class="task-reward">+10 XP</span>
+                </div>
+            </div>
         </div>
     </main>
 

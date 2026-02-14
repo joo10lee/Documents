@@ -257,6 +257,31 @@ function clearAllData() {
     }
 }
 
+// Ver.0213-2400 State Management
+const FeelFlow = {
+    state: {
+        mode: 'child', // 'child' | 'guardian'
+        xp: parseInt(localStorage.getItem('ff_xp')) || 0,
+        medals: JSON.parse(localStorage.getItem('ff_medals')) || { bronze: 0, silver: 0, gold: 0 },
+        todayCompleted: []
+    },
+
+    // 💡 모드 전환 (부모 모드 진입 시에는 향후 비밀번호 로직 스티칭 가능)
+    switchMode(targetMode) {
+        this.state.mode = targetMode;
+        document.body.setAttribute('data-mode', targetMode);
+        this.initModeUI();
+    },
+
+    // 💡 XP 및 메달 시스템 (Effort Tier 연동)
+    addXP(amount) {
+        this.state.xp += amount;
+        localStorage.setItem('ff_xp', this.state.xp);
+        this.checkMedalLevel();
+        UI.updateXPDisplay(); // UI 실시간 반영
+    }
+};
+
 // 10. 전역 바인딩
 window.initApp = initApp;
 window.goHome = goHome;

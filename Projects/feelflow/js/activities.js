@@ -114,71 +114,103 @@ const Activities = {
     },
 
     // 5. 활동별 세부 함수 (Capture 기능 포함)
-    startCaptureAction() {
-        const area = document.getElementById('inAppActionArea');
-        const mainBtn = document.getElementById('activityBtn');
-        if (mainBtn) mainBtn.style.display = 'none';
+   // activities.js 의 startCaptureAction 함수 부분을 아래로 교체
 
-        this.currentFacingMode = this.currentFacingMode || 'user'; 
-        area.innerHTML = `
-            <div id="cameraModule" style="text-align:center;">
-                <div id="videoContainer" style="position:relative; width:100%; aspect-ratio:3/4; background:#000; border-radius:24px; overflow:hidden; margin-bottom:20px;">
-                    <video id="webcam" autoplay playsinline style="width:100%; height:100%; object-fit:cover; transform: ${this.currentFacingMode === 'user' ? 'scaleX(-1)' : 'scaleX(1)'};"></video>
-                    <div id="photoPreview" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background-size:cover; background-position:center; z-index:10;"></div>
+   startCaptureAction() {
+    const area = document.getElementById('inAppActionArea');
+    
+    // 메인 저장 버튼 숨김 (자체 플로팅 버튼 사용 예정)
+    const mainBtn = document.getElementById('activityBtn');
+    if (mainBtn) mainBtn.style.display = 'none';
+
+    this.currentFacingMode = this.currentFacingMode || 'user'; 
+
+    // 💡 UI 변경 핵심:
+    // 1. #videoContainer 너비를 90%로 줄임
+    // 2. 버튼들을 담는 div에 fixed 포지션 적용하여 네비게이션 위에 띄움 (bottom: 100px, z-index: 1500)
+    area.innerHTML = `
+        <div id="cameraModule" style="text-align:center; padding-bottom: 180px;"> <div id="videoContainer" style="position:relative; width:92%; margin: 0 auto 20px; aspect-ratio:3/4; background:#000; border-radius:24px; overflow:hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
+                <video id="webcam" autoplay playsinline style="width:100%; height:100%; object-fit:cover; transform: ${this.currentFacingMode === 'user' ? 'scaleX(-1)' : 'scaleX(1)'};"></video>
+                <div id="photoPreview" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background-size:cover; background-position:center; z-index:10;"></div>
+            </div>
+            <canvas id="hiddenCanvas" style="display:none;"></canvas>
+
+            <div style="position: fixed; bottom: 95px; left: 50%; transform: translateX(-50%); width: 88%; z-index: 1500; display:flex; flex-direction:column; gap:12px; padding: 10px; background: rgba(255,255,255,0.2); backdrop-filter: blur(5px); border-radius: 24px;">
+                
+                <button id="snapBtn" class="btn-primary" style="width:100%; padding: 18px; font-size: 1.1rem; box-shadow: 0 8px 20px rgba(30, 41, 59, 0.3);">📸 Take a Photo</button>
+                
+                <button id="retakeBtn" class="btn-primary" style="display:none; width:100%; padding: 18px; font-size: 1.1rem; background: #475569;">🔄 Retake</button>
+
+                <div style="display:grid; grid-template-columns: 1fr; gap:10px;">
+                    <button id="switchBtn" class="btn-secondary" style="background: rgba(255,255,255,0.9); border:none; font-weight:700;">🔄 Flip Camera</button>
                 </div>
-                <canvas id="hiddenCanvas" style="display:none;"></canvas>
-                <div style="display:flex; flex-direction:column; gap:12px;">
-                    <button id="snapBtn" class="btn btn-primary">📸 Take a Photo</button>
-                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-                        <button id="switchBtn" class="btn btn-secondary">🔄 Switch</button>
-                        <button id="retakeBtn" class="btn btn-secondary" style="display:none;">🔄 Retake</button>
-                    </div>
-                </div>
-            </div>`;
+            </div>
 
-        const video = document.getElementById('webcam');
-        const canvas = document.getElementById('hiddenCanvas');
-        const preview = document.getElementById('photoPreview');
-        const snapBtn = document.getElementById('snapBtn');
-        const switchBtn = document.getElementById('switchBtn');
-        const retakeBtn = document.getElementById('retakeBtn');
+        </div>`;
 
-        const startStream = async () => {
-            if (this.currentStream) this.currentStream.getTracks().forEach(t => t.stop());
-            try {
-                this.currentStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: this.currentFacingMode }, audio: false });
-                video.srcObject = this.currentStream;
-            } catch (err) { console.error("Camera access error:", err); }
-        };
+    const video = document.getElementById('webcam');
+    const canvas = document.getElementById('hiddenCanvas');
+    const preview = document.getElementById('photoPreview');
+    const snapBtn = document.getElementById('snapBtn');
+    const switchBtn = document.getElementById('switchBtn');
+    const retakeBtn = document.getElementById('retakeBtn');
 
-        snapBtn.onclick = () => {
-            this.feedback('success');
-            canvas.width = video.videoWidth; canvas.height = video.videoHeight;
-            const ctx = canvas.getContext('2d');
-            if (this.currentFacingMode === 'user') { ctx.translate(canvas.width, 0); ctx.scale(-1, 1); }
-            ctx.drawImage(video, 0, 0);
-            const dataUrl = canvas.toDataURL('image/png');
-            preview.style.backgroundImage = `url(${dataUrl})`;
-            preview.style.display = 'block';
-            snapBtn.style.display = 'none'; switchBtn.style.display = 'none'; retakeBtn.style.display = 'block';
-            if (mainBtn) { mainBtn.style.display = 'block'; mainBtn.textContent = "Save Memory"; window.lastCapturedPhoto = dataUrl; }
-        };
+    // 스트림 시작 함수
+    const startStream = async () => {
+        if (this.currentStream) this.currentStream.getTracks().forEach(t => t.stop());
+        try {
+            this.currentStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: this.currentFacingMode }, audio: false });
+            video.srcObject = this.currentStream;
+        } catch (err) { 
+            console.error("Camera error:", err);
+            area.innerHTML = `<div style="padding:30px;">😢 Camera access denied. Please check settings.</div>`;
+        }
+    };
 
-        switchBtn.onclick = () => {
-            this.feedback('tap');
-            this.currentFacingMode = (this.currentFacingMode === 'user') ? 'environment' : 'user';
-            video.style.transform = (this.currentFacingMode === 'user') ? 'scaleX(-1)' : 'scaleX(1)';
-            startStream();
-        };
+    // 촬영 버튼 클릭 이벤트
+    snapBtn.onclick = () => {
+        this.feedback('success');
+        canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+        const ctx = canvas.getContext('2d');
+        if (this.currentFacingMode === 'user') { ctx.translate(canvas.width, 0); ctx.scale(-1, 1); }
+        ctx.drawImage(video, 0, 0);
+        const dataUrl = canvas.toDataURL('image/png');
+        window.lastCapturedPhoto = dataUrl; // 전역 변수에 저장
 
-        retakeBtn.onclick = () => {
-            this.feedback('tap');
-            preview.style.display = 'none'; snapBtn.style.display = 'block'; switchBtn.style.display = 'block'; retakeBtn.style.display = 'none';
-            if (mainBtn) mainBtn.style.display = 'none';
-        };
+        // UI 업데이트
+        preview.style.backgroundImage = `url(${dataUrl})`;
+        preview.style.display = 'block';
+        snapBtn.style.display = 'none'; 
+        switchBtn.style.display = 'none'; // 스위치 버튼 숨김
+        retakeBtn.style.display = 'block'; // 재촬영 버튼 표시
 
+        // 메인 액션 버튼 활성화 (저장용)
+        if (mainBtn) { 
+            mainBtn.style.display = 'block'; 
+            mainBtn.textContent = "Save Memory ✨"; 
+        }
+    };
+
+    // 카메라 전환 버튼
+    switchBtn.onclick = () => {
+        this.feedback('tap');
+        this.currentFacingMode = (this.currentFacingMode === 'user') ? 'environment' : 'user';
+        video.style.transform = (this.currentFacingMode === 'user') ? 'scaleX(-1)' : 'scaleX(1)';
         startStream();
-    },
+    };
+
+    // 재촬영 버튼
+    retakeBtn.onclick = () => {
+        this.feedback('tap');
+        preview.style.display = 'none';
+        snapBtn.style.display = 'block';
+        switchBtn.style.display = 'block';
+        retakeBtn.style.display = 'none';
+        if (mainBtn) mainBtn.style.display = 'none';
+    };
+
+    startStream();
+},
 
     startGroundingAnimation() {
         const area = document.getElementById('inAppActionArea');
