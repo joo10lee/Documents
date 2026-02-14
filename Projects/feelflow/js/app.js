@@ -147,6 +147,18 @@ window.updateIntensity = updateIntensity;
 window.goToResult = goToResult;
 window.goHome = goHome;
 
+// 💡 [추가] 햄버거 메뉴 및 리셋 기능을 위해 전역에 노출
+window.startOver = startOver; 
+window.toggleMenu = toggleMenu;
+window.menuNavigate = menuNavigate;
+window.renderTrophyStats = renderTrophyStats;
+
+// 초기화 실행
+window.onload = () => {
+    if (typeof initApp === 'function') initApp();
+};
+
+
 // 태스크 데이터 구조 보강
 const DailyTasks = [
     { id: 1, title: 'Morning Stretch', xp: 30, tier: 'silver', completed: false, category: 'morning' },
