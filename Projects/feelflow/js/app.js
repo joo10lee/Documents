@@ -267,15 +267,26 @@ function resetAppInput() {
 }
 
 // activities.js 또는 app.js의 진동 호출 부분
+/**
+ * 💓 업그레이드된 Safe Vibrate
+ * 브라우저의 Intervention 경고조차 발생하지 않도록 사전 차단합니다.
+ */
 function safeVibrate(pattern) {
-    // 💡 사용자가 한 번이라도 클릭했는지 여부를 체크하는 속성 (최신 브라우저)
-    const hasUserActed = navigator.userActivation ? navigator.userActivation.isActive : true;
+    // 1. 진동 API가 없으면 즉시 종료
+    if (!navigator.vibrate) return;
 
-    if (navigator.vibrate && hasUserActed) {
+    // 2. 💡 핵심: 사용자가 화면을 한 번이라도 클릭/터치했는지 확인
+    // (최신 브라우저 표준: navigator.userActivation.isActive)
+    const isUserActive = (navigator.userActivation && navigator.userActivation.isActive);
+
+    if (isUserActive) {
         try {
             navigator.vibrate(pattern);
         } catch (e) {
-            // 조용히 무시
+            console.log("🤫 Vibration suppressed safely.");
         }
+    } else {
+        // 사용자가 아직 화면을 만지지 않았다면, 로그조차 남기지 않고 조용히 리턴합니다.
+        // 이를 통해 콘솔의 [Intervention] 메시지를 원천 차단합니다.
     }
 }

@@ -84,7 +84,7 @@ const Activities = {
             this.currentStream.getTracks().forEach(track => track.stop());
             this.currentStream = null;
         }
-        // 💡 수정: 직접 호출 대신 safeVibrate 사용 (초기 로드 에러 방지)
+        // ✅ 이제 이 호출은 '사용자 활성화' 상태가 아닐 때 알아서 침묵합니다.
         if (typeof safeVibrate === 'function') safeVibrate(0);
     },
 
