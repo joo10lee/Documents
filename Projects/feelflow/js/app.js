@@ -289,7 +289,24 @@ window.goToResult = goToResult;
 window.goToStrategies = goToStrategies;
 window.selectEmotion = selectEmotion;
 window.updateIntensity = updateIntensity;
-window.finishCheckIn = finishCheckIn;
+// app.js 또는 index.html 하단 스크립트
+window.finishCheckIn = function() {
+    console.log("🏁 미션 종료 및 저장 시퀀스 시작");
+    
+    // 1. UI 매니저를 통해 결과 화면으로 이동
+    if (typeof UI !== 'undefined' && UI.goToScreen) {
+        UI.goToScreen('5'); // Great job! 화면으로 이동
+    } else {
+        // 폴백 로직: 직접 DOM 조작
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById('screen5').classList.add('active');
+    }
+
+    // 2. 리소스 정리 (카메라 중단 등)
+    if (typeof Activities !== 'undefined') {
+        Activities.stopAll();
+    }
+};
 window.startOver = startOver;
 window.goToHistory = goToHistory;
 window.goToTracker = goToTracker;

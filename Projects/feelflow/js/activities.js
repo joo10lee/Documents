@@ -207,10 +207,18 @@ const Activities = {
             const cir = document.getElementById('pCir');
             if (!cir) return clearInterval(this.currentInterval);
             t--; cir.textContent = t; this.feedback('tick');
-            if (t <= 0) { 
-                clearInterval(this.currentInterval); cir.textContent = "💪"; 
-                document.getElementById('activityBtn').onclick = () => this.completeAction('silver', 30);
-            }
+            // 예: 벽 밀기 미션 성공 시
+                if (t <= 0) { 
+                    clearInterval(this.currentInterval); 
+                    cir.textContent = "💪"; 
+                    const btn = document.getElementById('activityBtn');
+                    if (btn) {
+                        btn.style.display = 'block';
+                        btn.textContent = "Finish & Get Silver 🥈";
+                        // 💡 화살표 함수를 사용하여 this(Activities) 컨텍스트 유지
+                        btn.onclick = () => this.completeAction('silver', 30);
+                    }
+                }
         }, 1000);
     },
 
@@ -234,17 +242,51 @@ const Activities = {
     // [SILVER] 호흡 애니메이션
     startBreathingAnimation() {
         const area = document.getElementById('inAppActionArea');
-        area.innerHTML = `<div id="lungCircle" style="width:120px; height:120px; margin:40px auto; background:rgba(124,58,237,0.2); border-radius:50%; border:5px solid #7c3aed; transition:4s ease-in-out; display:flex; justify-content:center; align-items:center; font-size:4rem;">🫁</div><p id="breathStatus" style="text-align:center; font-weight:850; color:#7c3aed;">Inhale...</p>`;
-        const l = document.getElementById('lungCircle'); const s = document.getElementById('breathStatus');
+        const btn = document.getElementById('activityBtn'); // 💡 버튼 참조 미리 확보
+    
+        // 1. UI 초기화: 버튼을 즉시 보이게 하고 텍스트 설정
+        if (btn) {
+            btn.style.display = 'block';
+            btn.textContent = "Finish & Get Silver 🥈";
+            // 💡 중요: 버튼 클릭 시 보상 시스템(completeAction)과 연결
+            btn.onclick = () => {
+                this.stopAll(); // 애니메이션 중단
+                this.completeAction('silver', 30); // 보상 지급 및 종료
+            };
+        }
+    
+        area.innerHTML = `
+            <div id="lungCircle" style="width:120px; height:120px; margin:40px auto; background:rgba(124,58,237,0.2); border-radius:50%; border:5px solid #7c3aed; transition:4s ease-in-out; display:flex; justify-content:center; align-items:center; font-size:4rem;">🫁</div>
+            <p id="breathStatus" style="text-align:center; font-weight:850; color:#7c3aed; font-size:1.8rem;">Ready...</p>
+        `;
+    
+        const l = document.getElementById('lungCircle'); 
+        const s = document.getElementById('breathStatus');
+    
+        // 2. 애니메이션 엔진 (재귀 호출)
         const anim = () => {
-            if (!l) return;
-            this.feedback('tap'); s.textContent = "Inhale..."; l.style.transform = "scale(2)";
-            setTimeout(() => { if(!l) return; s.textContent = "Exhale..."; l.style.transform = "scale(1)"; setTimeout(anim, 4500); }, 4000);
+            // 화면이 바뀌었거나 요소가 사라졌으면 중단
+            if (!l || !document.getElementById('lungCircle')) return;
+    
+            this.feedback('tap'); 
+            s.textContent = "Inhale... 🌬️"; 
+            l.style.transform = "scale(2)";
+    
+            // 4초 후 날숨 단계
+            this.currentInterval = setTimeout(() => {
+                if (!l) return;
+                this.feedback('tick'); 
+                s.textContent = "Exhale... 💨"; 
+                l.style.transform = "scale(1)";
+    
+                // 4.5초 후 다시 반복
+                this.currentInterval = setTimeout(anim, 4500);
+            }, 4000);
         };
-        anim();
-        document.getElementById('activityBtn').onclick = () => this.completeAction('silver', 30);
+    
+        // 1초 대기 후 시작
+        setTimeout(anim, 1000);
     },
-
     // [SILVER] Squeeze & Release
     startSqueezeAction() {
         const area = document.getElementById('inAppActionArea');
@@ -299,10 +341,26 @@ const Activities = {
     },
 
     // 5. 공통 마무리 로직 (XP 지급 + 애니메이션 + 전송)
+// activities.js 내 completeAction 수정
     completeAction(tier, xp) {
-        if (typeof FeelFlow !== 'undefined' && FeelFlow.addXP) FeelFlow.addXP(xp);
+        console.log(`🎁 보상 지급: ${tier} 티어, ${xp} XP`);
+        
+        // 1. XP 지급 (전역 객체 확인)
+        if (typeof FeelFlow !== 'undefined' && FeelFlow.addXP) {
+            FeelFlow.addXP(xp);
+        }
+
+        // 2. 축하 애니메이션 실행
         this.showCelebration(tier, xp);
-        setTimeout(() => { if (typeof window.finishCheckIn === 'function') window.finishCheckIn(); }, 2000);
+
+        // 3. 💡 핵심: 2초 후 전역 종료 함수 호출
+        setTimeout(() => {
+            if (typeof window.finishCheckIn === 'function') {
+                window.finishCheckIn();
+            } else {
+                console.error("❌ finishCheckIn 함수를 찾을 수 없습니다.");
+            }
+        }, 2000);
     },
 
     showCelebration(tier, xp) {
