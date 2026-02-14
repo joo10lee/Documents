@@ -13,10 +13,9 @@ const FeelFlow = {
     currentLevel: 1,
     medals: [],
 
-    addXP(amount) {
+    addXP(amount, tier = null) {
         this.totalXP += amount;
-        console.log(`✨ XP 획득: +${amount} (Total: ${this.totalXP})`);
-        // 💡 참조 무결성을 위해 'FeelFlow' 명시적 호출 (this 바인딩 에러 방지)
+        if (tier) this.medals.push(tier.charAt(0).toUpperCase() + tier.slice(1)); // 'Gold' 또는 'Silver' 저장
         FeelFlow.checkMedalLevel(); 
     },
 
@@ -92,13 +91,20 @@ window.finishCheckIn = async function() {
     };
 
     try {
-        // API 저장 및 리소스 정리
+        // 1. 데이터 저장
         if (typeof EmotionAPI !== 'undefined') await EmotionAPI.saveCheckIn(entry);
+        
+        // 2. 보상 지급 (강도 4 이상이면 Gold, 아니면 Silver)
+        const tier = currentEmotion.intensity >= 4 ? 'gold' : 'silver';
+        FeelFlow.addXP(tier === 'gold' ? 60 : 30, tier); 
+        
+        // 3. 리소스 정리 및 화면 전환
         if (window.Activities) window.Activities.stopAll();
         UI.goToScreen('5', "Check-in Complete!"); 
+        
     } catch (error) {
-        console.error("❌ 저장 실패:", error);
-        UI.goToScreen('5'); // 실패하더라도 아이의 흐름은 끊지 않음
+        console.error("❌ 처리 중 오류:", error);
+        UI.goToScreen('5'); 
     }
 };
 
@@ -106,6 +112,16 @@ window.finishCheckIn = async function() {
 function goHome() {
     UI.goToScreen('1', "How are you feeling today?");
     resetAppInput();
+    renderHomeQuests();
+}
+
+function startOver() {
+    currentEmotion = { name: '', emoji: '', intensity: 5, color: '' };
+    goHome();
+}
+
+function goToSettings() {
+    UI.goToScreen('Settings', 'Settings');
 }
 
 function resetAppInput() {
@@ -121,6 +137,7 @@ window.initApp = async function() {
     const city = document.getElementById('settingsCity')?.value || 'Los Gatos';
     UI.fetchWeatherByCity(city);
     goHome();
+    renderHomeQuests();
 };
 
 function loadSettings() {
@@ -140,6 +157,39 @@ function updateGreeting(name) {
     el.textContent = name ? `${msg}, ${name}!` : `${msg}!`;
 }
 
+// 1. 메뉴 토글 함수
+function toggleMenu() {
+    const overlay = document.getElementById('menuOverlay');
+    if (overlay) {
+        overlay.classList.toggle('active');
+        // 메뉴가 열릴 때 애니메이션 효과를 위해 오디오 피드백 추가
+        if (window.Activities) window.Activities.feedback('tap');
+    }
+}
+
+// 2. 메뉴 내비게이션 함수
+function menuNavigate(target) {
+    console.log(`🧭 메뉴 이동: ${target}`);
+    toggleMenu(); // 이동 전 메뉴 닫기
+
+    switch(target) {
+        case 'Home': 
+            goHome(); 
+            break;
+        case 'Routine': 
+            UI.goToScreen('Routine', 'Daily Routine'); 
+            break;
+        case 'Trophies': 
+            UI.goToScreen('Trophies', 'My Achievement');
+            if (typeof renderTrophyStats === 'function') renderTrophyStats(); 
+            break;
+        case 'Settings': 
+            goToSettings(); 
+            break;
+        default:
+            goHome();
+    }
+}
 // 7. 전역 브릿지 연결
 window.FeelFlow = FeelFlow;
 window.selectEmotion = selectEmotion;
@@ -157,6 +207,7 @@ window.renderTrophyStats = renderTrophyStats;
 window.onload = () => {
     if (typeof initApp === 'function') initApp();
 };
+
 
 
 // 태스크 데이터 구조 보강
