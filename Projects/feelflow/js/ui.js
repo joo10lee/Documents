@@ -24,10 +24,29 @@ const UI = {
 
         const target = document.getElementById('screen' + cleanId) || document.getElementById(cleanId);
 
+        // 💡 Phase 2: Header Logic
+        const headerTitle = document.getElementById('headerTitle');
+        const homeBtn = document.getElementById('navHomeBtn');
+        const weatherIcon = document.getElementById('weatherIcon');
+
+        if (cleanId === '1') {
+            // Home Screen: Time-based Greeting
+            const hour = new Date().getHours();
+            let greeting = "Hey Jason,<br>how's it going?";
+            if (hour >= 5 && hour < 12) greeting = "Good Morning,<br>Jason! ☀️";
+            else if (hour >= 12 && hour < 18) greeting = "Good Afternoon,<br>Jason! 🌤️";
+            else if (hour >= 18) greeting = "Good Evening,<br>Jason! 🌙";
+
+            if (headerTitle) headerTitle.innerHTML = greeting;
+            if (homeBtn) homeBtn.style.display = 'none'; // Hide Home Button
+        } else {
+            // Other Screens: Specific Title
+            if (headerTitle) headerTitle.textContent = title || "FeelFlow";
+            if (homeBtn) homeBtn.style.display = 'block'; // Show Home Button
+        }
+
         if (target) {
             target.classList.add('active');
-            const titleEl = document.getElementById('screenTitle');
-            if (titleEl && title) titleEl.textContent = title;
             window.scrollTo(0, 0);
         } else {
             console.error(`❌ UI Error: screen${cleanId} 요소를 찾을 수 없습니다.`);
@@ -132,20 +151,37 @@ const UI = {
         }
 
         const sorted = [...history].sort((a, b) => new Date(b.timestamp || b.createdAt) - new Date(a.timestamp || a.createdAt));
+
+        if (sorted.length === 0) {
+            container.innerHTML = `<div style="text-align:center; padding:40px; color:#cbd5e1;">No Check-ins yet! 📝</div>`;
+            return;
+        }
+
         container.innerHTML = sorted.map(entry => {
             const date = new Date(entry.timestamp || entry.createdAt);
             const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            const photoHtml = entry.photo ? `<div class="history-photo-wrapper" style="margin-top:12px; border-radius:12px; overflow:hidden;"><img src="${entry.photo}" style="width:100%; object-fit:cover; max-height:200px;"></div>` : '';
+            const dateStr = date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+
+            const photoHtml = entry.photo
+                ? `<img src="${entry.photo}" class="history-photo" alt="Moment">`
+                : '';
+
+            const noteHtml = entry.note
+                ? `<div class="history-note">${entry.note}</div>`
+                : '';
+
             return `
-                <div class="history-item" style="background:white; border-radius:24px; padding:20px; margin-bottom:16px; box-shadow:0 4px 15px rgba(0,0,0,0.05); border: 1px solid #f1f5f9;">
-                    <div style="display:flex; align-items:center; gap:15px;">
-                        <span style="font-size:2.8rem;">${entry.emoji || '✨'}</span>
-                        <div style="flex:1;">
-                            <div style="font-weight:700; color:#2d3748;"><span>${entry.emotion}</span> <span style="color:#7c3aed; float:right;">Lv.${entry.intensity}</span></div>
-                            <div style="font-size:0.85rem; color:#a0aec0;">${timeStr}</div>
-                        </div>
+                <div class="history-card">
+                    <div class="history-header">
+                        <span>${dateStr}</span>
+                        <span>${timeStr}</span>
                     </div>
-                    ${entry.note ? `<div style="margin-top:12px; padding:12px; background:#f8fafc; border-radius:12px;">${entry.note}</div>` : ''}
+                    <div class="history-mood">
+                        <span style="font-size:1.5rem;">${entry.emoji || '✨'}</span>
+                        <span>${entry.emotion}</span>
+                        <span style="font-size:0.8rem; color:#7c3aed; margin-left:auto; background:#f3e8ff; padding:2px 8px; border-radius:10px;">Lv.${entry.intensity}</span>
+                    </div>
+                    ${noteHtml}
                     ${photoHtml}
                 </div>`;
         }).join('');
