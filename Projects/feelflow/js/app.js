@@ -590,17 +590,30 @@ async function fetchHistory() {
     return history;
 }
 
-const EmotionAPI = {
-    saveCheckIn: async (data) => {
-        let history = JSON.parse(localStorage.getItem('feelflow_history')) || [];
-        history.push(data);
+// Helper for History if not in api.js
+async function fetchHistoryHelper() {
+    let history = JSON.parse(localStorage.getItem('feelflow_history')) || [];
+    if (history.length === 0) {
+        history = [
+            { timestamp: "2026-02-14T10:30:00", emotion: "Happy", emoji: "😊", intensity: 7, note: "Played soccer with friends!", photo: null },
+            { timestamp: "2026-02-14T18:00:00", emotion: "Proud", emoji: "😎", intensity: 9, note: "Finished my lego castle", photo: null },
+            { timestamp: "2026-02-13T20:15:00", emotion: "Calm", emoji: "😌", intensity: 5, note: "Reading before bed", photo: null }
+        ];
         localStorage.setItem('feelflow_history', JSON.stringify(history));
-        return true;
-    },
-    fetchHistory: fetchHistory
-};
+    }
+    return history;
+}
 
-window.EmotionAPI = EmotionAPI;
+// Extend existing Window.EmotionAPI or Create
+if (!window.EmotionAPI) window.EmotionAPI = {};
+
+window.EmotionAPI.fetchHistory = fetchHistoryHelper;
+window.EmotionAPI.saveCheckIn = async (data) => {
+    let history = JSON.parse(localStorage.getItem('feelflow_history')) || [];
+    history.push(data);
+    localStorage.setItem('feelflow_history', JSON.stringify(history));
+    return true;
+};
 
 
 
