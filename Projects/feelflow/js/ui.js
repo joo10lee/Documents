@@ -1,31 +1,33 @@
 /**
- * 🏠 FeelFlow UI Module: Ver.0215-5000
- * 기능: 화면 전환, 백 버튼, 7일 차트, 히스토리 리스트, 날씨, 감정 전략 엔진
+ * 🏠 FeelFlow UI Module: Ver.0215-FINAL_TOTAL
+ * 기능: 화면 전환, 백 버튼 복구, 7일 차트, 히스토리, 날씨 정보 통합
  */
 
-// 💡 [핵심 수정] 객체 선언과 동시에 전역에 등록하여 app.js에서 즉시 인식하게 함
+console.log("🚀 [SYSTEM] UI Module Initializing...");
+
 const UI = {
     // 1. 화면 전환 및 히스토리 관리
     goToScreen(screenId, title) {
         if (!screenId) return;
         const cleanId = screenId.toString().replace('screen', '');
-        console.log(`📍 UI: screen${cleanId}로 이동 시도`);
+        console.log(`📍 UI.goToScreen: Moving to screen${cleanId}`);
         
         this.renderScreen(cleanId, title);
 
         try {
-            // 브라우저 히스토리 스택에 저장 (백 버튼 동작의 핵심)
+            // 브라우저 히스토리에 정규화된 상태 저장 (백 버튼 복구 핵심)
             window.history.pushState({ screenId: cleanId, title: title }, "", ""); 
         } catch (e) { console.warn("History push error:", e); }
     },
 
     renderScreen(screenId, title) {
         const cleanId = screenId.toString().replace('screen', '');
+        console.log(`🎨 UI.renderScreen: screen${cleanId}`);
         
         // 모든 스크린에서 active 클래스 제거
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
 
-        // ID가 'screen1' 혹은 '1'인 경우 모두 대응하도록 방어적 설계
+        // ID가 'screen1' 혹은 '1'인 경우 모두 대응
         const target = document.getElementById('screen' + cleanId) || document.getElementById(cleanId);
         
         if (target) {
@@ -33,19 +35,19 @@ const UI = {
             const titleEl = document.getElementById('screenTitle');
             if (titleEl && title) titleEl.textContent = title;
             window.scrollTo(0, 0);
-            console.log(`✅ UI: screen${cleanId} 렌더링 완료`);
         } else {
-            console.error(`❌ UI Error: screen${cleanId} 요소를 HTML에서 찾을 수 없습니다.`);
+            console.error(`❌ UI Error: screen${cleanId} 요소를 찾을 수 없습니다.`);
         }
 
-        // 활동 화면을 벗어날 때 정리 로직 (Activities 모듈 연동)
-        if (cleanId !== 'Activity' && cleanId !== 'screenActivity' && window.Activities?.stopAll) {
+        // 활동 화면을 벗어날 때 정리 로직 (Activities 연동)
+        if (cleanId !== 'Activity' && window.Activities?.stopAll) {
             window.Activities.stopAll();
         }
     },
 
     // 인앱 백 버튼 함수
     back() {
+        console.log("🔙 UI: Back Button Triggered");
         if (window.history.length > 1) {
             window.history.back();
         } else {
@@ -153,10 +155,10 @@ const UI = {
 };
 
 /**
- * 🧠 지능형 전략 렌더러 (Fixed Ver.0215-5000)
- * Happy 1-2 로직 및 모든 감정 대응
+ * 🧠 지능형 전략 렌더러 (Fixed Ver.0215-TOTAL)
  */
 window.renderStrategies = function(emotionName, intensity) {
+    // DOM 로드 대기를 위해 50ms 지연
     setTimeout(() => {
         const container = document.getElementById('strategiesContainer');
         if (!container) return;
@@ -164,15 +166,15 @@ window.renderStrategies = function(emotionName, intensity) {
         const name = emotionName ? emotionName.toString().trim().toLowerCase() : "";
         const level = parseInt(intensity) || 5;
         
-        console.log(`🧠 Strategy 엔진 가동: ${name} (강도: ${level})`);
+        console.log(`🧠 [STRATEGY] Emotion: ${name}, Level: ${level}`);
 
         let html = "";
 
         if (name.includes('happy') || name.includes('😊')) {
             if (level <= 2) {
-                html = `<div class="bento-card hero-card" onclick="startQuest('HappyNote', 'Happy Note')"><span class="recommend-tag">SMALL JOY</span><span class="quest-icon">🌱</span><div class="quest-info"><div class="quest-title">Happy Note</div><div style="font-size:0.8rem; opacity:0.9;">One tiny happy thing?</div></div></div>`;
+                html = `<div class="bento-card hero-card" onclick="startQuest('HappyNote', 'Happy Note')"><span class="recommend-tag">SMALL JOY</span><span class="quest-icon">🌱</span><div class="quest-info"><div class="quest-title">Happy Note</div></div></div>`;
             } else {
-                html = `<div class="strategy-grid"><div class="bento-card hero-card" onclick="startQuest('HappyNote', 'Happy Note')"><span class="recommend-tag">WRITE</span><span class="quest-icon">✍️</span><div class="quest-info"><div class="quest-title">Happy Note</div><div style="font-size:0.8rem; opacity:0.9;">Write your joy + Photo</div></div></div></div>`;
+                html = `<div class="strategy-grid"><div class="bento-card hero-card" onclick="startQuest('HappyNote', 'Happy Note')"><span class="recommend-tag">WRITE</span><span class="quest-icon">✍️</span><div class="quest-info"><div class="quest-title">Happy Note</div></div></div></div>`;
             }
         } 
         else if (name.includes('sad') || name.includes('😢')) {
@@ -180,9 +182,6 @@ window.renderStrategies = function(emotionName, intensity) {
         }
         else if (name.includes('anxious') || name.includes('😰')) {
             html = `<div class="strategy-grid"><div class="bento-card hero-card" onclick="startQuest('DeepBreath', 'Deep Breathing')"><span class="recommend-tag">CALM</span><span class="quest-icon">🌬️</span><div class="quest-info"><div>Breathing</div></div></div><div class="bento-card" onclick="startQuest('Grounding', '5-4-3-2-1 Grounding')"><span class="quest-icon">🖐️</span><div class="quest-info"><div>Grounding</div></div></div></div>`;
-        }
-        else if (name.includes('angry') || name.includes('😡')) {
-            html = `<div class="strategy-grid"><div class="bento-card hero-card" onclick="startQuest('PushWall', 'Push the Wall')"><span class="recommend-tag">POWER</span><span class="quest-icon">🧱</span><div class="quest-info"><div>Push hard!</div></div></div><div class="bento-card" onclick="startQuest('Squeeze', 'Squeeze & Release')"><span class="quest-icon">✊</span><div class="quest-info"><div>Squeeze</div></div></div></div>`;
         }
         else {
             html = `<div class="bento-card" onclick="startQuest('DeepBreath', 'Deep Breathing')"><span class="quest-icon">🌬️</span><div class="quest-info"><div>Just Breathe</div></div></div>`;
@@ -195,9 +194,9 @@ window.renderStrategies = function(emotionName, intensity) {
 // 브라우저 백 버튼 이벤트
 window.onpopstate = function(event) {
     if (event.state && event.state.screenId) {
-        UI.renderScreen(event.state.screenId, event.state.title);
+        window.UI.renderScreen(event.state.screenId, event.state.title);
     } else {
-        UI.renderScreen('1', 'How are you feeling?');
+        window.UI.renderScreen('1', 'How are you feeling?');
     }
 };
 
