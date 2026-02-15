@@ -140,11 +140,80 @@ const FeelFlow = {
     }
 };
 
+// 💡 Phase 2: Guardian Logic (Parent Mode)
+const Guardian = {
+    renderDashboard() {
+        const history = JSON.parse(localStorage.getItem('feelflow_history')) || [];
+        const alertBox = document.getElementById('guardianAlert');
+        const alertMsg = document.getElementById('guardianAlertMsg');
+        const timeline = document.getElementById('guardianTimeline');
+        const colorMix = document.getElementById('guardianColorMix');
+        const insight = document.getElementById('guardianInsight');
+
+        // 1. Alert Check (Most recent critical)
+        const recentCritical = history[0] && ['Angry', 'Sad', 'Anxious'].includes(history[0].emotion) && history[0].intensity >= 8;
+        if (recentCritical) {
+            alertBox.style.display = 'block';
+            alertMsg.textContent = `Jason felt ${history[0].emotion} (Lv.${history[0].intensity}) at ${new Date(history[0].timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}.`;
+        } else {
+            alertBox.style.display = 'none';
+        }
+
+        // 2. Load Goal
+        const savedGoal = localStorage.getItem('feelflow_goal_msg') || '';
+        document.getElementById('guardianGoalInput').value = savedGoal;
+
+        // 3. Timeline
+        if (timeline) {
+            timeline.innerHTML = history.slice(0, 10).map(h => `
+                <div class="history-item" style="padding:12px; margin:0 0 10px 0;">
+                    <div style="font-size:1.5rem;">${h.emoji || '❓'}</div>
+                    <div style="flex:1;">
+                        <div style="font-weight:700; font-size:0.95rem;">${h.emotion} <span style="font-size:0.8rem; color:#94a3b8;">Lv.${h.intensity}</span></div>
+                        <div style="font-size:0.85rem; color:#64748b;">${h.note || 'No note'}</div>
+                    </div>
+                    <div style="font-size:0.75rem; color:#94a3b8;">${new Date(h.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                </div>
+            `).join('');
+        }
+
+        // 4. Color Mix (Simple Gradient Mock)
+        // Ideally calculate based on recent emotions
+    },
+
+    saveGoal() {
+        const newGoal = document.getElementById('guardianGoalInput').value;
+        if (newGoal) {
+            localStorage.setItem('feelflow_goal_msg', newGoal);
+            alert("Goal updated!");
+        }
+    },
+
+    sendSMS() {
+        // Simulate SMS
+        const tel = "1234567890"; // Mock parent number
+        window.location.href = `sms:${tel}&body=Jason, Are you okay? I saw your check-in.`;
+    },
+
+    sendReaction() {
+        localStorage.setItem('parent_reaction', 'heart');
+        alert("Sent ❤️ validation to Jason!");
+    }
+};
+window.Guardian = Guardian;
+
 // 5. 흐름 제어 및 내비게이션
 function goHome() {
     UI.goToScreen('1', getGreeting()); // 💡 Dynamic Greeting
     resetAppInput();
     renderHomeQuests();
+
+    // 💡 Phase 2: Check for Parent Reaction
+    const reaction = localStorage.getItem('parent_reaction');
+    if (reaction === 'heart') {
+        localStorage.removeItem('parent_reaction'); // Clear it
+        setTimeout(() => alert("❤️ Mom/Dad sent you a Cheer Up Heart!"), 500);
+    }
 }
 
 function startOver() {
@@ -230,6 +299,14 @@ window.finishCheckIn = async function () {
         activeTaskId = null;
         if (window.Activities) window.Activities.stopAll();
         UI.goToScreen('5', "Excellent!");
+
+        // 💡 Phase 2: Guardian Trigger (Simulation)
+        if (['Angry', 'Sad', 'Anxious'].includes(entry.emotion) && entry.intensity >= 8) {
+            // In real app, this sends FCM. Here we set a flag or just let Guardian Screen detect it.
+            // Let's show a simulated "Push Notification" toast if we are in "Demo Mode" or just log it.
+            console.log("🚨 [Guardian Trigger] High intensity negative emotion detected!");
+            setTimeout(() => alert("📱 [Parent's Phone] \n\nFeelFlow Alert:\nJason is feeling very " + entry.emotion + " (Lv." + entry.intensity + ").\nCheck the app now!"), 1000);
+        }
 
     } catch (error) {
         console.error("Save failed:", error);
@@ -543,21 +620,24 @@ window.menuNavigate = (target, event) => {
         'Home': '1',
         'Routine': 'screenTracker',
         'Trophies': 'screenTrophies', // Renamed
-        'History': 'screenJourney'   // New Screen
+        'History': 'screenJourney',   // New Screen
+        'Guardian': 'screenGuardian'  // 💡 Phase 2
     };
     const tid = screenMap[target.trim()];
 
     if (tid) {
         const titleMap = {
-            'Home': 'Hey Jason!',
+            'Home': getGreeting(), // Use dynamic greeting for consistency
             'Routine': 'Daily Routine',
             'Trophies': 'My Trophies 🏆',
-            'History': 'My Journey 📅'
+            'History': 'My Journey 📅',
+            'Guardian': 'Guardian Dashboard 🛡️'
         };
         UI.goToScreen(tid, titleMap[target.trim()] || target.trim());
 
         if (tid === 'screenTracker') setTimeout(renderRoutineScreen, 100);
         if (tid === 'screenTrophies') setTimeout(renderTrophyStats, 100);
+        if (tid === 'screenGuardian') setTimeout(() => Guardian.renderDashboard(), 100); // Render Guardian
         if (tid === 'screenJourney') {
             if (window.EmotionAPI && window.EmotionAPI.fetchHistory) {
                 EmotionAPI.fetchHistory().then(history => {
