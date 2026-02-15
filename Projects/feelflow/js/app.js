@@ -599,7 +599,7 @@ const EmotionAPI = {
     },
     fetchHistory: fetchHistory
 };
-global.EmotionAPI = EmotionAPI;
+
 window.EmotionAPI = EmotionAPI;
 
 
