@@ -611,10 +611,14 @@ function renderTrophyStats() {
 
 // 💡 Fix: Robust Audio Check (Prevents crash if Audio API is missing)
 const AudioContextVal = window.AudioContext || window.webkitAudioContext;
-let audioCtx;
+// let audioCtx; // 💡 Removed to prevent "Identifier already declared" error
+
 try {
     if (AudioContextVal) {
-        audioCtx = new AudioContextVal();
+        // 💡 Attach to window to be safe against re-declarations
+        if (!window.audioCtx) {
+            window.audioCtx = new AudioContextVal();
+        }
     } else {
         console.warn("⚠️ Web Audio API not supported on this device.");
     }
@@ -622,28 +626,29 @@ try {
     console.error("❌ AudioContext Init Failed:", e);
 }
 function playSound(type = 'tap') {
-    if (!window.userInteracted || !audioCtx) return;
+    const ctx = window.audioCtx; // 💡 Local reference
+    if (!window.userInteracted || !ctx) return;
     try {
-        if (audioCtx.state === 'suspended') audioCtx.resume();
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
+        if (ctx.state === 'suspended') ctx.resume();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
         osc.connect(gain);
-        gain.connect(audioCtx.destination);
+        gain.connect(ctx.destination);
 
         if (type === 'tap') {
-            osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+            osc.frequency.setValueAtTime(400, ctx.currentTime);
             osc.type = 'sine';
-            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+            gain.gain.setValueAtTime(0.1, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
             osc.start();
-            osc.stop(audioCtx.currentTime + 0.1);
+            osc.stop(ctx.currentTime + 0.1);
         } else if (type === 'success') {
-            osc.frequency.setValueAtTime(600, audioCtx.currentTime);
-            osc.frequency.exponentialRampToValueAtTime(1000, audioCtx.currentTime + 0.1);
-            gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+            osc.frequency.setValueAtTime(600, ctx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(1000, ctx.currentTime + 0.1);
+            gain.gain.setValueAtTime(0.2, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
             osc.start();
-            osc.stop(audioCtx.currentTime + 0.3);
+            osc.stop(ctx.currentTime + 0.3);
         }
     } catch (e) { }
 }
