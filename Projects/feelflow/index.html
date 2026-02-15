@@ -40,16 +40,19 @@
     <header class="app-header">
         <div class="header-status">
             <span id="weatherIcon">🌤️</span>
-            <span class="build-tag">Ver. Phase2-01</span>
+            <!-- 💡 Phase 2.5: Version Format (Date-Time) -->
+            <span class="build-tag">Ver.0215-0122</span>
         </div>
         <div class="header-main">
-            <!-- 🏠 Home Icon for Sub-pages -->
-            <button id="navHomeBtn" class="nav-home-btn" onclick="goHome()" style="display:none;">🏠</button>
+
 
             <!-- Dynamic Title Area -->
             <h1 id="headerTitle" class="greeting">Hey Jason, <br>how's it going?</h1>
         </div>
     </header>
+
+    <!-- 💡 Phase 2.5: Floating Home Button (Next to Hamburger) -->
+    <button id="navHomeBtn" class="nav-home-btn floating-home" onclick="goHome()" style="display:none;">🏠</button>
 
     <button class="hamburger-trigger" onclick="toggleMenu()">
         <div class="bar"></div>

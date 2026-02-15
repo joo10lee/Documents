@@ -1424,3 +1424,68 @@ textarea {
     font-size: 0.9rem;
     color: #475569;
 }
+
+/* 💡 Phase 2.5: Disabled Routine - Total Gray */
+.routine-checkbox-item.disabled {
+    opacity: 0.5;
+    filter: grayscale(100%);
+    background: #f1f5f9;
+    pointer-events: none;
+}
+
+.routine-checkbox-item.disabled .routine-controls {
+    pointer-events: auto;
+    filter: none;
+}
+
+/* Control Buttons - Subtle */
+.btn-control {
+    background: #e2e8f0;
+    border: none;
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: 0.2s;
+    font-weight: 600;
+    color: #94a3b8;
+}
+
+.btn-control:hover {
+    background: #cbd5e1;
+    color: #475569;
+}
+
+.btn-control:active {
+    transform: scale(0.95);
+}
+
+.btn-control.delete {
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.1);
+}
+
+/* 💡 Phase 2.5: Floating Home Button */
+.nav-home-btn.floating-home {
+    position: fixed;
+    top: 20px;
+    /* Match hamburger top alignment */
+    right: 80px;
+    /* Left of hamburger (20px + 48px + gap) */
+    width: 48px;
+    /* Match hamburger size */
+    height: 48px;
+    background: white;
+    border-radius: 14px;
+    /* Match hamburger radius */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    z-index: 5000;
+    /* Match hamburger z-index */
+    font-size: 1.5rem;
+    display: flex;
+    /* Hidden by default via JS, but if shown */
+    align-items: center;
+    justify-content: center;
+    border: none;
+    cursor: pointer;
+}
