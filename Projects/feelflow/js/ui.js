@@ -14,7 +14,7 @@ const UI = {
         this.renderScreen(cleanId, title);
 
         try {
-            window.history.pushState({ screenId: cleanId, title: title }, "", ""); 
+            window.history.pushState({ screenId: cleanId, title: title }, "", "");
         } catch (e) { console.warn("History push error:", e); }
     },
 
@@ -23,7 +23,7 @@ const UI = {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
 
         const target = document.getElementById('screen' + cleanId) || document.getElementById(cleanId);
-        
+
         if (target) {
             target.classList.add('active');
             const titleEl = document.getElementById('screenTitle');
@@ -46,6 +46,22 @@ const UI = {
         burst.innerHTML = `🎊 LEVEL UP! LV.${level}`;
         document.body.appendChild(burst);
         setTimeout(() => burst.remove(), 2500);
+    },
+
+    // 💡 레고 블록 획득 애니메이션
+    showLegoAnimation() {
+        const burst = document.createElement('div');
+        burst.className = 'xp-burst';
+        burst.style.zIndex = '9999';
+        burst.innerHTML = `
+            <div style="font-size:5rem; animation: bounceIn 1s;">🧱</div>
+            <div style="font-weight:900; font-size:1.5rem; color:#d97706; margin-top:10px; text-shadow:0 2px 10px rgba(0,0,0,0.2);">
+                LEGO BLOCK GET!<br>
+                <span style="font-size:1rem; color:white;">+50 XP</span>
+            </div>
+        `;
+        document.body.appendChild(burst);
+        setTimeout(() => burst.remove(), 3000);
     },
 
     back() {
@@ -153,7 +169,7 @@ const UI = {
 };
 
 // 💡 [필수 보완] 브라우저 백 버튼 이벤트 핸들러
-window.onpopstate = function(event) {
+window.onpopstate = function (event) {
     if (event.state && event.state.screenId) {
         UI.renderScreen(event.state.screenId, event.state.title);
     } else {

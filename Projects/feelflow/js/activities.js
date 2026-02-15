@@ -7,7 +7,7 @@ let audioCtx = null;
 
 const Activities = {
     currentStream: null,
-    currentFacingMode: 'user', 
+    currentFacingMode: 'user',
     currentInterval: null,
     activeTimeouts: [],
 
@@ -65,7 +65,7 @@ const Activities = {
     renderStrategies(emotionName, intensity) {
         const container = document.getElementById('strategiesContainer');
         if (!container) return;
-    
+
         const name = emotionName ? emotionName.toString().trim().toLowerCase() : "";
         const level = parseInt(intensity) || 5;
         console.log(`🧠 [STRATEGY] Processing: ${name} (Level ${level})`);
@@ -85,8 +85,7 @@ const Activities = {
                     { title: 'Capture the moment', icon: '📸', tier: 'silver', xp: 30, color: '#fff' }
                 ];
             }
-        } 
-        // 💡 [해결] Sad (😢) - 정상 매핑 (더 이상 Happy가 나오지 않음)
+        }
         else if (name.includes('sad') || name.includes('😢')) {
             quests = [
                 { title: 'Capture the moment', icon: '📸', tier: 'gold', xp: 60, color: '#1e293b', tag: 'GOLD' },
@@ -131,12 +130,12 @@ const Activities = {
             ${quests.map((q, idx) => `
                 <button class="bento-card ${q.tier}-tier ${idx === 0 ? 'hero-card' : ''}" 
                         onclick="Activities.setupActivity('${q.title}')" 
-                        style="background:${q.color}; ${q.tier==='gold' ? 'color:white;' : ''}">
+                        style="background:${q.color}; ${q.tier === 'gold' ? 'color:white;' : ''}">
                     <span class="quest-icon">${q.icon}</span>
                     <div class="quest-info" style="text-align:left;">
                         <div class="quest-title" style="font-weight:850; font-size: ${idx === 0 ? '1.2rem' : '0.95rem'};">${q.title}</div>
-                        <div class="quest-reward" style="font-weight:700; font-size:0.8rem; color:${q.tier==='gold' ? '#FFD700' : '#7c3aed'}">
-                            ${q.tier==='gold' ? '🥇 Gold' : '🥈 Silver'} (+${q.xp} XP)
+                        <div class="quest-reward" style="font-weight:700; font-size:0.8rem; color:${q.tier === 'gold' ? '#FFD700' : '#7c3aed'}">
+                            ${q.tier === 'gold' ? '🥇 Gold' : '🥈 Silver'} (+${q.xp} XP)
                         </div>
                     </div>
                     ${q.tag ? `<div class="recommend-tag">${q.tag}</div>` : ''}
@@ -155,11 +154,11 @@ const Activities = {
             const btn = document.getElementById('activityBtn');
             const title = document.getElementById('activityTitle');
             if (!area) return;
-            area.innerHTML = ''; 
+            area.innerHTML = '';
             if (title) title.textContent = type;
             if (btn) btn.style.display = 'block';
 
-            switch(type) {
+            switch (type) {
                 case 'Capture the moment': this.startCaptureAction(); break;
                 case 'Deep Breathing': this.startBreathingAnimation(); break;
                 case '5-4-3-2-1 Grounding': this.startGroundingAnimation(); break;
@@ -169,7 +168,9 @@ const Activities = {
                 case 'Listen to music': this.startMusicAction(); break;
                 case 'Meditation': case 'Power Nap': this.startRestAction(type); break;
                 case 'Hold Something Cold': this.startColdSqueezeAnimation(); break;
+                case 'Hold Something Cold': this.startColdSqueezeAnimation(); break;
                 case 'Share the joy': this.startSMSAction(); break;
+                case 'Happy Note': this.startHappyWriteAction(); break;
                 default: this.startWriteAction(type);
             }
         }, 100);
@@ -189,7 +190,11 @@ const Activities = {
                     <button id="snapBtn" class="btn-primary" style="margin:0; height:65px;">📸 Take Photo</button>
                     <button id="switchBtn" class="btn-secondary" style="background:white; border:none; padding:12px; border-radius:15px; font-weight:700;">🔄 Flip Camera</button>
                     <button id="retakeBtn" style="display:none; background:#475569; color:white; border:none; padding:18px; border-radius:24px;">🔄 Try Again</button>
-                    <button id="sendBtn" style="display:none; background:#FFD700; color:#000; padding:20px; border-radius:24px; font-weight:900;">🥇 Get Your Gold Medal!</button>
+                    <div id="shareOptions" style="display:none; flex-direction:column; gap:10px;">
+                        <input type="text" id="photoCaption" placeholder="Add a caption..." style="width:100%; padding:15px; border-radius:15px; border:2px solid #e2e8f0;">
+                        <button id="shareSmsBtn" style="background:#4ade80; color:#064e3b; padding:18px; border-radius:24px; font-weight:900; border:none;">💬 Share with Family</button>
+                        <button id="skipShareBtn" style="background:#cbd5e1; color:#475569; padding:18px; border-radius:24px; font-weight:700; border:none;">Just Save</button>
+                    </div>
                 </div>
                 <canvas id="hiddenCanvas" style="display:none;"></canvas>
             </div>`;
@@ -200,7 +205,7 @@ const Activities = {
         const snapBtn = document.getElementById('snapBtn');
         const switchBtn = document.getElementById('switchBtn');
         const retakeBtn = document.getElementById('retakeBtn');
-        const sendBtn = document.getElementById('sendBtn');
+        const shareOptions = document.getElementById('shareOptions');
 
         const startStream = async () => {
             if (this.currentStream) this.currentStream.getTracks().forEach(t => t.stop());
@@ -219,13 +224,43 @@ const Activities = {
             window.lastCapturedPhoto = canvas.toDataURL('image/png');
             preview.style.backgroundImage = `url(${window.lastCapturedPhoto})`; preview.style.display = 'block';
             snapBtn.style.display = 'none'; switchBtn.style.display = 'none';
-            retakeBtn.style.display = 'block'; sendBtn.style.display = 'block';
+            retakeBtn.style.display = 'block'; shareOptions.style.display = 'flex';
         };
 
-        retakeBtn.onclick = () => { preview.style.display = 'none'; snapBtn.style.display = 'block'; switchBtn.style.display = 'block'; retakeBtn.style.display = 'none'; sendBtn.style.display = 'none'; };
+        retakeBtn.onclick = () => { preview.style.display = 'none'; snapBtn.style.display = 'block'; switchBtn.style.display = 'block'; retakeBtn.style.display = 'none'; shareOptions.style.display = 'none'; };
         switchBtn.onclick = () => { this.currentFacingMode = (this.currentFacingMode === 'user' ? 'environment' : 'user'); startStream(); };
-        sendBtn.onclick = () => this.completeAction('gold', 60);
+
+        document.getElementById('shareSmsBtn').onclick = () => {
+            const caption = document.getElementById('photoCaption').value;
+            window.location.href = `sms:?&body=${encodeURIComponent("I just took a photo! 📸 " + caption)}`;
+            this.completeAction('gold', 60);
+        };
+        document.getElementById('skipShareBtn').onclick = () => this.completeAction('gold', 60);
+
         startStream();
+    },
+
+    startHappyWriteAction() {
+        const area = document.getElementById('inAppActionArea');
+        area.innerHTML = `
+            <div style="padding:24px;">
+                <h2 style="font-weight:850; margin-bottom:15px;">Happy Note</h2>
+                <textarea id="actionNote" style="width:100%; height:180px; border-radius:24px; padding:20px; border:3px solid #e2e8f0; font-size:1.1rem;" placeholder="What made you happy?"></textarea>
+                <div style="margin-top:20px; display:flex; flex-direction:column; gap:10px;">
+                    <button id="shareNoteBtn" class="btn-primary" style="margin:0; background:#4ade80; color:#064e3b;">💬 Share with Family</button>
+                    <button id="saveNoteBtn" class="btn-secondary" style="margin:0;">Just Save</button>
+                </div>
+            </div>`;
+
+        const btn = document.getElementById('activityBtn');
+        if (btn) btn.style.display = 'none'; // Hide default button
+
+        document.getElementById('shareNoteBtn').onclick = () => {
+            const note = document.getElementById('actionNote').value;
+            window.location.href = `sms:?&body=${encodeURIComponent("Happy Moment: " + note)}`;
+            this.completeAction('gold', 60);
+        };
+        document.getElementById('saveNoteBtn').onclick = () => this.completeAction('gold', 60);
     },
 
     startBreathingAnimation() {
@@ -235,7 +270,7 @@ const Activities = {
                 <div id="lungCircle" style="width:140px; height:140px; margin:0 auto; background:rgba(124,58,237,0.15); border-radius:50%; border:6px solid #7c3aed; transition:all 4s ease-in-out; display:flex; justify-content:center; align-items:center; font-size:4.5rem;">🫁</div>
                 <h2 id="breathStatus" style="margin-top:40px; font-weight:850; color:#7c3aed; font-size:2.2rem;">Ready...</h2>
             </div>`;
-        const l = document.getElementById('lungCircle'); 
+        const l = document.getElementById('lungCircle');
         const s = document.getElementById('breathStatus');
         const anim = () => {
             if (!l || !document.getElementById('lungCircle')) return;
@@ -254,8 +289,8 @@ const Activities = {
     startGroundingAnimation() {
         const area = document.getElementById('inAppActionArea');
         const steps = [
-            {n:5, s:'SEE 👀', c:'#3b82f6'}, {n:4, s:'TOUCH ✋', c:'#10b981'},
-            {n:3, s:'HEAR 👂', c:'#f59e0b'}, {n:2, s:'SMELL 👃', c:'#8b5cf6'}, {n:1, s:'TASTE 👅', c:'#ef4444'}
+            { n: 5, s: 'SEE 👀', c: '#3b82f6' }, { n: 4, s: 'TOUCH ✋', c: '#10b981' },
+            { n: 3, s: 'HEAR 👂', c: '#f59e0b' }, { n: 2, s: 'SMELL 👃', c: '#8b5cf6' }, { n: 1, s: 'TASTE 👅', c: '#ef4444' }
         ];
         const render = (i) => {
             const s = steps[i];
@@ -263,7 +298,7 @@ const Activities = {
                 <div style="text-align:center; padding:40px 24px;">
                     <div style="font-size:5rem; font-weight:900; color:${s.c}; margin-bottom:20px;">${s.n}</div>
                     <h2 style="font-weight:850; color:#1e293b;">Things you ${s.s}</h2>
-                    <button id="nextG" class="btn-primary" style="margin-top:40px; background:${s.c}; border:none;">${i===4?'Finish Mission':'Next Step'}</button>
+                    <button id="nextG" class="btn-primary" style="margin-top:40px; background:${s.c}; border:none;">${i === 4 ? 'Finish Mission' : 'Next Step'}</button>
                 </div>`;
             document.getElementById('nextG').onclick = () => {
                 this.feedback('tap');
@@ -282,8 +317,8 @@ const Activities = {
             const cir = document.getElementById('pCir');
             if (!cir) return clearInterval(this.currentInterval);
             t--; cir.textContent = t; this.feedback('tick');
-            if (t <= 0) { 
-                clearInterval(this.currentInterval); 
+            if (t <= 0) {
+                clearInterval(this.currentInterval);
                 cir.textContent = "💪"; cir.style.borderColor = "#10b981"; cir.style.color = "#10b981";
                 const btn = document.getElementById('activityBtn');
                 if (btn) { btn.textContent = "Done! 🥈"; btn.onclick = () => this.completeAction('silver', 30); }
@@ -298,7 +333,7 @@ const Activities = {
             area.innerHTML = `<div style=\"text-align:center; padding:40px;\"><div style=\"font-size:8rem;\">✊</div><h2 style=\"font-weight:850;\">SQUEEZE! (${r}/3)</h2></div>`;
             this.activeTimeouts.push(setTimeout(() => {
                 area.innerHTML = `<div style=\"text-align:center; padding:40px;\"><div style=\"font-size:8rem;\">🖐️</div><h2 style=\"font-weight:850;\">RELEASE...</h2></div>`;
-                this.activeTimeouts.push(setTimeout(() => { if(r<3){ r++; update(); } else this.completeAction('silver', 30); }, 3000));
+                this.activeTimeouts.push(setTimeout(() => { if (r < 3) { r++; update(); } else this.completeAction('silver', 30); }, 3000));
             }, 3000));
         };
         update();
@@ -321,14 +356,14 @@ const Activities = {
         const icon = t.includes('Meditation') ? '🧘' : '🛌';
         area.innerHTML = `<div style=\"text-align:center; padding:60px 24px;\"><div style=\"font-size:7rem; margin-bottom:30px; animation:pulse 2s infinite;\">${icon}</div><h2 style=\"font-weight:850;\">${t}</h2></div>`;
         const btn = document.getElementById('activityBtn');
-        if (btn) { btn.textContent = "Finished! 🏅"; btn.onclick = () => this.completeAction(t.includes('Nap')?'gold':'silver', t.includes('Nap')?60:30); }
+        if (btn) { btn.textContent = "Finished! 🏅"; btn.onclick = () => this.completeAction(t.includes('Nap') ? 'gold' : 'silver', t.includes('Nap') ? 60 : 30); }
     },
 
     startSMSAction() {
         const area = document.getElementById('inAppActionArea');
         area.innerHTML = `<div style=\"padding:24px;\"><h2 style=\"font-weight:850; margin-bottom:15px;\">Share Joy</h2><textarea id=\"actionNote\" style=\"width:100%; height:120px; border-radius:20px; padding:15px; border:2px solid #e2e8f0;\">I'm feeling good today! ✨</textarea></div>`;
         const btn = document.getElementById('activityBtn');
-        if (btn) { btn.textContent = "Send SMS 🥈"; btn.onclick = () => { window.location.href=`sms:?&body=${encodeURIComponent(document.getElementById('actionNote').value)}`; this.completeAction('silver', 30); }; }
+        if (btn) { btn.textContent = "Send SMS 🥈"; btn.onclick = () => { window.location.href = `sms:?&body=${encodeURIComponent(document.getElementById('actionNote').value)}`; this.completeAction('silver', 30); }; }
     },
 
     startWriteAction(type) {
@@ -363,7 +398,7 @@ const Activities = {
         const burst = document.createElement('div');
         burst.className = 'xp-burst';
         burst.style.cssText = "position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); z-index:9999; text-align:center;";
-        burst.innerHTML = `<div style=\"font-size:6rem;\">${tier==='gold'?'🥇':'🥈'}</div><div style=\"font-weight:900; font-size:2rem; color:${tier==='gold'?'#FFD700':'#7c3aed'};\">${tier.toUpperCase()}!<br>+${xp} XP</div>`;
+        burst.innerHTML = `<div style=\"font-size:6rem;\">${tier === 'gold' ? '🥇' : '🥈'}</div><div style=\"font-weight:900; font-size:2rem; color:${tier === 'gold' ? '#FFD700' : '#7c3aed'};\">${tier.toUpperCase()}!<br>+${xp} XP</div>`;
         document.body.appendChild(burst);
         setTimeout(() => burst.remove(), 2500);
     }
@@ -374,7 +409,7 @@ const Activities = {
  */
 function safeVibrate(pattern) {
     if (!navigator.vibrate) return;
-    try { navigator.vibrate(pattern); } catch (e) {}
+    try { navigator.vibrate(pattern); } catch (e) { }
 }
 
 window.Activities = Activities;

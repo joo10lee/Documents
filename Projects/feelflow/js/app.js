@@ -5,7 +5,7 @@
 
 // 1. 전역 상태 관리 및 초기화
 let currentEmotion = { name: '', emoji: '', intensity: 5, color: '' };
-let activeTaskId = null; 
+let activeTaskId = null;
 let homeDisplayTab = new Date().getHours() < 12 ? 'morning' : 'evening';
 let currentRoutineTab = homeDisplayTab;
 
@@ -57,7 +57,7 @@ const FeelFlow = {
     },
 
     checkLevelUp() {
-        const nextLevelXP = this.currentLevel * 100; 
+        const nextLevelXP = this.currentLevel * 100;
         if (this.totalXP >= nextLevelXP) {
             this.currentLevel++;
             this.medals.push(`Level ${this.currentLevel} Medal`);
@@ -82,7 +82,7 @@ const FeelFlow = {
 function goHome() {
     UI.goToScreen('1', "Hey Jason!");
     resetAppInput();
-    renderHomeQuests(); 
+    renderHomeQuests();
 }
 
 function startOver() {
@@ -118,9 +118,9 @@ function goToResult() {
 
     if (summaryEmoji) summaryEmoji.textContent = currentEmotion.emoji;
     if (summaryText) summaryText.textContent = `${currentEmotion.name} (Lv. ${currentEmotion.intensity})`;
-    
+
     if (summaryBar && currentEmotion.color) {
-        summaryBar.style.backgroundColor = `${currentEmotion.color}20`; 
+        summaryBar.style.backgroundColor = `${currentEmotion.color}20`;
         summaryBar.style.borderColor = currentEmotion.color;
     }
 
@@ -133,34 +133,34 @@ function goToResult() {
 }
 
 // 6. 데이터 저장 및 보상 지급 파이프라인
-window.finishCheckIn = async function() {
+window.finishCheckIn = async function () {
     console.log("🏁 시퀀스 종료: 서버 전송 및 보상 확정");
 
-    const entry = { 
-        emotion: currentEmotion.name, 
-        intensity: currentEmotion.intensity, 
-        note: document.getElementById('actionNote')?.value || "", 
-        photo: window.lastCapturedPhoto || null, 
-        timestamp: new Date().toISOString() 
+    const entry = {
+        emotion: currentEmotion.name,
+        intensity: currentEmotion.intensity,
+        note: document.getElementById('actionNote')?.value || "",
+        photo: window.lastCapturedPhoto || null,
+        timestamp: new Date().toISOString()
     };
 
     try {
         if (typeof EmotionAPI !== 'undefined') await EmotionAPI.saveCheckIn(entry);
-        
+
         if (activeTaskId) {
-            FeelFlow.addXP(60, 'gold'); 
+            FeelFlow.addXP(60, 'gold');
         } else {
             const tier = currentEmotion.intensity >= 4 ? 'gold' : 'silver';
-            FeelFlow.addXP(tier === 'gold' ? 60 : 30, tier); 
+            FeelFlow.addXP(tier === 'gold' ? 60 : 30, tier);
         }
 
         activeTaskId = null;
         if (window.Activities) window.Activities.stopAll();
-        UI.goToScreen('5', "Excellent!"); 
+        UI.goToScreen('5', "Excellent!");
 
     } catch (error) {
         console.error("Save failed:", error);
-        UI.goToScreen('5'); 
+        UI.goToScreen('5');
     }
 };
 
@@ -170,7 +170,7 @@ window.finishCheckIn = async function() {
  */
 function renderHomeQuests() {
     const container = document.getElementById('quickTaskList');
-    const titleArea = document.querySelector('#screen1 .section-title'); 
+    const titleArea = document.querySelector('#screen1 .section-title');
     if (!container || !titleArea) return;
 
     // 1. 타이틀 영역 레이아웃 복구: 양끝 정렬
@@ -178,7 +178,7 @@ function renderHomeQuests() {
     titleArea.style.justifyContent = "space-between";
     titleArea.style.alignItems = "center";
     titleArea.style.width = "calc(100% - 48px)"; // 패딩 고려
-    
+
     titleArea.innerHTML = `
         Daily Quest ⚔️
         <div class="home-routine-toggle" onclick="toggleHomeRoutine()" style="width: auto; margin: 0;">
@@ -239,7 +239,7 @@ function handleRoutineCheck(id, source) {
         task.completed = true;
         safeVibrate(15);
         if (window.feedback) window.feedback('tap'); //
-        
+
         saveRoutines();
 
         if (source === 'home') {
@@ -256,8 +256,13 @@ function handleRoutineCheck(id, source) {
         }
 
         if (DailyRoutines[tab].every(t => t.completed)) {
-            FeelFlow.addXP(30, 'bronze');
-            alert(`🎉 Awesome! You finished your ${tab} routine!`);
+            // 💡 [수정] 5개 모두 완료 시 레고 블록 지급 애니메이션 (Bronze -> Lego)
+            FeelFlow.addXP(50, 'lego');
+            if (window.UI && window.UI.showLegoAnimation) {
+                window.UI.showLegoAnimation();
+            } else {
+                alert(`🎉 Fantastic! You earned a LEGO Block! 🧱`);
+            }
         }
     }
 }
@@ -288,38 +293,42 @@ function addCustomRoutine(text) {
 }
 
 function renderTrophyStats() {
+    const legoCount = FeelFlow.medals.filter(m => m.toLowerCase().includes('lego')).length;
     const goldCount = FeelFlow.medals.filter(m => m.includes('Gold')).length;
-    const targetGold = 30;
+    const silverCount = FeelFlow.medals.filter(m => m.includes('Silver')).length;
+    const targetLego = 30; // Lego Goal
+
     const content = document.getElementById('trophyContent');
     if (!content) return;
-    
+
     content.innerHTML = `
         <div class="medal-grid" style="display:grid; grid-template-columns:repeat(3, 1fr); gap:10px;">
             <div class="medal-slot">🥇<br><strong>${goldCount}</strong></div>
-            <div class="medal-slot">🥈<br><strong>${FeelFlow.medals.filter(m => m.includes('Silver')).length}</strong></div>
-            <div class="medal-slot">🥉<br><strong>${FeelFlow.currentLevel}</strong></div>
+            <div class="medal-slot">🥈<br><strong>${silverCount}</strong></div>
+            <div class="medal-slot">🧱<br><strong>${legoCount}</strong><div style="font-size:0.6rem; color:#d97706;">LEGO</div></div>
         </div>
         <div class="progress-card" style="margin-top:20px; padding:15px;">
             <div style="display:flex; justify-content:space-between; font-weight:850;">
                 <span>🎁 LEGO Set Goal</span>
-                <span>${goldCount}/${targetGold}</span>
+                <span>${legoCount}/${targetLego}</span>
             </div>
             <div class="progress-bar-bg" style="height:12px; background:#e2e8f0; border-radius:6px; margin-top:8px; overflow:hidden;">
-                <div style="width:${Math.min((goldCount/targetGold)*100, 100)}%; height:100%; background:#FFD700; transition:0.5s;"></div>
+                <div style="width:${Math.min((legoCount / targetLego) * 100, 100)}%; height:100%; background:#d97706; transition:0.5s;"></div>
             </div>
+            <p style="text-align:center; margin-top:10px; font-size:0.8rem; color:#64748b;">Collect 30 Lego Blocks to get a real set!</p>
         </div>`;
 }
 
 function safeVibrate(pattern) {
     if (!navigator.vibrate) return;
     if (window.userInteracted) {
-        try { navigator.vibrate(pattern); } catch (e) {}
+        try { navigator.vibrate(pattern); } catch (e) { }
     }
 }
 
 function resetAppInput() {
     if (document.getElementById('actionNote')) document.getElementById('actionNote').value = '';
-    window.lastCapturedPhoto = null; 
+    window.lastCapturedPhoto = null;
     const slider = document.getElementById('intensitySlider');
     if (slider) { slider.value = 5; document.getElementById('intensityDisplay').textContent = '5'; }
 }
@@ -329,16 +338,43 @@ window.menuNavigate = (target, event) => {
     const overlay = document.getElementById('menuOverlay');
     if (overlay) overlay.classList.remove('active');
 
-    const screenMap = { 'Home': '1', 'Routine': 'screenTracker', 'Trophies': 'screenHistory', 'Settings': 'screenSettings' };
+    // 💡 Screen Mapping Update
+    const screenMap = {
+        'Home': '1',
+        'Routine': 'screenTracker',
+        'Trophies': 'screenHistory',
+        'History': 'screenSettings',  // New History Screen
+        'Settings': 'screenSettings' // For now, points to same place
+    };
     const tid = screenMap[target.trim()];
+
     if (tid) {
-        UI.goToScreen(tid, target.trim());
+        const titleMap = {
+            'Home': 'Hey Jason!',
+            'Routine': 'Daily Routine',
+            'Trophies': 'My Trophies 🏆',
+            'History': 'My Journey 📅',
+            'Settings': 'My Journey 📅'
+        };
+        UI.goToScreen(tid, titleMap[target.trim()] || target.trim());
+
         if (tid === 'screenTracker') setTimeout(renderRoutineScreen, 100);
         if (tid === 'screenHistory') setTimeout(renderTrophyStats, 100);
+        if (tid === 'screenSettings') {
+            // Need to fetch history. UI.renderHistory needs data.
+            if (window.EmotionAPI && window.EmotionAPI.fetchHistory) {
+                // 💡 [수정] fetchHistory는 비동기 함수임
+                EmotionAPI.fetchHistory().then(history => {
+                    if (window.UI && window.UI.renderHistory) {
+                        UI.renderHistory(history);
+                    }
+                });
+            }
+        }
     } else { goHome(); }
 };
 
-window.initApp = function() {
+window.initApp = function () {
     if (window.UI) window.UI.fetchWeatherByCity();
     goHome();
 };

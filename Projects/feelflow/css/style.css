@@ -2,60 +2,68 @@
  * Build: Ver.0213-1610 (iOS Safari Scroll Lock)
  */
 
- @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;850&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;850&display=swap');
 
- /* 💡 핵심: iOS에서 바디가 밀리는 것을 방지 */
- html, body {
-     margin: 0;
-     padding: 0;
-     width: 100%;
-     height: 100%;
-     position: fixed; /* iOS 스크롤 방지 핵심 */
-     overflow: hidden;
-     -webkit-user-select: none; /* 텍스트 선택 방지 */
-     touch-action: none; /* 브라우저 기본 제스처 차단 */
- }
- 
- body {
-     font-family: 'Inter', -apple-system, sans-serif;
-     background: linear-gradient(180deg, #F8FAFC 0%, #E2E8F0 100%);
-     display: flex;
-     flex-direction: column;
- }
- 
- /* ===== SCREEN SYSTEM ===== */
- .screen {
-     display: none;
-     flex: 1;
-     flex-direction: column;
-     width: 100%;
-     height: 100%;
-     /* 💡 서브 화면만 내부 스크롤 허용 */
-     overflow-y: auto; 
-     -webkit-overflow-scrolling: touch;
- }
- 
- .screen.active {
-     display: flex;
- }
- 
- /* Screen 1 (Home)은 절대 움직이지 않음 */
- #screen1 {
-     overflow: hidden !important;
-     touch-action: none; 
-     padding-bottom: 110px;
- }
- 
- /* 나머지 프리미엄 벤토 스타일은 Ver.0213-1600과 동일하게 유지 */
+/* 💡 핵심: iOS에서 바디가 밀리는 것을 방지 */
+html,
+body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    position: fixed;
+    /* iOS 스크롤 방지 핵심 */
+    overflow: hidden;
+    -webkit-user-select: none;
+    /* 텍스트 선택 방지 */
+    touch-action: none;
+    /* 브라우저 기본 제스처 차단 */
+}
+
+body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: linear-gradient(180deg, #F8FAFC 0%, #E2E8F0 100%);
+    display: flex;
+    flex-direction: column;
+}
+
+/* ===== SCREEN SYSTEM ===== */
+.screen {
+    display: none;
+    flex: 1;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    /* 💡 서브 화면만 내부 스크롤 허용 */
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.screen.active {
+    display: flex;
+}
+
+/* Screen 1 (Home)은 절대 움직이지 않음 */
+#screen1 {
+    overflow: hidden !important;
+    touch-action: none;
+    padding-bottom: 110px;
+}
+
+/* 나머지 프리미엄 벤토 스타일은 Ver.0213-1600과 동일하게 유지 */
 /* Ver.0213-2510: Emotion Bento 2x3 Grid */
 .emotion-bento {
     display: grid;
-    grid-template-columns: 1fr 1fr; /* 2열 */
-    grid-template-rows: repeat(3, 1fr); /* 3행 */
+    grid-template-columns: 1fr 1fr;
+    /* 2열 */
+    grid-template-rows: repeat(3, 1fr);
+    /* 3행 */
     gap: 12px;
     padding: 10px 24px;
-    flex: 1; /* 가용 공간 모두 사용 */
-    min-height: 320px; /* 아이폰에서 적절한 높이 확보 */
+    flex: 1;
+    /* 가용 공간 모두 사용 */
+    min-height: 320px;
+    /* 아이폰에서 적절한 높이 확보 */
 }
 
 .bento-card {
@@ -68,43 +76,101 @@
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
 }
 
-.bento-card .emoji { font-size: 2.2rem; }
-.bento-card .label { font-weight: 850; font-size: 0.9rem; margin-top: 4px; }
- 
- .bento-card:active { transform: scale(0.94); } /* 터치 피드백 */
- .bento-card .emoji { font-size: 2.2rem; margin-bottom: 4px; }
- .bento-card .label { font-weight: 700; font-size: 0.9rem; color: #475569; }
- 
- /* 감정별 은은한 프리미엄 컬러셋 */
- .happy { background: rgba(255, 217, 61, 0.1); }
- .sad { background: rgba(108, 180, 238, 0.1); }
- .anxious { background: rgba(160, 132, 232, 0.1); }
- .angry { background: rgba(255, 107, 107, 0.1); }
- .calm { background: rgba(107, 203, 119, 0.1); }
- .tired { background: rgba(149, 165, 166, 0.1); }
- 
- /* 5. 프리미엄 카드 UI (Intensity, Result, Tracker 등) */
- .intensity-card, .result-card, .progress-card, .history-card {
-     background: white;
-     margin: 10px 24px;
-     padding: 24px 20px;
-     border-radius: 32px;
-     text-align: center;
-     box-shadow: 0 10px 30px rgba(0,0,0,0.03);
- }
- 
- .intensity-display { font-size: 4rem; font-weight: 850; margin: 15px 0; color: #1e293b; }
- 
- /* 커스텀 프리미엄 슬라이더 */
- .intensity-slider {
-     width: 100%; height: 40px; -webkit-appearance: none; background: transparent;
- }
- .intensity-slider::-webkit-slider-runnable-track { height: 10px; background: #E2E8F0; border-radius: 5px; }
- .intensity-slider::-webkit-slider-thumb {
-     -webkit-appearance: none; height: 30px; width: 30px; border-radius: 50%;
-     background: #1e293b; margin-top: -10px; box-shadow: 0 4px 10px rgba(0,0,0,0.2);
- }
- 
+.bento-card .emoji {
+    font-size: 2.2rem;
+}
+
+.bento-card .label {
+    font-weight: 850;
+    font-size: 0.9rem;
+    margin-top: 4px;
+}
+
+.bento-card:active {
+    transform: scale(0.94);
+}
+
+/* 터치 피드백 */
+.bento-card .emoji {
+    font-size: 2.2rem;
+    margin-bottom: 4px;
+}
+
+.bento-card .label {
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: #475569;
+}
+
+/* 감정별 은은한 프리미엄 컬러셋 */
+.happy {
+    background: rgba(255, 217, 61, 0.1);
+}
+
+.sad {
+    background: rgba(108, 180, 238, 0.1);
+}
+
+.anxious {
+    background: rgba(160, 132, 232, 0.1);
+}
+
+.angry {
+    background: rgba(255, 107, 107, 0.1);
+}
+
+.calm {
+    background: rgba(107, 203, 119, 0.1);
+}
+
+.tired {
+    background: rgba(149, 165, 166, 0.1);
+}
+
+/* 5. 프리미엄 카드 UI (Intensity, Result, Tracker 등) */
+.intensity-card,
+.result-card,
+.progress-card,
+.history-card {
+    background: white;
+    margin: 10px 24px;
+    padding: 24px 20px;
+    border-radius: 32px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
+}
+
+.intensity-display {
+    font-size: 4rem;
+    font-weight: 850;
+    margin: 15px 0;
+    color: #1e293b;
+}
+
+/* 커스텀 프리미엄 슬라이더 */
+.intensity-slider {
+    width: 100%;
+    height: 40px;
+    -webkit-appearance: none;
+    background: transparent;
+}
+
+.intensity-slider::-webkit-slider-runnable-track {
+    height: 10px;
+    background: #E2E8F0;
+    border-radius: 5px;
+}
+
+.intensity-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    height: 30px;
+    width: 30px;
+    border-radius: 50%;
+    background: #1e293b;
+    margin-top: -10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
 /* Ver.0213-1630: Result Summary Bar Style */
 .result-summary-bar {
     margin: 20px 24px 10px;
@@ -119,93 +185,214 @@
     animation: slideDown 0.4s ease-out;
 }
 
-#summaryEmoji { font-size: 1.8rem; }
-#summaryText { font-size: 1rem; font-weight: 800; color: #1e293b; }
+#summaryEmoji {
+    font-size: 1.8rem;
+}
+
+#summaryText {
+    font-size: 1rem;
+    font-weight: 800;
+    color: #1e293b;
+}
 
 @keyframes slideDown {
-    from { opacity: 0; transform: translateY(-10px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 
- /* 6. 전략 및 태스크 리스트 (Tracker, History) */
- .section-title { font-size: 1.1rem; font-weight: 850; margin: 20px 24px 12px; color: #1e293b; }
- 
- .strategy-card, .task-item, .history-item {
-     background: white; margin: 0 24px 10px; padding: 18px; border-radius: 20px;
-     display: flex; align-items: center; gap: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.02);
- }
- 
- .task-checkbox { width: 26px; height: 26px; border: 2.5px solid #CBD5E1; border-radius: 50%; transition: 0.2s; }
- .task-item.completed .task-checkbox { background: #10B981; border-color: #10B981; }
- 
+/* 6. 전략 및 태스크 리스트 (Tracker, History) */
+.section-title {
+    font-size: 1.1rem;
+    font-weight: 850;
+    margin: 20px 24px 12px;
+    color: #1e293b;
+}
+
+.strategy-card,
+.task-item,
+.history-item {
+    background: white;
+    margin: 0 24px 10px;
+    padding: 18px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+}
+
+.task-checkbox {
+    width: 26px;
+    height: 26px;
+    border: 2.5px solid #CBD5E1;
+    border-radius: 50%;
+    transition: 0.2s;
+}
+
+.task-item.completed .task-checkbox {
+    background: #10B981;
+    border-color: #10B981;
+}
+
 /* 하단 바 제거 */
-.bottom-nav { display: none !important; }
+.bottom-nav {
+    display: none !important;
+}
 
 /* 햄버거 트리거 */
 .hamburger-trigger {
-    position: fixed; top: 20px; right: 20px;
-    width: 48px; height: 48px;
-    background: white; border: none; border-radius: 14px;
-    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1); z-index: 3000;
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    width: 48px;
+    height: 48px;
+    background: white;
+    border: none;
+    border-radius: 14px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    z-index: 3000;
 }
-.bar { width: 24px; height: 3px; background: #1e293b; border-radius: 2px; }
+
+.bar {
+    width: 24px;
+    height: 3px;
+    background: #1e293b;
+    border-radius: 2px;
+}
 
 /* 메뉴 오버레이 */
 .menu-overlay {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px);
-    z-index: 4000; display: none; flex-direction: column; align-items: center; justify-content: center;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    z-index: 4000;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     transition: 0.3s ease;
 }
-.menu-overlay.active { display: flex; animation: fadeIn 0.3s forwards; }
+
+.menu-overlay.active {
+    display: flex;
+    animation: fadeIn 0.3s forwards;
+}
 
 .menu-content a {
-    font-size: 2rem; font-weight: 850; color: #1e293b; text-decoration: none;
-    margin: 15px 0; display: block;
+    font-size: 2rem;
+    font-weight: 850;
+    color: #1e293b;
+    text-decoration: none;
+    margin: 15px 0;
+    display: block;
 }
-.menu-close { position: absolute; top: 20px; right: 24px; font-size: 3rem; border: none; background: none; }
 
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.menu-close {
+    position: absolute;
+    top: 20px;
+    right: 24px;
+    font-size: 3rem;
+    border: none;
+    background: none;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
 
 .menu-item {
-    background: none; border: none; font-size: 2rem; font-weight: 850;
-    color: #1e293b; margin: 15px 0; display: block; width: 100%;
-    text-align: center; cursor: pointer; font-family: inherit;
+    background: none;
+    border: none;
+    font-size: 2rem;
+    font-weight: 850;
+    color: #1e293b;
+    margin: 15px 0;
+    display: block;
+    width: 100%;
+    text-align: center;
+    cursor: pointer;
+    font-family: inherit;
 }
 
 .icon-btn {
     background: rgba(255, 255, 255, 0.9);
     backdrop-filter: blur(10px);
-    border: 1px solid rgba(0,0,0,0.05);
-    width: 44px; height: 44px;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    width: 44px;
+    height: 44px;
     border-radius: 12px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 1.2rem; box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
- 
- /* 8. 기타 공통 요소 */
- .btn-primary {
-     background: #1e293b; color: white; padding: 18px; border-radius: 20px;
-     font-weight: 700; border: none; width: calc(100% - 48px); margin: 10px 24px; font-size: 1rem;
- }
- 
- textarea {
-     width: calc(100% - 48px); margin: 10px 24px; padding: 15px;
-     border-radius: 18px; border: 2px solid #E2E8F0; font-family: inherit; outline: none;
- }
- 
- /* 스티커 그리드 복구 */
- .sticker-grid {
-     display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; margin: 10px 24px;
- }
- .sticker-slot {
-     aspect-ratio: 1; background: #F1F5F9; border-radius: 10px;
-     display: flex; align-items: center; justify-content: center; font-size: 1.2rem;
- }
 
- /* Ver.0213-2400: Medal & XP Styling */
+/* 8. 기타 공통 요소 */
+.btn-primary {
+    background: #1e293b;
+    color: white;
+    padding: 18px;
+    border-radius: 20px;
+    font-weight: 700;
+    border: none;
+    width: calc(100% - 48px);
+    margin: 10px 24px;
+    font-size: 1rem;
+}
+
+textarea {
+    width: calc(100% - 48px);
+    margin: 10px 24px;
+    padding: 15px;
+    border-radius: 18px;
+    border: 2px solid #E2E8F0;
+    font-family: inherit;
+    outline: none;
+}
+
+/* 스티커 그리드 복구 */
+.sticker-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px;
+    margin: 10px 24px;
+}
+
+.sticker-slot {
+    aspect-ratio: 1;
+    background: #F1F5F9;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+}
+
+/* Ver.0213-2400: Medal & XP Styling */
 .quick-task-item {
     background: white;
     padding: 16px;
@@ -213,8 +400,8 @@
     margin-bottom: 8px;
     display: flex;
     align-items: center;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.02);
-    border: 1px solid rgba(0,0,0,0.05);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+    border: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .quick-task-item.done {
@@ -236,7 +423,8 @@
 /* 1+2 벤토 그리드 레이아웃 */
 .strategy-grid {
     display: grid !important;
-    grid-template-columns: 1fr 1fr; /* 2열 구조 */
+    grid-template-columns: 1fr 1fr;
+    /* 2열 구조 */
     gap: 16px;
     padding: 10px 24px;
 }
@@ -245,7 +433,8 @@
 .strategy-grid .hero-card {
     grid-column: span 2;
     padding: 28px 24px !important;
-    flex-direction: row !important; /* 가로 배치 */
+    flex-direction: row !important;
+    /* 가로 배치 */
     justify-content: flex-start !important;
     gap: 20px;
     position: relative;
@@ -257,37 +446,68 @@
     grid-column: span 1;
     background: white;
     padding: 24px 16px;
-    flex-direction: column; /* 세로 배치 */
+    flex-direction: column;
+    /* 세로 배치 */
     align-items: center;
     text-align: center;
     border-radius: 28px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
 }
 
-.hero-card .quest-icon { font-size: 3.5rem; }
-.silver-tier .quest-icon { font-size: 2.5rem; margin-bottom: 8px; }
+.hero-card .quest-icon {
+    font-size: 3.5rem;
+}
+
+.silver-tier .quest-icon {
+    font-size: 2.5rem;
+    margin-bottom: 8px;
+}
 
 .recommend-tag {
-    position: absolute; top: 12px; right: 12px;
-    background: #FFD700; color: #000;
-    font-size: 0.6rem; font-weight: 900;
-    padding: 4px 8px; border-radius: 8px;
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: #FFD700;
+    color: #000;
+    font-size: 0.6rem;
+    font-weight: 900;
+    padding: 4px 8px;
+    border-radius: 8px;
 }
 
 /* 🏅 골드 메달 획득 시 애니메이션 */
 @keyframes medalBounce {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.3) rotate(10deg); }
+
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.3) rotate(10deg);
+    }
 }
+
 .medal-unlocked {
     animation: medalBounce 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 /* Ver.0213-2600: Celebration Effects */
 @keyframes pulse {
-    0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.7); }
-    70% { transform: scale(1.05); box-shadow: 0 0 0 15px rgba(255, 215, 0, 0); }
-    100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 215, 0, 0); }
+    0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.7);
+    }
+
+    70% {
+        transform: scale(1.05);
+        box-shadow: 0 0 0 15px rgba(255, 215, 0, 0);
+    }
+
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(255, 215, 0, 0);
+    }
 }
 
 .xp-burst {
@@ -301,9 +521,20 @@
 }
 
 @keyframes burstUp {
-    0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
-    50% { opacity: 1; transform: translate(-50%, -80%) scale(1.2); }
-    100% { opacity: 0; transform: translate(-50%, -100%) scale(1); }
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.5);
+    }
+
+    50% {
+        opacity: 1;
+        transform: translate(-50%, -80%) scale(1.2);
+    }
+
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -100%) scale(1);
+    }
 }
 
 /* 루틴 아이템 스타일 */
@@ -353,7 +584,7 @@
 /* 💡 추가: Routine 탭 스타일 (AM/PM 선택기) */
 .tracker-tabs {
     display: flex;
-    background: rgba(0,0,0,0.05);
+    background: rgba(0, 0, 0, 0.05);
     padding: 6px;
     border-radius: 16px;
     margin: 10px 24px 20px;
@@ -374,7 +605,7 @@
 .tracker-tab.active {
     background: white;
     color: #7c3aed;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
 }
 
 /* * FeelFlow Premium UI Stack 
@@ -383,58 +614,66 @@
 
 
 
- /* 💡 핵심: iOS에서 바디가 밀리는 것을 방지 */
- html, body {
-     margin: 0;
-     padding: 0;
-     width: 100%;
-     height: 100%;
-     position: fixed; /* iOS 스크롤 방지 핵심 */
-     overflow: hidden;
-     -webkit-user-select: none; /* 텍스트 선택 방지 */
-     touch-action: none; /* 브라우저 기본 제스처 차단 */
- }
- 
- body {
-     font-family: 'Inter', -apple-system, sans-serif;
-     background: linear-gradient(180deg, #F8FAFC 0%, #E2E8F0 100%);
-     display: flex;
-     flex-direction: column;
- }
- 
- /* ===== SCREEN SYSTEM ===== */
- .screen {
-     display: none;
-     flex: 1;
-     flex-direction: column;
-     width: 100%;
-     height: 100%;
-     /* 💡 서브 화면만 내부 스크롤 허용 */
-     overflow-y: auto; 
-     -webkit-overflow-scrolling: touch;
- }
- 
- .screen.active {
-     display: flex;
- }
- 
- /* Screen 1 (Home)은 절대 움직이지 않음 */
- #screen1 {
-     overflow: hidden !important;
-     touch-action: none; 
-     padding-bottom: 110px;
- }
- 
- /* 나머지 프리미엄 벤토 스타일은 Ver.0213-1600과 동일하게 유지 */
+/* 💡 핵심: iOS에서 바디가 밀리는 것을 방지 */
+html,
+body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    position: fixed;
+    /* iOS 스크롤 방지 핵심 */
+    overflow: hidden;
+    -webkit-user-select: none;
+    /* 텍스트 선택 방지 */
+    touch-action: none;
+    /* 브라우저 기본 제스처 차단 */
+}
+
+body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: linear-gradient(180deg, #F8FAFC 0%, #E2E8F0 100%);
+    display: flex;
+    flex-direction: column;
+}
+
+/* ===== SCREEN SYSTEM ===== */
+.screen {
+    display: none;
+    flex: 1;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    /* 💡 서브 화면만 내부 스크롤 허용 */
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.screen.active {
+    display: flex;
+}
+
+/* Screen 1 (Home)은 절대 움직이지 않음 */
+#screen1 {
+    overflow: hidden !important;
+    touch-action: none;
+    padding-bottom: 110px;
+}
+
+/* 나머지 프리미엄 벤토 스타일은 Ver.0213-1600과 동일하게 유지 */
 /* Ver.0213-2510: Emotion Bento 2x3 Grid */
 .emotion-bento {
     display: grid;
-    grid-template-columns: 1fr 1fr; /* 2열 */
-    grid-template-rows: repeat(3, 1fr); /* 3행 */
+    grid-template-columns: 1fr 1fr;
+    /* 2열 */
+    grid-template-rows: repeat(3, 1fr);
+    /* 3행 */
     gap: 12px;
     padding: 10px 24px;
-    flex: 1; /* 가용 공간 모두 사용 */
-    min-height: 320px; /* 아이폰에서 적절한 높이 확보 */
+    flex: 1;
+    /* 가용 공간 모두 사용 */
+    min-height: 320px;
+    /* 아이폰에서 적절한 높이 확보 */
 }
 
 .bento-card {
@@ -447,43 +686,101 @@
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
 }
 
-.bento-card .emoji { font-size: 2.2rem; }
-.bento-card .label { font-weight: 850; font-size: 0.9rem; margin-top: 4px; }
- 
- .bento-card:active { transform: scale(0.94); } /* 터치 피드백 */
- .bento-card .emoji { font-size: 2.2rem; margin-bottom: 4px; }
- .bento-card .label { font-weight: 700; font-size: 0.9rem; color: #475569; }
- 
- /* 감정별 은은한 프리미엄 컬러셋 */
- .happy { background: rgba(255, 217, 61, 0.1); }
- .sad { background: rgba(108, 180, 238, 0.1); }
- .anxious { background: rgba(160, 132, 232, 0.1); }
- .angry { background: rgba(255, 107, 107, 0.1); }
- .calm { background: rgba(107, 203, 119, 0.1); }
- .tired { background: rgba(149, 165, 166, 0.1); }
- 
- /* 5. 프리미엄 카드 UI (Intensity, Result, Tracker 등) */
- .intensity-card, .result-card, .progress-card, .history-card {
-     background: white;
-     margin: 10px 24px;
-     padding: 24px 20px;
-     border-radius: 32px;
-     text-align: center;
-     box-shadow: 0 10px 30px rgba(0,0,0,0.03);
- }
- 
- .intensity-display { font-size: 4rem; font-weight: 850; margin: 15px 0; color: #1e293b; }
- 
- /* 커스텀 프리미엄 슬라이더 */
- .intensity-slider {
-     width: 100%; height: 40px; -webkit-appearance: none; background: transparent;
- }
- .intensity-slider::-webkit-slider-runnable-track { height: 10px; background: #E2E8F0; border-radius: 5px; }
- .intensity-slider::-webkit-slider-thumb {
-     -webkit-appearance: none; height: 30px; width: 30px; border-radius: 50%;
-     background: #1e293b; margin-top: -10px; box-shadow: 0 4px 10px rgba(0,0,0,0.2);
- }
- 
+.bento-card .emoji {
+    font-size: 2.2rem;
+}
+
+.bento-card .label {
+    font-weight: 850;
+    font-size: 0.9rem;
+    margin-top: 4px;
+}
+
+.bento-card:active {
+    transform: scale(0.94);
+}
+
+/* 터치 피드백 */
+.bento-card .emoji {
+    font-size: 2.2rem;
+    margin-bottom: 4px;
+}
+
+.bento-card .label {
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: #475569;
+}
+
+/* 감정별 은은한 프리미엄 컬러셋 */
+.happy {
+    background: rgba(255, 217, 61, 0.1);
+}
+
+.sad {
+    background: rgba(108, 180, 238, 0.1);
+}
+
+.anxious {
+    background: rgba(160, 132, 232, 0.1);
+}
+
+.angry {
+    background: rgba(255, 107, 107, 0.1);
+}
+
+.calm {
+    background: rgba(107, 203, 119, 0.1);
+}
+
+.tired {
+    background: rgba(149, 165, 166, 0.1);
+}
+
+/* 5. 프리미엄 카드 UI (Intensity, Result, Tracker 등) */
+.intensity-card,
+.result-card,
+.progress-card,
+.history-card {
+    background: white;
+    margin: 10px 24px;
+    padding: 24px 20px;
+    border-radius: 32px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
+}
+
+.intensity-display {
+    font-size: 4rem;
+    font-weight: 850;
+    margin: 15px 0;
+    color: #1e293b;
+}
+
+/* 커스텀 프리미엄 슬라이더 */
+.intensity-slider {
+    width: 100%;
+    height: 40px;
+    -webkit-appearance: none;
+    background: transparent;
+}
+
+.intensity-slider::-webkit-slider-runnable-track {
+    height: 10px;
+    background: #E2E8F0;
+    border-radius: 5px;
+}
+
+.intensity-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    height: 30px;
+    width: 30px;
+    border-radius: 50%;
+    background: #1e293b;
+    margin-top: -10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
 /* Ver.0213-1630: Result Summary Bar Style */
 .result-summary-bar {
     margin: 20px 24px 10px;
@@ -498,93 +795,214 @@
     animation: slideDown 0.4s ease-out;
 }
 
-#summaryEmoji { font-size: 1.8rem; }
-#summaryText { font-size: 1rem; font-weight: 800; color: #1e293b; }
+#summaryEmoji {
+    font-size: 1.8rem;
+}
+
+#summaryText {
+    font-size: 1rem;
+    font-weight: 800;
+    color: #1e293b;
+}
 
 @keyframes slideDown {
-    from { opacity: 0; transform: translateY(-10px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 
- /* 6. 전략 및 태스크 리스트 (Tracker, History) */
- .section-title { font-size: 1.1rem; font-weight: 850; margin: 20px 24px 12px; color: #1e293b; }
- 
- .strategy-card, .task-item, .history-item {
-     background: white; margin: 0 24px 10px; padding: 18px; border-radius: 20px;
-     display: flex; align-items: center; gap: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.02);
- }
- 
- .task-checkbox { width: 26px; height: 26px; border: 2.5px solid #CBD5E1; border-radius: 50%; transition: 0.2s; }
- .task-item.completed .task-checkbox { background: #10B981; border-color: #10B981; }
- 
+/* 6. 전략 및 태스크 리스트 (Tracker, History) */
+.section-title {
+    font-size: 1.1rem;
+    font-weight: 850;
+    margin: 20px 24px 12px;
+    color: #1e293b;
+}
+
+.strategy-card,
+.task-item,
+.history-item {
+    background: white;
+    margin: 0 24px 10px;
+    padding: 18px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+}
+
+.task-checkbox {
+    width: 26px;
+    height: 26px;
+    border: 2.5px solid #CBD5E1;
+    border-radius: 50%;
+    transition: 0.2s;
+}
+
+.task-item.completed .task-checkbox {
+    background: #10B981;
+    border-color: #10B981;
+}
+
 /* 하단 바 제거 */
-.bottom-nav { display: none !important; }
+.bottom-nav {
+    display: none !important;
+}
 
 /* 햄버거 트리거 */
 .hamburger-trigger {
-    position: fixed; top: 20px; right: 20px;
-    width: 48px; height: 48px;
-    background: white; border: none; border-radius: 14px;
-    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1); z-index: 3000;
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    width: 48px;
+    height: 48px;
+    background: white;
+    border: none;
+    border-radius: 14px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    z-index: 3000;
 }
-.bar { width: 24px; height: 3px; background: #1e293b; border-radius: 2px; }
+
+.bar {
+    width: 24px;
+    height: 3px;
+    background: #1e293b;
+    border-radius: 2px;
+}
 
 /* 메뉴 오버레이 */
 .menu-overlay {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px);
-    z-index: 4000; display: none; flex-direction: column; align-items: center; justify-content: center;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    z-index: 4000;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     transition: 0.3s ease;
 }
-.menu-overlay.active { display: flex; animation: fadeIn 0.3s forwards; }
+
+.menu-overlay.active {
+    display: flex;
+    animation: fadeIn 0.3s forwards;
+}
 
 .menu-content a {
-    font-size: 2rem; font-weight: 850; color: #1e293b; text-decoration: none;
-    margin: 15px 0; display: block;
+    font-size: 2rem;
+    font-weight: 850;
+    color: #1e293b;
+    text-decoration: none;
+    margin: 15px 0;
+    display: block;
 }
-.menu-close { position: absolute; top: 20px; right: 24px; font-size: 3rem; border: none; background: none; }
 
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.menu-close {
+    position: absolute;
+    top: 20px;
+    right: 24px;
+    font-size: 3rem;
+    border: none;
+    background: none;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
 
 .menu-item {
-    background: none; border: none; font-size: 2rem; font-weight: 850;
-    color: #1e293b; margin: 15px 0; display: block; width: 100%;
-    text-align: center; cursor: pointer; font-family: inherit;
+    background: none;
+    border: none;
+    font-size: 2rem;
+    font-weight: 850;
+    color: #1e293b;
+    margin: 15px 0;
+    display: block;
+    width: 100%;
+    text-align: center;
+    cursor: pointer;
+    font-family: inherit;
 }
 
 .icon-btn {
     background: rgba(255, 255, 255, 0.9);
     backdrop-filter: blur(10px);
-    border: 1px solid rgba(0,0,0,0.05);
-    width: 44px; height: 44px;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    width: 44px;
+    height: 44px;
     border-radius: 12px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 1.2rem; box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
- 
- /* 8. 기타 공통 요소 */
- .btn-primary {
-     background: #1e293b; color: white; padding: 18px; border-radius: 20px;
-     font-weight: 700; border: none; width: calc(100% - 48px); margin: 10px 24px; font-size: 1rem;
- }
- 
- textarea {
-     width: calc(100% - 48px); margin: 10px 24px; padding: 15px;
-     border-radius: 18px; border: 2px solid #E2E8F0; font-family: inherit; outline: none;
- }
- 
- /* 스티커 그리드 복구 */
- .sticker-grid {
-     display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; margin: 10px 24px;
- }
- .sticker-slot {
-     aspect-ratio: 1; background: #F1F5F9; border-radius: 10px;
-     display: flex; align-items: center; justify-content: center; font-size: 1.2rem;
- }
 
- /* Ver.0213-2400: Medal & XP Styling */
+/* 8. 기타 공통 요소 */
+.btn-primary {
+    background: #1e293b;
+    color: white;
+    padding: 18px;
+    border-radius: 20px;
+    font-weight: 700;
+    border: none;
+    width: calc(100% - 48px);
+    margin: 10px 24px;
+    font-size: 1rem;
+}
+
+textarea {
+    width: calc(100% - 48px);
+    margin: 10px 24px;
+    padding: 15px;
+    border-radius: 18px;
+    border: 2px solid #E2E8F0;
+    font-family: inherit;
+    outline: none;
+}
+
+/* 스티커 그리드 복구 */
+.sticker-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px;
+    margin: 10px 24px;
+}
+
+.sticker-slot {
+    aspect-ratio: 1;
+    background: #F1F5F9;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+}
+
+/* Ver.0213-2400: Medal & XP Styling */
 .quick-task-item {
     background: white;
     padding: 16px;
@@ -592,8 +1010,8 @@
     margin-bottom: 8px;
     display: flex;
     align-items: center;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.02);
-    border: 1px solid rgba(0,0,0,0.05);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+    border: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .quick-task-item.done {
@@ -615,7 +1033,8 @@
 /* 1+2 벤토 그리드 레이아웃 */
 .strategy-grid {
     display: grid !important;
-    grid-template-columns: 1fr 1fr; /* 2열 구조 */
+    grid-template-columns: 1fr 1fr;
+    /* 2열 구조 */
     gap: 16px;
     padding: 10px 24px;
 }
@@ -624,7 +1043,8 @@
 .strategy-grid .hero-card {
     grid-column: span 2;
     padding: 28px 24px !important;
-    flex-direction: row !important; /* 가로 배치 */
+    flex-direction: row !important;
+    /* 가로 배치 */
     justify-content: flex-start !important;
     gap: 20px;
     position: relative;
@@ -636,37 +1056,68 @@
     grid-column: span 1;
     background: white;
     padding: 24px 16px;
-    flex-direction: column; /* 세로 배치 */
+    flex-direction: column;
+    /* 세로 배치 */
     align-items: center;
     text-align: center;
     border-radius: 28px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
 }
 
-.hero-card .quest-icon { font-size: 3.5rem; }
-.silver-tier .quest-icon { font-size: 2.5rem; margin-bottom: 8px; }
+.hero-card .quest-icon {
+    font-size: 3.5rem;
+}
+
+.silver-tier .quest-icon {
+    font-size: 2.5rem;
+    margin-bottom: 8px;
+}
 
 .recommend-tag {
-    position: absolute; top: 12px; right: 12px;
-    background: #FFD700; color: #000;
-    font-size: 0.6rem; font-weight: 900;
-    padding: 4px 8px; border-radius: 8px;
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: #FFD700;
+    color: #000;
+    font-size: 0.6rem;
+    font-weight: 900;
+    padding: 4px 8px;
+    border-radius: 8px;
 }
 
 /* 🏅 골드 메달 획득 시 애니메이션 */
 @keyframes medalBounce {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.3) rotate(10deg); }
+
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.3) rotate(10deg);
+    }
 }
+
 .medal-unlocked {
     animation: medalBounce 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 /* Ver.0213-2600: Celebration Effects */
 @keyframes pulse {
-    0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.7); }
-    70% { transform: scale(1.05); box-shadow: 0 0 0 15px rgba(255, 215, 0, 0); }
-    100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 215, 0, 0); }
+    0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.7);
+    }
+
+    70% {
+        transform: scale(1.05);
+        box-shadow: 0 0 0 15px rgba(255, 215, 0, 0);
+    }
+
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(255, 215, 0, 0);
+    }
 }
 
 .xp-burst {
@@ -680,9 +1131,20 @@
 }
 
 @keyframes burstUp {
-    0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
-    50% { opacity: 1; transform: translate(-50%, -80%) scale(1.2); }
-    100% { opacity: 0; transform: translate(-50%, -100%) scale(1); }
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.5);
+    }
+
+    50% {
+        opacity: 1;
+        transform: translate(-50%, -80%) scale(1.2);
+    }
+
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -100%) scale(1);
+    }
 }
 
 /* 루틴 아이템 스타일 */
@@ -732,7 +1194,7 @@
 /* 💡 추가: Routine 탭 스타일 (AM/PM 선택기) */
 .tracker-tabs {
     display: flex;
-    background: rgba(0,0,0,0.05);
+    background: rgba(0, 0, 0, 0.05);
     padding: 6px;
     border-radius: 16px;
     margin: 10px 24px 20px;
@@ -753,21 +1215,24 @@
 .tracker-tab.active {
     background: white;
     color: #7c3aed;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
 }
 
 /* 체크 시 즉시 적용되는 스타일 */
 /* 💡 홈 토글 버튼: 가로로 길게 늘어나는 문제 해결 */
 .home-routine-toggle {
-    display: inline-flex !important; /* flex에서 inline-flex로 변경 */
+    display: inline-flex !important;
+    /* flex에서 inline-flex로 변경 */
     align-items: center;
     background: rgba(124, 58, 237, 0.1);
     border: 1.5px solid #7c3aed;
     padding: 6px 14px;
     border-radius: 14px;
     cursor: pointer;
-    white-space: nowrap; /* 텍스트 줄바꿈 방지 */
+    white-space: nowrap;
+    /* 텍스트 줄바꿈 방지 */
 }
+
 .home-quest-item {
     display: flex;
     align-items: center;
@@ -797,10 +1262,51 @@
 }
 
 /* 3. 3초 뒤 사라지는 효과 */
+/* 3. 3초 뒤 사라지는 효과 */
 .home-quest-item.fade-out {
     opacity: 0 !important;
     transform: translateX(30px) !important;
     transition: all 0.5s ease !important;
+}
+
+/* 💡 Add Task Input Redesign */
+.add-custom-routine {
+    display: flex;
+    align-items: center;
+    padding: 18px;
+    background: rgba(255, 255, 255, 0.6);
+    border: 2px dashed #cbd5e1;
+    border-radius: 20px;
+    margin-bottom: 20px;
+}
+
+#customRoutineInput {
+    border: none;
+    background: transparent;
+    width: 100%;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1e293b;
+    outline: none;
+    font-family: inherit;
+}
+
+#customRoutineInput::placeholder {
+    color: #94a3b8;
+    font-weight: 500;
+}
+
+/* Back Button Style Update (Unified) */
+.btn-secondary {
+    background: #f1f5f9;
+    color: #475569;
+    padding: 18px;
+    border-radius: 20px;
+    font-weight: 700;
+    border: none;
+    width: calc(100% - 48px);
+    margin: 10px 24px;
+    font-size: 1rem;
 }
 
 
@@ -817,14 +1323,29 @@
     text-transform: uppercase;
 }
 
-.toggle-icon { font-size: 0.8rem; }
+.toggle-icon {
+    font-size: 0.8rem;
+}
 
 /* 옵션 버튼이 통통 튀며 나타나는 효과 */
 @keyframes bounceIn {
-    0% { transform: scale(0.3); opacity: 0; }
-    50% { transform: scale(1.05); }
-    70% { transform: scale(0.9); }
-    100% { transform: scale(1); opacity: 1; }
+    0% {
+        transform: scale(0.3);
+        opacity: 0;
+    }
+
+    50% {
+        transform: scale(1.05);
+    }
+
+    70% {
+        transform: scale(0.9);
+    }
+
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
 }
 
 .bounce-in {
@@ -843,7 +1364,7 @@
     border-radius: 24px;
     font-weight: 850;
     font-size: 1.1rem;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
     border: 2px solid #f1f5f9;
 }
 
@@ -851,13 +1372,14 @@
 
 /* 💡 홈 토글 버튼: 가로로 길게 늘어나는 문제 해결 */
 .home-routine-toggle {
-    display: inline-flex !important; /* flex에서 inline-flex로 변경 */
+    display: inline-flex !important;
+    /* flex에서 inline-flex로 변경 */
     align-items: center;
     background: rgba(124, 58, 237, 0.1);
     border: 1.5px solid #7c3aed;
     padding: 6px 14px;
     border-radius: 14px;
     cursor: pointer;
-    white-space: nowrap; /* 텍스트 줄바꿈 방지 */
+    white-space: nowrap;
+    /* 텍스트 줄바꿈 방지 */
 }
-
