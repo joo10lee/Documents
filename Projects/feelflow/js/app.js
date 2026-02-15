@@ -595,9 +595,37 @@ function renderTrophyStats() {
         `;
 }
 
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+function playSound(type = 'tap') {
+    if (!window.userInteracted) return;
+    try {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        if (type === 'tap') {
+            osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+            osc.type = 'sine';
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.1);
+        } else if (type === 'success') {
+            osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(1000, audioCtx.currentTime + 0.1);
+            gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.3);
+        }
+    } catch (e) { }
+}
+
 function safeVibrate(pattern) {
     if (!navigator.vibrate) return;
     if (window.userInteracted) {
+        playSound('tap'); // 💡 Phase 3.5: Restore Sound with Vibrate
         try { navigator.vibrate(pattern); } catch (e) { }
     }
 }

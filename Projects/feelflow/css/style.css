@@ -1545,6 +1545,23 @@ textarea {
     background: #e2e8f0;
 }
 
+/* 💡 New: Dual Button Container for Equal Sizing */
+.dual-btn-container {
+    display: flex;
+    gap: 10px;
+    width: 100%;
+    margin-top: auto;
+    /* Push to bottom if in flex container */
+}
+
+.dual-btn-container button {
+    flex: 1;
+    /* Equal width */
+    margin-top: 0;
+    /* Reset margin */
+}
+
+
 .btn-control:hover {
     background: #cbd5e1;
     color: #475569;
