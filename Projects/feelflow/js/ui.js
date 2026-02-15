@@ -204,7 +204,7 @@ const UI = {
 /**
  * 🧠 지능형 전략 렌더러 (Ver.0215-1700 / Debug Mode)
  */
-wwindow.renderStrategies = function(emotionName, intensity) {
+window.renderStrategies = function(emotionName, intensity) {
     const container = document.getElementById('strategiesContainer');
     if (!container) return;
 
