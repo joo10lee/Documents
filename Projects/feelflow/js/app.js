@@ -499,8 +499,8 @@ function renderTrophyStats() {
             </div>
         </div>
 
-        <!-- 2. Medal Stats -->
-        <div class="medal-grid" style="display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; margin-bottom:20px;">
+        <!-- 2. Medal Stats (Centered) -->
+        <div class="medal-grid" style="display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; margin-bottom:20px; text-align:center;">
             <div class="medal-slot">🥇<br><strong>${goldCount}</strong><div class="label">Gold</div></div>
             <div class="medal-slot">🥈<br><strong>${silverCount}</strong><div class="label">Silver</div></div>
             <div class="medal-slot" style="background:${bonusBronze > 0 ? '#fff7ed' : '#f8fafc'}">🥉<br><strong>${bronzeCount}</strong><div class="label">Bronze</div></div>
@@ -543,12 +543,13 @@ window.menuNavigate = (target, event) => {
     if (overlay) overlay.classList.remove('active');
 
     // 💡 Screen Mapping Update
+    // 💡 Screen Mapping Update
     const screenMap = {
         'Home': '1',
         'Routine': 'screenTracker',
-        'Trophies': 'screenHistory',
-        'History': 'screenSettings',  // New History Screen
-        'Settings': 'screenSettings' // For now, points to same place
+        'Trophies': 'screenTrophies', // Renamed
+        'History': 'screenJourney',   // New Screen
+        'Settings': 'screenSettings'
     };
     const tid = screenMap[target.trim()];
 
@@ -558,13 +559,13 @@ window.menuNavigate = (target, event) => {
             'Routine': 'Daily Routine',
             'Trophies': 'My Trophies 🏆',
             'History': 'My Journey 📅',
-            'Settings': 'My Journey 📅'
+            'Settings': 'Settings'
         };
         UI.goToScreen(tid, titleMap[target.trim()] || target.trim());
 
         if (tid === 'screenTracker') setTimeout(renderRoutineScreen, 100);
-        if (tid === 'screenHistory') setTimeout(renderTrophyStats, 100);
-        if (tid === 'screenSettings') {
+        if (tid === 'screenTrophies') setTimeout(renderTrophyStats, 100);
+        if (tid === 'screenJourney') {
             if (window.EmotionAPI && window.EmotionAPI.fetchHistory) {
                 EmotionAPI.fetchHistory().then(history => {
                     if (window.UI && window.UI.renderHistory) {

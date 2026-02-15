@@ -13,10 +13,10 @@
     <link rel="stylesheet" href="css/style.css">
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="js/api.js?v=2.5.1"></script>
-    <script src="js/ui.js?v=2.5.1"></script>
-    <script src="js/activities.js?v=2.5.1"></script>
-    <script src="js/app.js?v=2.5.1"></script>
+    <script src="js/api.js?v=2.5.2"></script>
+    <script src="js/ui.js?v=2.5.2"></script>
+    <script src="js/activities.js?v=2.5.2"></script>
+    <script src="js/app.js?v=2.5.2"></script>
 
     <script>
         window.onload = function () {
@@ -41,7 +41,7 @@
         <div class="header-status">
             <span id="weatherIcon">🌤️</span>
             <!-- 💡 Phase 2.5: Version Format (Date-Time) -->
-            <span class="build-tag">Ver.0215-0151</span>
+            <span class="build-tag">Ver.0215-0157</span>
         </div>
         <div class="header-main">
 
@@ -66,7 +66,7 @@
             <button class="menu-item" onclick="menuNavigate('Home', event)">🏠 Home</button>
             <button class="menu-item" onclick="menuNavigate('Routine', event)">✅ Routine</button>
             <button class="menu-item" onclick="menuNavigate('Trophies', event)">🏆 Trophies</button>
-            <button class="menu-item" onclick="menuNavigate('History', event)">📅 History</button>
+            <button class="menu-item" onclick="menuNavigate('History', event)">📅 My Journey</button>
             <button class="menu-item" onclick="menuNavigate('Settings', event)">⚙️ Settings</button>
         </nav>
     </div>
@@ -156,17 +156,16 @@
         </div>
     </main>
 
-    <main class="screen" id="screenHistory">
+    <main class="screen" id="screenTrophies">
         <div class="history-container">
             <h2 class="section-title" style="text-align:center;">Trophy Room</h2>
-
             <div id="trophyContent"></div>
+        </div>
+    </main>
 
-            <div class="history-card">
-                <p style="font-weight:850; margin-bottom:15px;">7-Day Trend</p>
-                <div style="height: 180px;"><canvas id="emotionChart"></canvas></div>
-            </div>
-
+    <main class="screen" id="screenJourney">
+        <div class="history-container">
+            <h2 class="section-title" style="text-align:center;">My Journey</h2>
             <div id="historyList"></div>
         </div>
     </main>
