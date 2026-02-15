@@ -1433,6 +1433,34 @@ textarea {
     pointer-events: none;
 }
 
+/* 💡 Phase 2.5: Scrollable Daily Quest */
+.quick-mission-section {
+    flex: 1;
+    /* Take remaining space */
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    /* Critical for nested flex scrolling */
+    margin-top: 20px;
+    overflow: hidden;
+    /* Container fixed, child scrolls */
+}
+
+#quickTaskListContainer {
+    flex: 1;
+    overflow-y: auto;
+    padding-bottom: 20px;
+    /* Space for scrolling */
+    -webkit-overflow-scrolling: touch;
+    /* Smooth scroll iOS */
+}
+
+.quick-task-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
 .routine-checkbox-item.disabled .routine-controls {
     pointer-events: auto;
     filter: none;

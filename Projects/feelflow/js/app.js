@@ -273,7 +273,7 @@ function renderHomeQuests() {
 
 
     const activeTasks = DailyRoutines[homeDisplayTab].filter(t => !t.completed);
-    const displayTasks = activeTasks.slice(0, 3);
+    const displayTasks = activeTasks; // 💡 Show ALL tasks, scrollable
 
     if (displayTasks.length === 0) {
         container.innerHTML = `<div style="padding:20px; font-weight:850; color:#10b981; text-align:center;">All tasks done! 🎉</div>`;
@@ -499,28 +499,24 @@ function renderTrophyStats() {
             </div>
         </div>
 
-        <!-- 2. Medal Stats (Centered) -->
-        <div class="medal-grid" style="display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; margin-bottom:20px; text-align:center;">
+        <!-- 2. Medal Stats (4-Column Grid with Lego) -->
+        <div class="medal-grid" style="display:grid; grid-template-columns:repeat(4, 1fr); gap:8px; margin-bottom:20px; text-align:center;">
             <div class="medal-slot">🥇<br><strong>${goldCount}</strong><div class="label">Gold</div></div>
             <div class="medal-slot">🥈<br><strong>${silverCount}</strong><div class="label">Silver</div></div>
-            <div class="medal-slot" style="background:${bonusBronze > 0 ? '#fff7ed' : '#f8fafc'}">🥉<br><strong>${bronzeCount}</strong><div class="label">Bronze</div></div>
+            <div class="medal-slot">🥉<br><strong>${bronzeCount}</strong><div class="label">Bronze</div></div>
+            <div class="medal-slot">🧱<br><strong>${legoCount}</strong><div class="label">Lego</div></div>
         </div>
         
         <!-- 3. Conversion Rules & Custom Logic -->
-        <div style="background:#f8fafc; padding:15px; border-radius:16px; margin-bottom:20px; font-size:0.85rem; color:#64748b; line-height:1.5;">
+        <div style="background:#f8fafc; padding:15px; border-radius:16px; margin-bottom:20px; font-size:0.85rem; color:#64748b; line-height:1.6;">
             <strong>ℹ️ Conversion Rules:</strong><br>
             • 5 Days Complete = 1 Lego Block 🧱<br>
             • 10 Custom Tasks = 1 Bronze Medal 🥉<br>
-            • (Silver/Gold based on Emotion Intensity)
-        </div>
-
-        <!-- 4. Lego Box (High Visibility) -->
-        <div class="lego-status" style="text-align:center; background:#fffbeb; padding:20px; border-radius:24px; border:2px solid #fcd34d;">
-             <div style="font-size:3rem; margin-bottom:5px; text-shadow:0 2px 5px rgba(0,0,0,0.1);">🧱 x ${legoCount}</div>
-             <div style="font-size:0.9rem; font-weight:700; color:#b45309;">Lego Blocks Collected</div>
-             <div style="font-size:0.75rem; color:#d97706; margin-top:5px;">Keep building your set!</div>
+            • 10 Bronze Medals = 1 Silver Medal 🥈<br>
+            • 5 Silver Medals = 1 Gold Medal 🥇
         </div>
         `;
+    `;
 }
 
 function safeVibrate(pattern) {
@@ -548,8 +544,7 @@ window.menuNavigate = (target, event) => {
         'Home': '1',
         'Routine': 'screenTracker',
         'Trophies': 'screenTrophies', // Renamed
-        'History': 'screenJourney',   // New Screen
-        'Settings': 'screenSettings'
+        'History': 'screenJourney'   // New Screen
     };
     const tid = screenMap[target.trim()];
 
@@ -558,8 +553,7 @@ window.menuNavigate = (target, event) => {
             'Home': 'Hey Jason!',
             'Routine': 'Daily Routine',
             'Trophies': 'My Trophies 🏆',
-            'History': 'My Journey 📅',
-            'Settings': 'Settings'
+            'History': 'My Journey 📅'
         };
         UI.goToScreen(tid, titleMap[target.trim()] || target.trim());
 
