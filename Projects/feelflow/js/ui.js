@@ -207,9 +207,10 @@ window.renderStrategies = function(emotionName, intensity) {
 
     let strategyHtml = "";
 
+    // 💡 'Happy' 감정일 때의 로직
     if (emotionName === 'Happy') {
         if (intensity > 2) {
-            // [Happy & High Intensity]: 조이 저니(하이브리드) 제안
+            // [강도 3~10] 고강도 기쁨: 조이 저니(하이브리드)
             strategyHtml = `
                 <div class="strategy-grid">
                     <div class="bento-card hero-card" onclick="startActivity('Happy Note')">
@@ -220,31 +221,23 @@ window.renderStrategies = function(emotionName, intensity) {
                             <div style="font-size:0.8rem; opacity:0.9;">Write your joy + Add Photo</div>
                         </div>
                     </div>
-                    <div class="bento-card silver-tier" onclick="startActivity('Share the Joy')">
-                        <span class="recommend-tag">SHARE</span>
-                        <span class="quest-icon">📢</span>
-                        <div class="quest-info">
-                            <div class="quest-title">Share Joy</div>
-                            <div style="font-size:0.8rem; opacity:0.9;">Send a smile to Joo!</div>
-                        </div>
-                    </div>
                 </div>
             `;
         } else {
-            // [Happy & Low Intensity]: 소소한 기록 제안
+            // [강도 1~2] 저강도 기쁨: 소소한 기쁨 기록 (Deep Breathing이 아닙니다!)
             strategyHtml = `
                 <div class="bento-card hero-card" onclick="startActivity('Happy Note')">
-                    <span class="recommend-tag">BEST</span>
+                    <span class="recommend-tag">SMALL JOY</span>
                     <span class="quest-icon">🌱</span>
                     <div class="quest-info">
-                        <div class="quest-title">Small Joy</div>
+                        <div class="quest-title">Happy Note</div>
                         <div style="font-size:0.8rem; opacity:0.9;">What made you smile a little?</div>
                     </div>
                 </div>
             `;
         }
     } else {
-        // [다른 감정들]: 기본 가이드 노출
+        // [그 외 감정] Sad, Anxious, Angry 등일 때만 Deep Breathing이 나옵니다.
         strategyHtml = `
             <div class="bento-card" onclick="startActivity('Deep Breath')">
                 <span class="quest-icon">🌬️</span>
@@ -256,7 +249,6 @@ window.renderStrategies = function(emotionName, intensity) {
         `;
     }
 
-    // 최종 컨테이너에 주입
     container.innerHTML = `
         <h3 class="section-title" style="margin-top:25px;">Recommended for you</h3>
         ${strategyHtml}
