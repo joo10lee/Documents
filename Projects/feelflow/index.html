@@ -20,7 +20,7 @@
     <script>
         window.onload = function() {
             // 💡 끝에 "); 가 빠져있어 문장이 닫히지 않았습니다. 이를 수정합니다.
-            console.log("FeelFlow 인프라 Ver.0214-2028"); 
+            console.log("FeelFlow 인프라 Ver.0214-2058"); 
         
             if ('serviceWorker' in navigator) {
                 // 상대 경로인 './sw.js'를 사용하여 깃허브 페이지 배포 호환성을 높입니다.
@@ -35,12 +35,12 @@
             }
         };
     </script>  
-    <title>FeelFlow - Build Ver.0214-2028</title>
+    <title>FeelFlow - Build Ver.0214-2058</title>
 </head>
 <body>
     <header class="app-header">
         <div class="header-status">
-            <span></span> <span class="build-tag">Ver.0214-2028</span>
+            <span></span> <span class="build-tag">Ver.0214-2058</span>
         </div>
         <div class="header-main">
             <h1 class="greeting">Hey Joo, <br>how's it going?</h1>
@@ -223,6 +223,9 @@
         </div>
     </main>
 
-    
+    <div id="trophyContent"></div> 
+    <div style="height: 200px; margin: 20px 0;"><canvas id="emotionChart"></canvas></div>
+
+    <div id="stickerReward" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); font-size:10rem; z-index:9999;">⭐</div>
 </body>
 </html>

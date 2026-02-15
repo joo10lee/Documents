@@ -1,33 +1,26 @@
 /**
- * 🏠 FeelFlow UI Module: Ver.0215-FINAL_TOTAL
- * 기능: 화면 전환, 백 버튼 복구, 7일 차트, 히스토리, 날씨 정보 통합
+ * 🏠 FeelFlow UI Module: Ver.0215-TOTAL_PLUS
+ * 기능: 화면 전환, 백 버튼, 7일 차트, 히스토리, 날씨, 레벨업 연출, 전 감정 전략 통합
  */
 
-console.log("🚀 [SYSTEM] UI Module Initializing...");
+console.log("🚀 [SYSTEM] UI Module Initializing (TOTAL_PLUS)...");
 
 const UI = {
     // 1. 화면 전환 및 히스토리 관리
     goToScreen(screenId, title) {
         if (!screenId) return;
         const cleanId = screenId.toString().replace('screen', '');
-        console.log(`📍 UI.goToScreen: Moving to screen${cleanId}`);
-        
         this.renderScreen(cleanId, title);
 
         try {
-            // 브라우저 히스토리에 정규화된 상태 저장 (백 버튼 복구 핵심)
             window.history.pushState({ screenId: cleanId, title: title }, "", ""); 
         } catch (e) { console.warn("History push error:", e); }
     },
 
     renderScreen(screenId, title) {
         const cleanId = screenId.toString().replace('screen', '');
-        console.log(`🎨 UI.renderScreen: screen${cleanId}`);
-        
-        // 모든 스크린에서 active 클래스 제거
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
 
-        // ID가 'screen1' 혹은 '1'인 경우 모두 대응
         const target = document.getElementById('screen' + cleanId) || document.getElementById(cleanId);
         
         if (target) {
@@ -39,15 +32,21 @@ const UI = {
             console.error(`❌ UI Error: screen${cleanId} 요소를 찾을 수 없습니다.`);
         }
 
-        // 활동 화면을 벗어날 때 정리 로직 (Activities 연동)
         if (cleanId !== 'Activity' && window.Activities?.stopAll) {
             window.Activities.stopAll();
         }
     },
 
-    // 인앱 백 버튼 함수
+    // 💡 [추가] 레벨업 축하 연출 (app.js 연동)
+    showLevelUp(level) {
+        const burst = document.createElement('div');
+        burst.className = 'xp-burst';
+        burst.innerHTML = `🎊 LEVEL UP! LV.${level}`;
+        document.body.appendChild(burst);
+        setTimeout(() => burst.remove(), 2500);
+    },
+
     back() {
-        console.log("🔙 UI: Back Button Triggered");
         if (window.history.length > 1) {
             window.history.back();
         } else {
@@ -61,7 +60,7 @@ const UI = {
         if (activeBtn) activeBtn.classList.add('active');
     },
 
-    // 2. 7일 트렌드 차트 렌더링 (전체 로직 복구)
+    // 2. 7일 트렌드 차트 렌더링
     renderEmotionChart(history) {
         setTimeout(() => {
             const ctx = document.getElementById('emotionChart');
@@ -104,7 +103,7 @@ const UI = {
         }, 300);
     },
 
-    // 3. 감정 기록 리스트 렌더링 (전체 로직 복구)
+    // 3. 감정 기록 리스트 렌더링
     renderHistory(history) {
         const container = document.getElementById('historyList');
         if (!container || !history) return;
@@ -155,10 +154,9 @@ const UI = {
 };
 
 /**
- * 🧠 지능형 전략 렌더러 (Fixed Ver.0215-TOTAL)
+ * 🧠 지능형 전략 렌더러 (Fixed Ver.0215-TOTAL_PLUS)
  */
 window.renderStrategies = function(emotionName, intensity) {
-    // DOM 로드 대기를 위해 50ms 지연
     setTimeout(() => {
         const container = document.getElementById('strategiesContainer');
         if (!container) return;
@@ -170,6 +168,7 @@ window.renderStrategies = function(emotionName, intensity) {
 
         let html = "";
 
+        // 1. Happy (😊)
         if (name.includes('happy') || name.includes('😊')) {
             if (level <= 2) {
                 html = `<div class="bento-card hero-card" onclick="startQuest('HappyNote', 'Happy Note')"><span class="recommend-tag">SMALL JOY</span><span class="quest-icon">🌱</span><div class="quest-info"><div class="quest-title">Happy Note</div></div></div>`;
@@ -177,12 +176,23 @@ window.renderStrategies = function(emotionName, intensity) {
                 html = `<div class="strategy-grid"><div class="bento-card hero-card" onclick="startQuest('HappyNote', 'Happy Note')"><span class="recommend-tag">WRITE</span><span class="quest-icon">✍️</span><div class="quest-info"><div class="quest-title">Happy Note</div></div></div></div>`;
             }
         } 
+        // 2. Sad (😢)
         else if (name.includes('sad') || name.includes('😢')) {
             html = `<div class="strategy-grid"><div class="bento-card hero-card" onclick="startQuest('Capture', 'Capture the moment')"><span class="recommend-tag">GOLD</span><span class="quest-icon">📸</span><div class="quest-info"><div>Capture joy</div></div></div><div class="bento-card" onclick="startQuest('Music', 'Listen to music')"><span class="quest-icon">🎵</span><div class="quest-info"><div>Music</div></div></div></div>`;
         }
+        // 3. Anxious (😰)
         else if (name.includes('anxious') || name.includes('😰')) {
             html = `<div class="strategy-grid"><div class="bento-card hero-card" onclick="startQuest('DeepBreath', 'Deep Breathing')"><span class="recommend-tag">CALM</span><span class="quest-icon">🌬️</span><div class="quest-info"><div>Breathing</div></div></div><div class="bento-card" onclick="startQuest('Grounding', '5-4-3-2-1 Grounding')"><span class="quest-icon">🖐️</span><div class="quest-info"><div>Grounding</div></div></div></div>`;
         }
+        // 💡 [추가] 4. Calm (😌)
+        else if (name.includes('calm') || name.includes('😌')) {
+            html = `<div class="bento-card hero-card" onclick="startQuest('Meditation', 'Quiet Time')"><span class="quest-icon">🧘</span><div class="quest-info"><div>Mindful Moment</div></div></div>`;
+        }
+        // 💡 [추가] 5. Tired (😫)
+        else if (name.includes('tired') || name.includes('😫')) {
+            html = `<div class="bento-card hero-card" onclick="startQuest('Rest', 'Take a Nap')"><span class="quest-icon">🛌</span><div class="quest-info"><div>Quick Recharge</div></div></div>`;
+        }
+        // 6. 기본값 (Angry 등 포함)
         else {
             html = `<div class="bento-card" onclick="startQuest('DeepBreath', 'Deep Breathing')"><span class="quest-icon">🌬️</span><div class="quest-info"><div>Just Breathe</div></div></div>`;
         }
@@ -200,6 +210,5 @@ window.onpopstate = function(event) {
     }
 };
 
-// 💡 전역 등록
 window.UI = UI;
 window.renderEmotionChart = (h) => UI.renderEmotionChart(h);
