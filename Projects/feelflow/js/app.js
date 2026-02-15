@@ -17,11 +17,25 @@ function getGreeting() {
     return "Good Evening, Jason! 🌙";
 }
 
+// 💡 Helper: Safe JSON Parse
+function safeJSONParse(key, defaultValue) {
+    try {
+        const item = localStorage.getItem(key);
+        if (!item) return defaultValue;
+        return JSON.parse(item);
+    } catch (e) {
+        console.error(`❌ Corrupted Data for ${key}:`, e);
+        // Optional: Reset corrupted data to prevent future crashes
+        // localStorage.setItem(key, JSON.stringify(defaultValue)); 
+        return defaultValue;
+    }
+}
+
 // 2. 통합 루틴 데이터 구조 (전체 목록 유지)
 
 
 
-let DailyRoutines = JSON.parse(localStorage.getItem('feelflow_routines')) || {
+let DailyRoutines = safeJSONParse('feelflow_routines', null) || {
     // ... existing default data ...
     morning: [
         { id: 'm1', text: '🪥 Wash Face & Brush Teeth', completed: false },
@@ -119,7 +133,7 @@ window.userInteracted = false;
 
 // 4. 보상 시스템 엔진 (FeelFlow) - 💡 Unified Medal System
 const FeelFlow = {
-    medals: JSON.parse(localStorage.getItem('feelflow_medals')) || [],
+    medals: safeJSONParse('feelflow_medals', []) || [],
 
     // 💡 Renamed addXP to addMedalProgress for clarity
     addMedalProgress(amount, tier = null) {
@@ -143,7 +157,7 @@ const FeelFlow = {
 // 💡 Phase 2: Guardian Logic (Parent Mode)
 const Guardian = {
     renderDashboard() {
-        const history = JSON.parse(localStorage.getItem('feelflow_history')) || [];
+        const history = safeJSONParse('feelflow_history', []) || [];
         const alertBox = document.getElementById('guardianAlert');
         const alertMsg = document.getElementById('guardianAlertMsg');
         const timeline = document.getElementById('guardianTimeline');
@@ -692,7 +706,7 @@ window.menuNavigate = (target, event) => {
 
 // 💡 Phase 2.5: Global EmotionAPI Definition (moved out of menuNavigate)
 async function fetchHistory() {
-    let history = JSON.parse(localStorage.getItem('feelflow_history')) || [];
+    let history = safeJSONParse('feelflow_history', []) || [];
 
     // 💡 If empty, restore some sample data for "My Journey" (User req)
     if (history.length === 0) {
@@ -708,7 +722,7 @@ async function fetchHistory() {
 
 // Helper for History if not in api.js
 async function fetchHistoryHelper() {
-    let history = JSON.parse(localStorage.getItem('feelflow_history')) || [];
+    let history = safeJSONParse('feelflow_history', []) || [];
     if (history.length === 0) {
         history = [
             { timestamp: "2026-02-14T10:30:00", emotion: "Happy", emoji: "😊", intensity: 7, note: "Played soccer with friends!", photo: null },
@@ -725,7 +739,7 @@ if (!window.EmotionAPI) window.EmotionAPI = {};
 
 window.EmotionAPI.fetchHistory = fetchHistoryHelper;
 window.EmotionAPI.saveCheckIn = async (data) => {
-    let history = JSON.parse(localStorage.getItem('feelflow_history')) || [];
+    let history = safeJSONParse('feelflow_history', []) || [];
     history.push(data);
     localStorage.setItem('feelflow_history', JSON.stringify(history));
     return true;
