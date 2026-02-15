@@ -10,7 +10,45 @@ let homeDisplayTab = new Date().getHours() < 12 ? 'morning' : 'evening';
 let currentRoutineTab = homeDisplayTab;
 
 // 2. 통합 루틴 데이터 구조 (전체 목록 유지)
+// 💡 [Fix] 24시간 리셋 로직
+function checkAndResetDailyRoutines() {
+    const lastDate = localStorage.getItem('feelflow_last_date');
+    const today = new Date().toDateString();
+
+    if (lastDate !== today) {
+        console.log("🔄 New Day Detected! Resetting routines...");
+        const routines = JSON.parse(localStorage.getItem('feelflow_routines'));
+        if (routines) {
+            routines.morning.forEach(t => t.completed = false);
+            routines.evening.forEach(t => t.completed = false);
+            localStorage.setItem('feelflow_routines', JSON.stringify(routines));
+            // Update global variable will happen below
+        }
+        localStorage.setItem('feelflow_last_date', today);
+    }
+}
+checkAndResetDailyRoutines();
+// 💡 [Fix] 24시간 리셋 로직
+function checkAndResetDailyRoutines() {
+    const lastDate = localStorage.getItem('feelflow_last_date');
+    const today = new Date().toDateString();
+
+    if (lastDate !== today) {
+        console.log("🔄 New Day Detected! Resetting routines...");
+        const routines = JSON.parse(localStorage.getItem('feelflow_routines'));
+        if (routines) {
+            routines.morning.forEach(t => t.completed = false);
+            routines.evening.forEach(t => t.completed = false);
+            localStorage.setItem('feelflow_routines', JSON.stringify(routines));
+            DailyRoutines = routines;
+        }
+        localStorage.setItem('feelflow_last_date', today);
+    }
+}
+checkAndResetDailyRoutines();
+
 let DailyRoutines = JSON.parse(localStorage.getItem('feelflow_routines')) || {
+    // ... existing default data ...
     morning: [
         { id: 'm1', text: '🪥 Wash Face & Brush Teeth', completed: false },
         { id: 'm2', text: '🌤️ Check Weather & Dress Up', completed: false },
@@ -28,6 +66,51 @@ let DailyRoutines = JSON.parse(localStorage.getItem('feelflow_routines')) || {
         { id: 'e5', text: '💤 Screens Off & Relax', completed: false }
     ]
 };
+
+// ... (skip down to handleRoutineCheck) ...
+
+function handleRoutineCheck(id, source) {
+    const tab = source === 'home' ? homeDisplayTab : currentRoutineTab;
+    const task = DailyRoutines[tab].find(t => t.id === id);
+
+    if (task) {
+        // 💡 [Fix] Toggle Logic (Check / Uncheck)
+        task.completed = !task.completed;
+
+        safeVibrate(15);
+        if (window.feedback) window.feedback('tap');
+
+        saveRoutines();
+
+        if (source === 'home') {
+            const el = document.getElementById(`home-task-${id}`);
+            if (el) {
+                if (task.completed) {
+                    el.classList.add('checked-strikethrough');
+                    setTimeout(() => {
+                        el.classList.add('fade-out');
+                        setTimeout(renderHomeQuests, 500);
+                    }, 3000);
+                } else {
+                    el.classList.remove('checked-strikethrough');
+                    el.classList.remove('fade-out');
+                }
+            }
+        } else {
+            renderRoutineScreen();
+        }
+
+        if (task.completed && DailyRoutines[tab].every(t => t.completed)) {
+            // 💡 [수정] 5개 모두 완료 시 레고 블록 지급 애니메이션 (Bronze -> Lego)
+            FeelFlow.addXP(50, 'lego');
+            if (window.UI && window.UI.showLegoAnimation) {
+                window.UI.showLegoAnimation();
+            } else {
+                alert(`🎉 Fantastic! You earned a LEGO Block! 🧱`);
+            }
+        }
+    }
+}
 
 // 3. 브라우저 인터랙션 락 해제 (진동/오디오용)
 window.userInteracted = false;

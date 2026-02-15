@@ -68,7 +68,8 @@ const Activities = {
 
         const name = emotionName ? emotionName.toString().trim().toLowerCase() : "";
         const level = parseInt(intensity) || 5;
-        console.log(`🧠 [STRATEGY] Processing: ${name} (Level ${level})`);
+        console.log(`🧠 [STRATEGY DEBUG] Input Name: "${emotionName}", Parsed: "${name}", Level: ${level}`);
+
 
         let quests = [];
 
