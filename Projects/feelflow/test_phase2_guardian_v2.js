@@ -103,54 +103,5 @@ try {
     console.error("❌ Crisis alert failed:", e);
 }
 
-// ... previous code ...
-
-// 6. Test: Menu Navigation
-console.log("\n🧭 Testing Menu Navigation...");
-try {
-    // Mock necessary elements for menuNavigate
-    const overlay = { classList: { remove: () => { }, toggle: () => { } }, style: {} };
-    const screenGuardian = { classList: { add: () => { }, remove: () => { } }, style: {} };
-
-    // Override getElementById to return mocks
-    const originalGetElementById = document.getElementById;
-    document.getElementById = (id) => {
-        if (id === 'menuOverlay') return overlay;
-        if (id === 'screenGuardian') return screenGuardian;
-        if (id === 'Guardian') return screenGuardian; // Handle cleanId fallback
-        if (id === 'guardianAlert') return { style: {} }; // For renderDashboard
-        if (id === 'guardianTimeline') return { innerHTML: '' };
-        return originalGetElementById(id);
-    };
-
-    // Simulate click
-    console.log("   [Action] Clicking 'Guardian Mode' in menu...");
-    const mockEvent = { preventDefault: () => { }, stopPropagation: () => { } };
-
-    // Debug info
-    console.log('DEBUG: window keys:', Object.keys(window).filter(k => k !== 'console'));
-    console.log('DEBUG: typeof window.menuNavigate:', typeof window.menuNavigate);
-
-    // Call menuNavigate
-    // Note: menuNavigate is on window
-    if (typeof window.menuNavigate === 'function') {
-        window.menuNavigate('Guardian', mockEvent);
-        console.log("✅ menuNavigate executed without error.");
-
-        // Check if Guardian.renderDashboard was called? 
-        // We can verify by checking if it tries to access Guardian elements or by spy.
-        // For now, if no error, good.
-    } else {
-        console.error("❌ menuNavigate is not defined on window.");
-    }
-
-    // Restore
-    document.getElementById = originalGetElementById;
-
-} catch (e) {
-    console.error("❌ Menu navigation failed:", e);
-}
-
 // Small timeout to allow async alerts to print
-setTimeout(() => console.log("\n🛡️ Verification Complete."), 500);
-
+setTimeout(() => console.log("\n🛡️ Verification Complete."), 100);

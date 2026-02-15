@@ -595,10 +595,22 @@ function renderTrophyStats() {
         `;
 }
 
-const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+// 💡 Fix: Robust Audio Check (Prevents crash if Audio API is missing)
+const AudioContextVal = window.AudioContext || window.webkitAudioContext;
+let audioCtx;
+try {
+    if (AudioContextVal) {
+        audioCtx = new AudioContextVal();
+    } else {
+        console.warn("⚠️ Web Audio API not supported on this device.");
+    }
+} catch (e) {
+    console.error("❌ AudioContext Init Failed:", e);
+}
 function playSound(type = 'tap') {
-    if (!window.userInteracted) return;
+    if (!window.userInteracted || !audioCtx) return;
     try {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
         osc.connect(gain);
@@ -745,5 +757,7 @@ window.addEventListener('click', () => {
     window.userInteracted = true;
     if (window.audioCtx && window.audioCtx.state === 'suspended') {
         window.audioCtx.resume();
+    } else if (typeof audioCtx !== 'undefined' && audioCtx.state === 'suspended') {
+        audioCtx.resume();
     }
 }, { once: true });
