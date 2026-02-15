@@ -739,3 +739,11 @@ window.toggleMenu = function () {
     const overlay = document.getElementById('menuOverlay');
     if (overlay) overlay.classList.toggle('active');
 };
+
+// 💡 Restore User Interaction Listener (Critical for Audio/Haptics)
+window.addEventListener('click', () => {
+    window.userInteracted = true;
+    if (window.audioCtx && window.audioCtx.state === 'suspended') {
+        window.audioCtx.resume();
+    }
+}, { once: true });
