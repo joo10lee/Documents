@@ -58,7 +58,7 @@ const Activities = {
             this.currentStream.getTracks().forEach(track => track.stop());
             this.currentStream = null;
         }
-        if (navigator.vibrate) {
+        if (navigator.vibrate && window.userInteracted) {
             try { navigator.vibrate(0); } catch (e) { }
         }
     },
