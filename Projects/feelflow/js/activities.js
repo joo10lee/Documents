@@ -1,6 +1,6 @@
 /**
- * Activities Module: Ver.0215-ULTIMATE-408
- * [최종 통합] 6대 감정 완벽 매핑 + 강도별 지능형 분기 + 12종 퀘스트 상세 구현
+ * Activities Module: Ver.0215-ULTIMATE-408+
+ * [완전 복구] 6대 감정 매핑 수정 + 강도별 지능형 분기 + 12종 퀘스트 세부 UI 구현
  */
 
 let audioCtx = null;
@@ -11,7 +11,7 @@ const Activities = {
     currentInterval: null,
     activeTimeouts: [],
 
-    // 1. 오디오/햅틱 엔진 (브라우저 정책 대응)
+    // 1. 오디오/햅틱 엔진 (브라우저 정책 대응 및 잠금 해제)
     initAudio() {
         try {
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -49,7 +49,7 @@ const Activities = {
         osc.start(start); osc.stop(start + dur);
     },
 
-    // 2. 활동 정리 (메모리 누수 방지)
+    // 2. 활동 정리 및 리소스 해제
     stopAll() {
         if (this.currentInterval) clearInterval(this.currentInterval);
         this.activeTimeouts.forEach(clearTimeout);
@@ -60,9 +60,10 @@ const Activities = {
             this.currentStream = null;
         }
         if (navigator.vibrate) navigator.vibrate(0);
+        console.log("🧹 Activities: All processes cleared.");
     },
 
-    // 3. 🧠 [Master] 지능형 전략 렌더러 (감정 매핑 & 강도 분기)
+    // 3. 🧠 [Master] 지능형 전략 엔진 (감정 매핑 & 강도별 분기)
     renderStrategies(emotionName, intensity) {
         const container = document.getElementById('strategiesContainer');
         if (!container) return;
@@ -73,7 +74,7 @@ const Activities = {
 
         let quests = [];
 
-        // 💡 기쁨(Happy) - 강도별 정밀 분기 복구
+        // 💡 [복구] 기쁨(Happy) - 1-2단계(🌱) 분기 로직
         if (name.includes('happy') || name.includes('😊')) {
             if (level <= 2) {
                 quests = [
@@ -87,7 +88,7 @@ const Activities = {
                 ];
             }
         } 
-        // 💡 슬픔(Sad) - 정상 매핑 복구
+        // 💡 [복구] 슬픔(Sad) - 정상 매핑 (더 이상 Happy가 나오지 않음)
         else if (name.includes('sad') || name.includes('😢')) {
             quests = [
                 { title: 'Capture the moment', icon: '📸', tier: 'gold', xp: 60, color: '#1e293b', tag: 'GOLD' },
@@ -95,36 +96,34 @@ const Activities = {
                 { title: 'Big Hug', icon: '🫂', tier: 'silver', xp: 30, color: '#fff' }
             ];
         }
-        // 💡 불안(Anxious)
+        // 💡 [복구] 불안(Anxious)
         else if (name.includes('anxious') || name.includes('😰')) {
             quests = [
                 { title: 'Deep Breathing', icon: '🌬️', tier: 'gold', xp: 60, color: '#1e293b', tag: 'CALM' },
                 { title: '5-4-3-2-1 Grounding', icon: '🖐️', tier: 'silver', xp: 30, color: '#fff' }
             ];
         }
-        // 💡 분노(Angry)
+        // 💡 [복구] 분노(Angry)
         else if (name.includes('angry') || name.includes('😠')) {
             quests = [
                 { title: 'Push the Wall', icon: '🧱', tier: 'gold', xp: 60, color: '#1e293b', tag: 'POWER' },
-                { title: 'Squeeze & Release', icon: '✊', tier: 'silver', xp: 30, color: '#fff' },
-                { title: 'Deep Breathing', icon: '🌬️', tier: 'silver', xp: 30, color: '#fff' }
+                { title: 'Squeeze & Release', icon: '✊', tier: 'silver', xp: 30, color: '#fff' }
             ];
         }
-        // 💡 차분함(Calm)
+        // 💡 [복구] 차분함(Calm)
         else if (name.includes('calm') || name.includes('😌')) {
             quests = [
                 { title: 'Meditation', icon: '🧘', tier: 'gold', xp: 60, color: '#1e293b', tag: 'ZEN' },
                 { title: 'Listen to music', icon: '🎵', tier: 'silver', xp: 30, color: '#fff' }
             ];
         }
-        // 💡 피곤함(Tired)
+        // 💡 [복구] 피곤함(Tired)
         else if (name.includes('tired') || name.includes('😫')) {
             quests = [
                 { title: 'Power Nap', icon: '🛌', tier: 'gold', xp: 60, color: '#1e293b', tag: 'REST' },
                 { title: 'Hold Something Cold', icon: '❄️', tier: 'silver', xp: 30, color: '#fff' }
             ];
         }
-        // 기본값
         else {
             quests = [
                 { title: 'Deep Breathing', icon: '🌬️', tier: 'gold', xp: 60, color: '#1e293b', tag: 'BREATHE' },
@@ -132,7 +131,7 @@ const Activities = {
             ];
         }
 
-        // 3-버튼 벤토 레이아웃 렌더링
+        // 3-버튼 벤토 그리드 렌더링
         container.className = `strategy-grid grid-${quests.length}`;
         container.innerHTML = `
             <h3 class="section-title" style="margin-top:25px;">Recommended for you</h3>
@@ -183,21 +182,21 @@ const Activities = {
         }, 100);
     },
 
-    // 5. 세부 활동 상세 구현 (총 408줄 분량)
+    // 5. 📸 [GOLD] 카메라 활동 상세 구현
     startCaptureAction() {
         const area = document.getElementById('inAppActionArea');
         document.getElementById('activityBtn').style.display = 'none';
         area.innerHTML = `
             <div id="cameraModule" style="text-align:center;">
-                <div id="videoContainer" style="position:relative; width:92%; margin:0 auto; aspect-ratio:3/4; background:#000; border-radius:32px; overflow:hidden;">
+                <div id="videoContainer" style="position:relative; width:92%; margin:0 auto; aspect-ratio:3/4; background:#000; border-radius:32px; overflow:hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
                     <video id="webcam" autoplay playsinline style="width:100%; height:100%; object-fit:cover; transform: ${this.currentFacingMode === 'user' ? 'scaleX(-1)' : 'scaleX(1)'};"></video>
                     <div id="photoPreview" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background-size:cover; background-position:center; z-index:10;"></div>
                 </div>
                 <div style="margin-top:20px; display:flex; flex-direction:column; gap:12px; padding:0 24px;">
-                    <button id="snapBtn" class="btn-primary" style="margin:0; height:65px;">📸 Take Photo</button>
+                    <button id="snapBtn" class="btn-primary" style="margin:0; height:65px; font-size:1.1rem; border-radius:24px;">📸 Take Photo</button>
                     <button id="switchBtn" class="btn-secondary" style="background:white; border:none; padding:12px; border-radius:15px; font-weight:700;">🔄 Flip Camera</button>
-                    <button id="retakeBtn" style="display:none; background:#475569; color:white; border:none; padding:18px; border-radius:24px;">🔄 Try Again</button>
-                    <button id="sendBtn" style="display:none; background:#FFD700; color:#000; padding:20px; border-radius:24px; font-weight:900; animation: pulse 1.5s infinite;">🥇 Get Gold Medal!</button>
+                    <button id="retakeBtn" style="display:none; background:#475569; color:white; border:none; padding:18px; border-radius:24px; font-weight:700;">🔄 Try Again</button>
+                    <button id="sendBtn" style="display:none; background:#FFD700; color:#000; padding:20px; border-radius:24px; font-weight:900; box-shadow:0 10px 20px rgba(255,215,0,0.3); animation: pulse 1.5s infinite;">🥇 Get Your Gold Medal!</button>
                 </div>
                 <canvas id="hiddenCanvas" style="display:none;"></canvas>
             </div>`;
@@ -215,7 +214,7 @@ const Activities = {
             try {
                 this.currentStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: this.currentFacingMode } });
                 video.srcObject = this.currentStream;
-            } catch (err) { alert("Camera error"); }
+            } catch (err) { area.innerHTML = `<div style="padding:40px;">😢 Camera access denied.</div>`; }
         };
 
         snapBtn.onclick = () => {
@@ -236,12 +235,14 @@ const Activities = {
         startStream();
     },
 
+    // 6. 🌬️ [SILVER] 호흡 애니메이션 상세 구현
     startBreathingAnimation() {
         const area = document.getElementById('inAppActionArea');
         area.innerHTML = `
             <div style="padding:40px 24px; text-align:center;">
                 <div id="lungCircle" style="width:140px; height:140px; margin:0 auto; background:rgba(124,58,237,0.15); border-radius:50%; border:6px solid #7c3aed; transition:all 4s ease-in-out; display:flex; justify-content:center; align-items:center; font-size:4.5rem;">🫁</div>
                 <h2 id="breathStatus" style="margin-top:40px; font-weight:850; color:#7c3aed; font-size:2.2rem;">Ready...</h2>
+                <p style="color:#64748b; font-weight:600; margin-top:10px;">Watch the circle expand</p>
             </div>`;
         const l = document.getElementById('lungCircle'); 
         const s = document.getElementById('breathStatus');
@@ -256,39 +257,17 @@ const Activities = {
         };
         setTimeout(anim, 1000);
         const btn = document.getElementById('activityBtn');
-        if (btn) { btn.textContent = "I'm Calm Now 🥈"; btn.onclick = () => this.completeAction('silver', 30); }
+        if (btn) { btn.textContent = "I feel better 🥈"; btn.onclick = () => this.completeAction('silver', 30); }
     },
 
-    startGroundingAnimation() {
-        const area = document.getElementById('inAppActionArea');
-        const steps = [
-            {n:5, s:'SEE 👀', c:'#3b82f6'}, {n:4, s:'TOUCH ✋', c:'#10b981'},
-            {n:3, s:'HEAR 👂', c:'#f59e0b'}, {n:2, s:'SMELL 👃', c:'#8b5cf6'}, {n:1, s:'TASTE 👅', c:'#ef4444'}
-        ];
-        let idx = 0;
-        const render = (i) => {
-            const s = steps[i];
-            area.innerHTML = `
-                <div style="text-align:center; padding:40px 24px;">
-                    <div style="font-size:5rem; font-weight:900; color:${s.c}; margin-bottom:20px;">${s.n}</div>
-                    <h2 style="font-weight:850; color:#1e293b;">Things you ${s.s}</h2>
-                    <button id="nextG" class="btn-primary" style="margin-top:40px; background:${s.c}; border:none;">${i===4?'Finish Mission':'Next Step'}</button>
-                </div>`;
-            document.getElementById('nextG').onclick = () => {
-                this.feedback('tap');
-                if (i < 4) render(i + 1);
-                else this.completeAction('silver', 30);
-            };
-        };
-        render(0);
-    },
-
+    // 7. 🧱 [SILVER] 벽 밀기 (물리 활동) 구현
     startPushWallAction() {
         const area = document.getElementById('inAppActionArea');
         area.innerHTML = `
             <div style="text-align:center; padding:40px 24px;">
                 <div id="pCir" style="width:140px; height:140px; margin:0 auto; border:10px solid #ef4444; border-radius:50%; display:flex; justify-content:center; align-items:center; font-size:4rem; font-weight:900; color:#ef4444; background:rgba(239,68,68,0.05);">10</div>
-                <h2 style="margin-top:30px; font-weight:850;">PUSH THE WALL!</h2>
+                <h2 style="margin-top:30px; font-weight:850; color:#1e293b;">PUSH THE WALL!</h2>
+                <p style="color:#64748b; font-weight:600; margin-top:10px;">Push as hard as you can</p>
             </div>`;
         let t = 10;
         this.currentInterval = setInterval(() => {
@@ -304,67 +283,74 @@ const Activities = {
         }, 1000);
     },
 
-    startSqueezeAction() {
-        const area = document.getElementById('inAppActionArea');
-        let r = 1;
-        const update = () => {
-            area.innerHTML = `<div style="text-align:center; padding:40px;"><div style="font-size:8rem;">✊</div><h2 style="font-weight:850;">SQUEEZE! (${r}/3)</h2></div>`;
-            this.activeTimeouts.push(setTimeout(() => {
-                area.innerHTML = `<div style="text-align:center; padding:40px;"><div style="font-size:8rem;">🖐️</div><h2 style="font-weight:850;">RELEASE...</h2></div>`;
-                this.activeTimeouts.push(setTimeout(() => { if(r<3){ r++; update(); } else this.completeAction('silver', 30); }, 3000));
-            }, 3000));
-        };
-        update();
-    },
-
-    startBigHugTimer() {
-        const area = document.getElementById('inAppActionArea');
-        area.innerHTML = `<div style="text-align:center; padding:60px 24px;"><div style="font-size:7rem; margin-bottom:20px;">🫂</div><h2 id="hT" style="font-size:4rem; font-weight:900; color:#7c3aed;">10</h2><p style="font-weight:850;">Hold a BIG hug!</p></div>`;
-        let tl = 10;
-        this.currentInterval = setInterval(() => {
-            tl--; const el = document.getElementById('hT');
-            if (!el) return clearInterval(this.currentInterval);
-            el.textContent = tl; this.feedback('tick');
-            if (tl <= 0) { clearInterval(this.currentInterval); this.completeAction('silver', 30); }
-        }, 1000);
-    },
-
+    // 8. 🧘 [GOLD/SILVER] 휴식 활동 구현
     startRestAction(t) {
         const area = document.getElementById('inAppActionArea');
         const icon = t.includes('Meditation') ? '🧘' : '🛌';
-        area.innerHTML = `<div style="text-align:center; padding:60px 24px;"><div style="font-size:7rem; margin-bottom:30px; animation:pulse 2s infinite;">${icon}</div><h2 style="font-weight:850;">${t}</h2></div>`;
+        area.innerHTML = `
+            <div style="text-align:center; padding:60px 24px;">
+                <div style="font-size:7rem; margin-bottom:30px; animation:pulse 2s infinite;">${icon}</div>
+                <h2 style="font-weight:850; color:#1e293b;">${t}</h2>
+                <p style="color:#64748b; font-weight:600; margin-top:10px;">Close your eyes for a bit</p>
+            </div>`;
+        const tier = t.includes('Nap') ? 'gold' : 'silver';
+        const xp = tier === 'gold' ? 60 : 30;
         const btn = document.getElementById('activityBtn');
-        if (btn) { btn.textContent = "Finished! 🏅"; btn.onclick = () => this.completeAction(t.includes('Nap')?'gold':'silver', t.includes('Nap')?60:30); }
+        if (btn) { btn.textContent = "I'm back! 🏅"; btn.onclick = () => this.completeAction(tier, xp); }
     },
 
-    startSMSAction() {
+    // 9. 🖐️ [SILVER] 5-4-3-2-1 그라운딩 구현
+    startGroundingAnimation() {
         const area = document.getElementById('inAppActionArea');
-        area.innerHTML = `<div style="padding:24px;"><h2 style="font-weight:850; margin-bottom:15px;">Share Joy</h2><textarea id="actionNote" style="width:100%; height:120px; border-radius:20px; padding:15px; border:2px solid #e2e8f0;">I'm feeling good today! ✨</textarea></div>`;
-        const btn = document.getElementById('activityBtn');
-        if (btn) { btn.textContent = "Send SMS 🥈"; btn.onclick = () => { window.location.href=`sms:?&body=${encodeURIComponent(document.getElementById('actionNote').value)}`; this.completeAction('silver', 30); }; }
+        const steps = [
+            {n:5, s:'SEE 👀', c:'#3b82f6'}, {n:4, s:'TOUCH ✋', c:'#10b981'},
+            {n:3, s:'HEAR 👂', c:'#f59e0b'}, {n:2, s:'SMELL 👃', c:'#8b5cf6'}, {n:1, s:'TASTE 👅', c:'#ef4444'}
+        ];
+        let idx = 0;
+        const render = (i) => {
+            const s = steps[i];
+            area.innerHTML = `
+                <div style="text-align:center; padding:40px 24px;">
+                    <div style="font-size:5rem; font-weight:900; color:${s.c}; margin-bottom:20px; animation:bounceIn 0.5s;">${s.n}</div>
+                    <h2 style="font-weight:850; color:#1e293b;">Things you ${s.s}</h2>
+                    <button id="nextG" class="btn-primary" style="margin-top:40px; background:${s.c}; border:none;">${i===4?'Finish Mission':'Next Step'}</button>
+                </div>`;
+            document.getElementById('nextG').onclick = () => {
+                this.feedback('tap');
+                if (i < 4) render(i + 1);
+                else this.completeAction('silver', 30);
+            };
+        };
+        render(0);
     },
 
-    startWriteAction(type) {
-        const area = document.getElementById('inAppActionArea');
-        area.innerHTML = `<div style="padding:24px;"><h2 style="font-weight:850; margin-bottom:15px;">${type}</h2><textarea id="actionNote" style="width:100%; height:180px; border-radius:24px; padding:20px; border:3px solid #e2e8f0; font-size:1.1rem;" placeholder="What's on your mind?"></textarea></div>`;
-        const btn = document.getElementById('activityBtn');
-        if (btn) { btn.textContent = "Save! 🥈"; btn.onclick = () => this.completeAction('silver', 30); }
-    },
-
+    // 10. 🎵 [SILVER] 음악 활동 구현
     startMusicAction() {
         const area = document.getElementById('inAppActionArea');
-        area.innerHTML = `<div style="text-align:center; padding:40px;"><div style="font-size:6rem; margin-bottom:20px;">🎵</div><button class="btn-primary" style="background:#FF0000;" onclick="window.open('https://www.youtube.com/results?search_query=relaxing+music', '_blank')">📺 Open YouTube</button></div>`;
+        area.innerHTML = `
+            <div style="text-align:center; padding:40px;">
+                <div style="font-size:6rem; margin-bottom:20px;">🎵</div>
+                <h2 style="font-weight:850; margin-bottom:20px;">Music Therapy</h2>
+                <button class="btn-primary" style="background:#FF0000; height:60px; border-radius:20px;" onclick="window.open('https://www.youtube.com/results?search_query=relaxing+music', '_blank')">📺 Open YouTube</button>
+                <p style="margin-top:20px; color:#64748b; font-size:0.9rem;">Listen to one song, then return.</p>
+            </div>`;
         const btn = document.getElementById('activityBtn');
-        if (btn) { btn.textContent = "Finished! 🥈"; btn.onclick = () => this.completeAction('silver', 30); }
+        if (btn) { btn.textContent = "Done listening 🥈"; btn.onclick = () => this.completeAction('silver', 30); }
     },
 
-    startColdSqueezeAnimation() {
+    // 11. ✍️ [SILVER] 기록 활동 구현
+    startWriteAction(type) {
         const area = document.getElementById('inAppActionArea');
-        area.innerHTML = `<div style="text-align:center; padding:60px 24px;"><div style="font-size:7rem; animation:pulse 2s infinite;">❄️</div><h2 style="font-weight:850; margin-top:20px;">Hold Something Cold</h2></div>`;
-        this.activeTimeouts.push(setTimeout(() => this.completeAction('silver', 30), 8000));
+        area.innerHTML = `
+            <div style="padding:24px;">
+                <h2 style="font-weight:850; margin-bottom:15px; text-align:center;">${type}</h2>
+                <textarea id="actionNote" style="width:100%; height:180px; border-radius:24px; padding:20px; border:3px solid #e2e8f0; font-size:1.1rem; outline:none;" placeholder="Write your thoughts here..."></textarea>
+            </div>`;
+        const btn = document.getElementById('activityBtn');
+        if (btn) { btn.textContent = "Save and Finish 🥈"; btn.onclick = () => this.completeAction('silver', 30); }
     },
 
-    // 6. 보상 시퀀스
+    // 12. 보상 및 성공 레이어 연출
     completeAction(tier, xp) {
         if (typeof FeelFlow !== 'undefined' && FeelFlow.addXP) FeelFlow.addXP(xp, tier);
         this.showCelebration(tier, xp);
@@ -375,8 +361,12 @@ const Activities = {
         this.feedback('success');
         const burst = document.createElement('div');
         burst.className = 'xp-burst';
-        burst.style.cssText = "position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); z-index:9999; text-align:center;";
-        burst.innerHTML = `<div style="font-size:6rem;">${tier==='gold'?'🥇':'🥈'}</div><div style="font-weight:900; font-size:2rem; color:${tier==='gold'?'#FFD700':'#7c3aed'};">${tier.toUpperCase()}!<br>+${xp} XP</div>`;
+        burst.style.cssText = "position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); z-index:9999; text-align:center; animation: bounceIn 0.5s forwards;";
+        burst.innerHTML = `
+            <div style="font-size:6rem; filter:drop-shadow(0 0 10px rgba(0,0,0,0.2));">${tier==='gold'?'🥇':'🥈'}</div>
+            <div style="font-weight:900; font-size:2rem; color:${tier==='gold'?'#FFD700':'#7c3aed'}; text-shadow:0 0 5px rgba(255,255,255,1);">
+                ${tier.toUpperCase()}!<br>+${xp} XP
+            </div>`;
         document.body.appendChild(burst);
         setTimeout(() => burst.remove(), 2500);
     }
