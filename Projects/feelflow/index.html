@@ -41,7 +41,7 @@
         <div class="header-status">
             <span id="weatherIcon">🌤️</span>
             <!-- 💡 Phase 2.5: Version Format (Date-Time) -->
-            <span class="build-tag">Ver.0215-1311</span>
+            <span class="build-tag">Ver.0215-1426</span>
         </div>
         <div class="header-main">
 
@@ -174,9 +174,73 @@
         </div>
     </main>
 
-    <!-- 💡 Phase 2: Guardian Screen -->
+
+
+    <main class="screen" id="screenLogin">
+        <div class="auth-container" style="padding:40px 24px; text-align:center;">
+            <h2 style="font-weight:850; font-size:2rem; color:#1e293b; margin-bottom:10px;">Guardian Login</h2>
+            <p style="color:#64748b; margin-bottom:40px;">Welcome back, parent!</p>
+
+            <input type="password" id="loginPin" placeholder="Enter PIN (4 digits)" maxlength="4"
+                style="width:100%; padding:15px; font-size:1.5rem; text-align:center; letter-spacing:10px; border:2px solid #e2e8f0; border-radius:16px; margin-bottom:20px;">
+
+            <button class="btn-primary" onclick="GuardianAuth.login()">Login</button>
+            <button class="btn-secondary" onclick="UI.goToScreen('Signup')">First time? Sign Up</button>
+            <button class="btn-secondary" onclick="goHome()" style="margin-top:20px;">← Back to Child Mode</button>
+        </div>
+    </main>
+
+    <main class="screen" id="screenSignup">
+        <div class="auth-container" style="padding:40px 24px;">
+            <h2 style="font-weight:850; font-size:1.8rem; color:#1e293b; margin-bottom:20px;">Setup Guardian Profile
+            </h2>
+
+            <label style="font-weight:700; color:#475569;">Your Name</label>
+            <input type="text" id="signupName" placeholder="e.g. Mom"
+                style="width:100%; padding:12px; border:1px solid #cbd5e1; border-radius:12px; margin-bottom:15px;">
+
+            <label style="font-weight:700; color:#475569;">Phone Number (for demos)</label>
+            <input type="tel" id="signupPhone" placeholder="123-456-7890"
+                style="width:100%; padding:12px; border:1px solid #cbd5e1; border-radius:12px; margin-bottom:15px;">
+
+            <label style="font-weight:700; color:#475569;">Set PIN (4 digits)</label>
+            <input type="number" id="signupPin" placeholder="****" maxlength="4"
+                style="width:100%; padding:12px; border:1px solid #cbd5e1; border-radius:12px; margin-bottom:30px;">
+
+            <button class="btn-primary" onclick="GuardianAuth.signup()">Create Account</button>
+            <button class="btn-secondary" onclick="UI.goToScreen('Login')">Back to Login</button>
+        </div>
+    </main>
+
+    <main class="screen" id="screenGuardianSettings">
+        <div class="settings-container" style="padding:24px;">
+            <h2 class="section-title">Guardian Settings</h2>
+
+            <div class="strategy-card">
+                <h3>Child's Preferences</h3>
+                <label>Favorite Keywords (for AI)</label>
+                <input type="text" id="childKeywords" placeholder="Lego, Soccer, Drawing..."
+                    style="width:100%; padding:10px; border:1px solid #e2e8f0; border-radius:8px;">
+                <button onclick="Guardian.saveSettings()" class="btn-secondary"
+                    style="margin-top:10px; width:auto;">Save</button>
+            </div>
+
+            <button class="btn-secondary" onclick="GuardianAuth.logout()"
+                style="width:100%; border:1px solid #ef4444; color:#ef4444;">Log Out</button>
+            <br><br>
+            <button class="btn-secondary" onclick="UI.goToScreen('Guardian')">← Back to Dashboard</button>
+        </div>
+    </main>
+
+    <!-- 💡 Phase 3: Enhanced Guardian Screen -->
     <main class="screen" id="screenGuardian">
-        <div class="guardian-container" style="padding:20px;">
+        <div class="guardian-container" style="padding:20px; padding-bottom:100px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                <h2 style="font-weight:850; font-size:1.5rem; color:#1e293b;">Guardian Dashboard</h2>
+                <button onclick="UI.goToScreen('GuardianSettings')"
+                    style="background:none; border:none; font-size:1.5rem;">⚙️</button>
+            </div>
+
             <!-- Crisis Alert Section -->
             <div id="guardianAlert"
                 style="display:none; background:#fee2e2; color:#b91c1c; padding:15px; border-radius:16px; margin-bottom:20px; border:1px solid #fecaca;">
@@ -190,13 +254,26 @@
                 </div>
             </div>
 
+            <!-- Weather Tabs -->
+            <div class="tracker-tabs" style="margin-bottom:15px;">
+                <button class="tracker-tab active" onclick="Guardian.renderWeather('today', this)">Today</button>
+                <button class="tracker-tab" onclick="Guardian.renderWeather('weekly', this)">Weekly</button>
+                <button class="tracker-tab" onclick="Guardian.renderWeather('monthly', this)">Monthly</button>
+            </div>
+
             <!-- Stats & Insight -->
             <div class="strategy-card" style="min-height:auto;">
-                <h3>📊 Emotional Weather</h3>
-                <div id="guardianColorMix"
-                    style="height:60px; border-radius:12px; background:linear-gradient(90deg, #fcd34d, #60a5fa); margin-bottom:10px;">
+                <h3>📊 Emotion Weather</h3>
+                <div class="chart-container" style="position:relative; height:250px; width:100%;">
+                    <canvas id="guardianChart"></canvas>
                 </div>
-                <p id="guardianInsight" style="font-size:0.9rem;">Mostly Happy this week.</p>
+                <!-- AI Insight Box -->
+                <div id="aiInsightBox"
+                    style="background:#f0f9ff; padding:15px; border-radius:12px; margin-top:15px; border:1px solid #bae6fd;">
+                    <div style="font-weight:700; color:#0284c7; margin-bottom:5px;">🤖 AI Insight</div>
+                    <p id="aiInsightText" style="font-size:0.9rem; color:#334155; line-height:1.5;">Analyzing data...
+                    </p>
+                </div>
             </div>
 
             <!-- Goal Manager -->
@@ -204,12 +281,12 @@
                 <h3>🏆 Goal Manager</h3>
                 <input type="text" id="guardianGoalInput" placeholder="Current Goal (e.g. Pizza)"
                     style="width:100%; padding:10px; border:1px solid #e2e8f0; border-radius:8px; margin-bottom:10px;">
+                <div id="suggestedGoal"
+                    style="display:none; font-size:0.85rem; color:#059669; margin-bottom:10px; cursor:pointer;">
+                    ✨ Suggestion: <span style="text-decoration:underline;">Family Movie Night</span>
+                </div>
                 <button onclick="Guardian.saveGoal()">Update Goal</button>
             </div>
-
-            <!-- Recent Timeline -->
-            <h3 class="section-title" style="margin-left:0;">Recent Activity</h3>
-            <div id="guardianTimeline"></div>
         </div>
     </main>
 

@@ -8,6 +8,7 @@ let currentEmotion = { name: '', emoji: '', intensity: 5, color: '' };
 let activeTaskId = null;
 let homeDisplayTab = new Date().getHours() < 12 ? 'morning' : 'evening';
 let currentRoutineTab = homeDisplayTab;
+let currentUser = 'child'; // 'child' or 'guardian'
 
 // 💡 New: Dynamic Greeting Logic
 function getGreeting() {
@@ -155,44 +156,201 @@ const FeelFlow = {
 };
 
 // 💡 Phase 2: Guardian Logic (Parent Mode)
-const Guardian = {
-    renderDashboard() {
-        const history = safeJSONParse('feelflow_history', []) || [];
-        const alertBox = document.getElementById('guardianAlert');
-        const alertMsg = document.getElementById('guardianAlertMsg');
-        const timeline = document.getElementById('guardianTimeline');
-        const colorMix = document.getElementById('guardianColorMix');
-        const insight = document.getElementById('guardianInsight');
+// 💡 Phase 3: Guardian Authentication & Logic
+const GuardianAuth = {
+    profile: safeJSONParse('guardian_profile', null),
 
-        // 1. Alert Check (Most recent critical)
-        const recentCritical = history[0] && ['Angry', 'Sad', 'Anxious'].includes(history[0].emotion) && history[0].intensity >= 8;
-        if (recentCritical) {
-            alertBox.style.display = 'block';
-            alertMsg.textContent = `Jason felt ${history[0].emotion} (Lv.${history[0].intensity}) at ${new Date(history[0].timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}.`;
-        } else {
-            alertBox.style.display = 'none';
+    signup() {
+        const name = document.getElementById('signupName').value;
+        const phone = document.getElementById('signupPhone').value;
+        const pin = document.getElementById('signupPin').value;
+
+        if (!name || pin.length !== 4) {
+            alert("Please enter a name and a 4-digit PIN.");
+            return;
         }
 
-        // 2. Load Goal
+        this.profile = { name, phone, pin };
+        localStorage.setItem('guardian_profile', JSON.stringify(this.profile));
+        alert("Profile Created! Please Login.");
+        UI.goToScreen('Login');
+    },
+
+    login() {
+        const inputPin = document.getElementById('loginPin').value;
+        if (!this.profile) {
+            alert("No profile found. Please Sign Up first.");
+            return;
+        }
+        if (inputPin === this.profile.pin) {
+            currentUser = 'guardian';
+            document.getElementById('loginPin').value = ''; // Clear PIN
+            UI.goToScreen('Guardian');
+            Guardian.init();
+        } else {
+            alert("Wrong PIN!");
+        }
+    },
+
+    logout() {
+        currentUser = 'child';
+        UI.goToScreen('1', getGreeting());
+    },
+
+    check() {
+        if (!this.profile) return false;
+        return true;
+    }
+};
+
+const Guardian = {
+    chartInstance: null,
+
+    init() {
+        this.renderWeather('today');
+        this.loadSettings();
+        this.generateAIInsight();
+    },
+
+    renderDashboard() {
+        // Legacy support if needed, or redirect to init
+        this.init();
+    },
+
+    // 💡 Chart.js Integration for "Emotion Weather"
+    renderWeather(type, tabEl) {
+        if (tabEl) {
+            document.querySelectorAll('.tracker-tab').forEach(t => t.classList.remove('active'));
+            tabEl.classList.add('active');
+        }
+
+        const ctx = document.getElementById('guardianChart');
+        if (!ctx) return;
+
+        // Destroy previous chart
+        if (this.chartInstance) this.chartInstance.destroy();
+
+        const history = safeJSONParse('feelflow_history', []) || [];
+        let labels = [], dataPoints = [], color = '#3b82f6', chartType = 'line';
+
+        if (type === 'today') {
+            // Today's timeline
+            const today = new Date().toDateString();
+            const todayEntries = history.filter(h => new Date(h.timestamp).toDateString() === today);
+            labels = todayEntries.map(h => new Date(h.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+            dataPoints = todayEntries.map(h => h.intensity);
+            color = '#f59e0b'; // Amber
+        } else if (type === 'weekly') {
+            // Last 7 days avg intensity
+            chartType = 'bar';
+            for (let i = 6; i >= 0; i--) {
+                const d = new Date(); d.setDate(d.getDate() - i);
+                const dateStr = d.toDateString();
+                labels.push(d.toLocaleDateString('en-US', { weekday: 'short' }));
+
+                const dayEntries = history.filter(h => new Date(h.timestamp).toDateString() === dateStr);
+                const avg = dayEntries.reduce((acc, c) => acc + (Number(c.intensity) || 0), 0) / (dayEntries.length || 1);
+                dataPoints.push(avg || 0);
+            }
+            color = '#8b5cf6'; // Violet
+        } else if (type === 'monthly') {
+            // Last 8 weeks (Simplified to 30 days for now)
+            for (let i = 29; i >= 0; i -= 3) { // Every 3 days
+                const d = new Date(); d.setDate(d.getDate() - i);
+                const iso = d.toISOString().split('T')[0];
+                labels.push(d.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric' }));
+
+                // Mock simple calculation for trend
+                const dayEntries = history.filter(h => h.timestamp.startsWith(iso));
+                const avg = dayEntries.reduce((acc, c) => acc + (Number(c.intensity) || 0), 0) / (dayEntries.length || 1);
+                dataPoints.push(avg || 0);
+            }
+            color = '#10b981'; // Emerald
+        }
+
+        this.chartInstance = new Chart(ctx, {
+            type: chartType,
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Intensity Trend',
+                    data: dataPoints,
+                    borderColor: color,
+                    backgroundColor: color + '50', // Transparent fill
+                    borderWidth: 2,
+                    tension: 0.4,
+                    fill: chartType === 'line'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { beginAtZero: true, max: 10 }
+                },
+                plugins: {
+                    legend: { display: false }
+                }
+            }
+        });
+    },
+
+    // 💡 Simulated AI Insight (Rule Logic)
+    generateAIInsight() {
+        const history = safeJSONParse('feelflow_history', []) || [];
+        const recent = history.slice(-10); // Check last 10 entries
+        const box = document.getElementById('aiInsightText');
+        const keywords = localStorage.getItem('guardian_keywords') || "";
+
+        let insight = "Not enough data yet. Encourage check-ins!";
+        let suggestion = "";
+
+        if (recent.length > 0) {
+            const sadCount = recent.filter(r => r.emotion === 'Sad').length;
+            const angryCount = recent.filter(r => r.emotion === 'Angry').length;
+            const happyCount = recent.filter(r => r.emotion === 'Happy').length;
+
+            if (sadCount >= 2) {
+                insight = "Jason has been feeling down lately. Patterns show a dip in the evenings.";
+                suggestion = keywords ? `Try doing some ${keywords.split(',')[0]} together?` : "How about a warm cocoa and a chat?";
+            } else if (angryCount >= 2) {
+                insight = "High energy emotions detected. Might be frustration from school?";
+                suggestion = "A physical activity like running or 'Push the Wall' might help release tension.";
+            } else if (happyCount >= 3) {
+                insight = "Great week! Jason is thriving.";
+                suggestion = "Celebrate with a small reward to reinforce this positive streak!";
+            } else {
+                insight = "Emotions are balanced. No major concerns.";
+                suggestion = "Maintain the routine!";
+            }
+        }
+
+        if (box) box.innerHTML = `<strong>Observation:</strong> ${insight}<br><br><strong>💡 Suggestion:</strong> ${suggestion}`;
+
+        // Update Suggested Goal UI
+        const goalEl = document.getElementById('suggestedGoal');
+        if (goalEl && suggestion) {
+            goalEl.style.display = 'block';
+            goalEl.querySelector('span').textContent = suggestion.substring(0, 30) + "...";
+            goalEl.onclick = () => {
+                document.getElementById('guardianGoalInput').value = suggestion;
+            };
+        }
+    },
+
+    saveSettings() {
+        const k = document.getElementById('childKeywords').value;
+        localStorage.setItem('guardian_keywords', k);
+        alert("Settings Saved!");
+        this.generateAIInsight(); // Refresh logic
+    },
+
+    loadSettings() {
+        const k = localStorage.getItem('guardian_keywords') || "";
+        document.getElementById('childKeywords').value = k;
+
         const savedGoal = localStorage.getItem('feelflow_goal_msg') || '';
         document.getElementById('guardianGoalInput').value = savedGoal;
-
-        // 3. Timeline
-        if (timeline) {
-            timeline.innerHTML = history.slice(0, 10).map(h => `
-                <div class="history-item" style="padding:12px; margin:0 0 10px 0;">
-                    <div style="font-size:1.5rem;">${h.emoji || '❓'}</div>
-                    <div style="flex:1;">
-                        <div style="font-weight:700; font-size:0.95rem;">${h.emotion} <span style="font-size:0.8rem; color:#94a3b8;">Lv.${h.intensity}</span></div>
-                        <div style="font-size:0.85rem; color:#64748b;">${h.note || 'No note'}</div>
-                    </div>
-                    <div style="font-size:0.75rem; color:#94a3b8;">${new Date(h.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
-                </div>
-            `).join('');
-        }
-
-        // 4. Color Mix (Simple Gradient Mock)
-        // Ideally calculate based on recent emotions
     },
 
     saveGoal() {
@@ -205,7 +363,8 @@ const Guardian = {
 
     sendSMS() {
         // Simulate SMS
-        const tel = "1234567890"; // Mock parent number
+        const profile = GuardianAuth.profile || {};
+        const tel = profile.phone || "1234567890";
         window.location.href = `sms:${tel}&body=Jason, Are you okay? I saw your check-in.`;
     },
 
@@ -214,7 +373,9 @@ const Guardian = {
         alert("Sent ❤️ validation to Jason!");
     }
 };
+
 window.Guardian = Guardian;
+window.GuardianAuth = GuardianAuth;
 
 // 5. 흐름 제어 및 내비게이션
 function goHome() {
@@ -680,7 +841,8 @@ window.menuNavigate = (target, event) => {
         'Routine': 'screenTracker',
         'Trophies': 'screenTrophies', // Renamed
         'History': 'screenJourney',   // New Screen
-        'Guardian': 'screenGuardian'  // 💡 Phase 2
+        'Guardian': 'screenGuardian',  // 💡 Phase 2
+        'GuardianSettings': 'screenGuardianSettings' // 💡 Phase 3
     };
     const tid = screenMap[target.trim()];
 
@@ -768,7 +930,35 @@ window.startOver = startOver;
 window.startQuest = startQuest;
 window.toggleMenu = function () {
     const overlay = document.getElementById('menuOverlay');
-    if (overlay) overlay.classList.toggle('active');
+    const nav = document.querySelector('.menu-content');
+
+    if (overlay && nav) {
+        overlay.classList.toggle('active');
+
+        // 💡 Dynamic Menu Rendering
+        if (overlay.classList.contains('active')) {
+            if (currentUser === 'guardian') {
+                nav.innerHTML = `
+                    <div style="padding:10px; color:#64748b; font-size:0.9rem; font-weight:700;">GUARDIAN MODE</div>
+                    <button class="menu-item" onclick="menuNavigate('Guardian', event)">📊 Dashboard</button>
+                    <button class="menu-item" onclick="menuNavigate('History', event)">📅 Child's Journey</button>
+                    <button class="menu-item" onclick="menuNavigate('GuardianSettings', event)">⚙️ Settings</button>
+                    <div style="width:100%; height:1px; background:#e2e8f0; margin:10px 0;"></div>
+                    <button class="menu-item" onclick="GuardianAuth.logout()" style="color:#ef4444;">🚪 Log Out</button>
+                `;
+            } else {
+                nav.innerHTML = `
+                    <button class="menu-item" onclick="menuNavigate('Home', event)">🏠 Home</button>
+                    <button class="menu-item" onclick="menuNavigate('Routine', event)">✅ Routine</button>
+                    <button class="menu-item" onclick="menuNavigate('Trophies', event)">🏆 Trophies</button>
+                    <button class="menu-item" onclick="menuNavigate('History', event)">📅 My Journey</button>
+                    <div style="width:100%; height:1px; background:#e2e8f0; margin:10px 0;"></div>
+                    <button class="menu-item" onclick="UI.goToScreen('Login'); toggleMenu();" 
+                        style="font-size:1.1rem; color:#64748b;">🔒 Guardian Login</button>
+                `;
+            }
+        }
+    }
 };
 
 // 💡 Restore User Interaction Listener (Critical for Audio/Haptics)

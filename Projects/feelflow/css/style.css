@@ -1600,3 +1600,74 @@ textarea {
     border: none;
     cursor: pointer;
 }
+
+/* 9. Guardian Auth & Settings Styles */
+.auth-container,
+.settings-container {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 80vh;
+    /* Center vertically */
+}
+
+input[type="password"],
+input[type="tel"],
+input[type="number"],
+input[type="text"] {
+    background: #f8fafc;
+    border: 2px solid #e2e8f0;
+    font-family: inherit;
+    font-weight: 700;
+    color: #334155;
+    outline: none;
+    transition: 0.2s;
+}
+
+input:focus {
+    border-color: #7c3aed;
+    background: white;
+}
+
+/* Chart Container */
+.chart-container {
+    position: relative;
+    width: 100%;
+    height: 250px;
+    margin-bottom: 20px;
+}
+
+/* AI Insight Box */
+#aiInsightBox {
+    background: #f0f9ff;
+    border: 1px solid #bae6fd;
+    border-radius: 16px;
+    padding: 20px;
+    color: #334155;
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+/* Guardian Home Button Override */
+.nav-home-btn.guardian-mode {
+    background: #f1f5f9;
+    color: #64748b;
+}
+
+/* Settings Card */
+.settings-card {
+    background: white;
+    padding: 20px;
+    border-radius: 20px;
+    margin-bottom: 15px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+}
+
+label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 700;
+    color: #475569;
+    font-size: 0.9rem;
+}
