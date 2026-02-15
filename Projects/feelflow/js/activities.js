@@ -129,7 +129,7 @@ const Activities = {
 
         container.className = `strategy-grid grid-${quests.length}`;
         container.innerHTML = `
-            <h3 class="section-title" style="margin-top:25px;">Recommended for you</h3>
+            <!-- 💡 Title removed to avoid duplication -->
             ${quests.map((q, idx) => `
                 <button class="bento-card ${q.tier}-tier ${idx === 0 ? 'hero-card' : ''}" 
                         onclick="Activities.setupActivity('${q.title}')" 

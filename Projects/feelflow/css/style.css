@@ -1670,4 +1670,31 @@ label {
     font-weight: 700;
     color: #475569;
     font-size: 0.9rem;
+}/* Guardian Legend */
+#guardianLegend>div {
+    background: #f8fafc;
+    padding: 4px 10px;
+    border-radius: 15px;
+    border: 1px solid #e2e8f0;
+}
+
+/* Compact Goal Manager */
+.goal-manager-compact h3 {
+    margin: 0 !important;
+    font-size: 0.95rem;
+}
+
+.goal-manager-compact input {
+    font-size: 0.9rem;
+}
+
+.goal-manager-compact button {
+    font-size: 0.9rem;
+    padding: 6px 12px;
+}
+
+/* Recent History */
+#guardianRecentHistory {
+    max-height: 300px;
+    overflow-y: auto;
 }

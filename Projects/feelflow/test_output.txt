@@ -1,0 +1,92 @@
+🔄 App Start: Resetting all routines...
+Script Execution Error: evalmachine.<anonymous>:126
+    window.addEventListener(eventType, () => {
+           ^
+
+TypeError: window.addEventListener is not a function
+    at evalmachine.<anonymous>:126:12
+    at Array.forEach (<anonymous>)
+    at evalmachine.<anonymous>:125:38
+    at Script.runInContext (node:vm:149:12)
+    at Object.runInContext (node:vm:301:6)
+    at Object.<anonymous> (/Users/joo.lee/Documents/Projects/feelflow/test_phase3_refinements.js:76:8)
+    at Module._compile (node:internal/modules/cjs/loader:1761:14)
+    at Object..js (node:internal/modules/cjs/loader:1893:10)
+    at Module.load (node:internal/modules/cjs/loader:1481:32)
+    at Module._load (node:internal/modules/cjs/loader:1300:12)
+🚀 Starting Phase 3 Refinements Test (No JSDOM)...
+❌ Failed to retrieve Guardian/GuardianAuth from context.
+Context keys: [
+  'document',
+  'console',
+  'alert',
+  'localStorage',
+  'setTimeout',
+  'location',
+  'Chart',
+  'window',
+  'UI',
+  'getGreeting',
+  'safeJSONParse',
+  'checkAndResetDailyRoutines',
+  'handleRoutineCheck',
+  'goHome',
+  'startOver',
+  'selectEmotion',
+  'startQuest',
+  'updateIntensity',
+  'goToResult',
+  'renderHomeQuests',
+  'toggleRoutineActive',
+  'deleteRoutine',
+  'renderRoutineScreen',
+  'saveRoutines',
+  'switchRoutine',
+  'toggleHomeRoutine',
+  'addCustomRoutine',
+  'editGoalMessage',
+  'renderTrophyStats',
+  'playSound',
+  'safeVibrate',
+  'resetAppInput',
+  'fetchHistory',
+  'fetchHistoryHelper',
+  'userInteracted'
+]
+Window keys: [
+  'window',
+  'UI',
+  'getGreeting',
+  'safeJSONParse',
+  'checkAndResetDailyRoutines',
+  'handleRoutineCheck',
+  'goHome',
+  'startOver',
+  'selectEmotion',
+  'startQuest',
+  'updateIntensity',
+  'goToResult',
+  'renderHomeQuests',
+  'toggleRoutineActive',
+  'deleteRoutine',
+  'renderRoutineScreen',
+  'saveRoutines',
+  'switchRoutine',
+  'toggleHomeRoutine',
+  'addCustomRoutine',
+  'editGoalMessage',
+  'renderTrophyStats',
+  'playSound',
+  'safeVibrate',
+  'resetAppInput',
+  'fetchHistory',
+  'fetchHistoryHelper',
+  'userInteracted',
+  'document',
+  'console',
+  'alert',
+  'localStorage',
+  'setTimeout',
+  'location',
+  'Chart'
+]

@@ -1,97 +1,157 @@
-
-// 🧪 Test: Phase 3 Verification
+// test_phase3_refinements.js (No JSDOM)
 const fs = require('fs');
 const vm = require('vm');
 
-console.log("🟦 Starting Phase 3 Verification...");
+const js = fs.readFileSync('js/app.js', 'utf8');
+// const uiJs = fs.readFileSync('js/ui.js', 'utf8'); // Not loading UI JS to avoid complexity
 
-// 1. Mock Browser
-const window = {
-    addEventListener: () => { },
-    localStorage: {
-        getItem: (k) => "[]",
-        setItem: (k, v) => console.log(`   [Storage] Set ${k}:`, v.length > 50 ? v.substring(0, 50) + "..." : v)
+// Mock DOM
+const mockElements = {};
+const createElement = (id) => {
+    if (!mockElements[id]) {
+        mockElements[id] = {
+            id,
+            value: '',
+            style: {},
+            classList: { add: () => { }, remove: () => { }, contains: () => false },
+            innerHTML: '',
+            textContent: '',
+            querySelector: () => null,
+            setAttribute: (k, v) => { },
+            getAttribute: (k) => null,
+            onclick: null
+        };
+    }
+    return mockElements[id];
+};
+
+const dom = {
+    getElementById: (id) => createElement(id),
+    querySelector: (sel) => {
+        if (sel === '#screen1 .section-title') return createElement('screen1_title');
+        return null;
     },
-    navigator: { vibrate: (p) => console.log("   [Haptic] Vibrate:", p) },
+    querySelectorAll: () => [],
+    createElement: () => createElement('temp'),
+    body: {
+        appendChild: () => { },
+        getAttribute: (attr) => mockElements['body'] ? mockElements['body'][attr] : null,
+        setAttribute: (attr, val) => {
+            if (!mockElements['body']) mockElements['body'] = {};
+            mockElements['body'][attr] = val;
+        }
+    },
+    addEventListener: () => { }
+};
+
+const windowMock = {
+    document: dom,
     console: console,
-    Date: Date,
-    userInteracted: true, // Simulate interaction for sound
-    UI: {
-        goToScreen: (id, title) => console.log(`   [UI] Go to ${id}, Title: "${title}"`),
-        showLegoAnimation: () => console.log("   [UI] Lego Animation Triggered")
+    alert: (msg) => console.log("🚨 ALERT:", msg),
+    localStorage: {
+        getItem: (k) => storage[k] || null,
+        setItem: (k, v) => storage[k] = v.toString(),
+        removeItem: (k) => delete storage[k],
+        clear: () => storage = {}
     },
-    FeelFlow: { medals: [] }
-};
-const document = {
-    getElementById: () => ({
-        id: 'mock', innerHTML: '', style: {}, classList: { remove: () => { }, add: () => { } }, value: ''
-    }),
-    querySelector: () => ({
-        style: {}, innerHTML: '', querySelector: () => null
-    })
+    setTimeout: (fn) => fn(),
+    location: { href: '' },
+    Chart: class {
+        constructor(ctx, config) {
+            this.config = config;
+            if (windowMock.Guardian) windowMock.Guardian.chartInstance = this;
+        }
+        destroy() { }
+    },
+    addEventListener: (event, callback) => { console.log(`[Mock] Added listener for ${event}`); }
 };
 
-global.window = window;
-global.document = document;
-global.navigator = window.navigator;
-global.localStorage = window.localStorage;
+let storage = {};
+const context = vm.createContext(windowMock);
 
-// 2. Load app.js
+// Load Scripts
 try {
-    const code = fs.readFileSync('js/app.js', 'utf8');
-    vm.runInThisContext(code);
-    console.log("✅ Loaded js/app.js");
+    vm.runInContext("window = globalThis; window.UI = { goToScreen: (s) => { document.body.setAttribute('data-screen', s); } };", context);
+    vm.runInContext(js, context);
 } catch (e) {
-    console.error("❌ Error loading app.js:", e);
+    console.error("Script Execution Error:", e);
+}
+
+// Tests
+console.log("🚀 Starting Phase 3 Refinements Test (No JSDOM)...");
+
+const { document: doc } = context;
+// Robust retrieval
+const GuardianAuth = context.window && context.window.GuardianAuth ? context.window.GuardianAuth : context.GuardianAuth;
+const Guardian = context.window && context.window.Guardian ? context.window.Guardian : context.Guardian;
+
+if (!GuardianAuth || !Guardian) {
+    console.error("❌ Failed to retrieve Guardian/GuardianAuth from context.");
+    console.log("Context keys:", Object.keys(context));
+    // console.log("Global keys:", Object.getOwnPropertyNames(context));
     process.exit(1);
 }
 
-// 3. Test Dynamic Greeting
-console.log("\n☀️ Testing Greeting...");
-try {
-    const greeting = getGreeting(); // Should be available
-    console.log(`   Greeting Output: "${greeting}"`);
-    if (!greeting.includes('Jason')) console.error("❌ Greeting missing name.");
-} catch (e) {
-    console.error("❌ getGreeting failed:", e);
+// 1. Signup Relationship
+doc.getElementById('signupName').value = "Test Mom";
+doc.getElementById('signupPin').value = "1234";
+doc.getElementById('signupRelationship').value = "Mom";
+
+console.log("👉 Signing up...");
+GuardianAuth.signup();
+
+const profile = JSON.parse(storage['guardian_profile'] || '{}');
+if (profile.relationship === 'Mom') {
+    console.log("✅ Signup Relationship saved correctly.");
+} else {
+    console.error("❌ Signup Relationship failed:", profile);
 }
 
-// 4. Test Medal/Block System
-console.log("\n🏆 Testing Block Award...");
-try {
-    // Simulate awarding a 'Block' (formerly Lego)
-    FeelFlow.addMedalProgress(0, 'block');
-    const medals = JSON.parse(localStorage.getItem('feelflow_medals'));
-    console.log("   Medals in Storage:", medals);
+// 2. Login & Dashboard Colors
+console.log("👉 Logging in...");
+doc.getElementById('loginPin').value = "1234";
+GuardianAuth.login();
 
-    if (medals.includes('Block')) console.log("✅ PASS: Awarded 'Block' successfully.");
-    else console.error("❌ FAILED: 'Block' not found in medals.");
-} catch (e) {
-    console.error("❌ Medal test failed:", e);
+// 3. Legend HTML Check
+console.log("👉 Checking Legend...");
+Guardian.init();
+const legend = doc.getElementById('guardianLegend');
+if (legend.innerHTML.includes('Happy') && legend.innerHTML.includes('#FFD93D')) {
+    console.log("✅ Legend rendered with correct colors.");
+} else {
+    console.error("❌ Legend rendering failed:", legend.innerHTML);
 }
 
-// 5. Test Haptics
-console.log("\n📳 Testing Haptics...");
-try {
-    safeVibrate(50);
-    // Expect output in console from mock
-} catch (e) {
-    console.error("❌ Haptic test failed:", e);
-}
+// 4. Chart Colors Check
+console.log("👉 Checking Chart Colors...");
+// Mock history
+const history = [
+    { emotion: 'Happy', intensity: 8, timestamp: new Date().toISOString() }
+];
+storage['feelflow_history'] = JSON.stringify(history);
 
-// 6. Test Switch Routine Haptics
-console.log("\n🔄 Testing Switch Routine...");
-try {
-    if (typeof switchRoutine === 'function') {
-        switchRoutine('evening');
-        // Expect renderRoutineScreen call and vibration
-        if (currentRoutineTab === 'evening') console.log("✅ PASS: Switched to Evening tab.");
-        else console.error("❌ FAILED: Tab did not switch.");
+Guardian.renderWeather('today');
+const chart = Guardian.chartInstance;
+
+if (chart) {
+    const pointColors = chart.config.data.datasets[0].pointBackgroundColor;
+    if (pointColors && pointColors[0] === '#FFD93D') {
+        console.log("✅ Chart point colors mapped correctly (Happy -> #FFD93D).");
     } else {
-        console.error("❌ switchRoutine not found.");
+        console.error("❌ Chart colors mismatch:", pointColors);
     }
-} catch (e) {
-    console.error("❌ switchRoutine test failed:", e);
+} else {
+    console.error("❌ Chart instance not found.");
 }
 
-console.log("\n🟦 Verification Complete.");
+// 5. Recent History Check
+console.log("👉 Checking Recent History...");
+Guardian.renderRecentHistory();
+const recentContainer = doc.getElementById('guardianRecentHistory');
+if (recentContainer.innerHTML.includes('Happy') && recentContainer.innerHTML.includes('Lv.8')) {
+    console.log("✅ Recent History rendered correctly.");
+} else {
+    console.error("❌ Recent History rendering failed.");
+}
+
+console.log("🏁 Test Complete.");

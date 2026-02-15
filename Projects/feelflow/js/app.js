@@ -164,13 +164,14 @@ const GuardianAuth = {
         const name = document.getElementById('signupName').value;
         const phone = document.getElementById('signupPhone').value;
         const pin = document.getElementById('signupPin').value;
+        const relationship = document.getElementById('signupRelationship').value; // 💡 New Field
 
         if (!name || pin.length !== 4) {
             alert("Please enter a name and a 4-digit PIN.");
             return;
         }
 
-        this.profile = { name, phone, pin };
+        this.profile = { name, phone, pin, relationship }; // 💡 Save Relationship
         localStorage.setItem('guardian_profile', JSON.stringify(this.profile));
         alert("Profile Created! Please Login.");
         UI.goToScreen('Login');
@@ -205,16 +206,45 @@ const GuardianAuth = {
 
 const Guardian = {
     chartInstance: null,
+    emotionColors: { 'Happy': '#FFD93D', 'Sad': '#6CB4EE', 'Anxious': '#A084E8', 'Angry': '#FF6B6B', 'Calm': '#6BCB77', 'Tired': '#95A5A6' },
 
     init() {
+        this.renderLegend();
         this.renderWeather('today');
         this.loadSettings();
         this.generateAIInsight();
+        this.renderRecentHistory();
     },
 
     renderDashboard() {
-        // Legacy support if needed, or redirect to init
         this.init();
+    },
+
+    renderLegend() {
+        const container = document.getElementById('guardianLegend');
+        if (!container) return;
+        container.innerHTML = Object.entries(this.emotionColors).map(([emo, color]) => `
+            <div class="emotion-legend-item" style="display:flex; align-items:center; margin-right:10px;">
+                <div style="width:10px; height:10px; border-radius:50%; background:${color}; margin-right:6px;"></div>
+                <span style="font-size:0.8rem; color:#64748b; font-weight:600;">${emo}</span>
+            </div>
+        `).join('');
+    },
+
+    renderRecentHistory() {
+        const container = document.getElementById('guardianRecentHistory');
+        if (!container) return;
+        const history = safeJSONParse('feelflow_history', []) || [];
+        const recent = history.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)).slice(0, 15);
+        container.innerHTML = recent.map(h => `
+            <div class="recent-history-item" style="display:flex; align-items:center; background:#f8fafc; padding:8px 12px; border-radius:12px; border:1px solid #f1f5f9; margin-bottom:5px;">
+                <div style="font-size:1.2rem; margin-right:12px;">${h.emoji || '❓'}</div>
+                <div style="flex:1;">
+                    <div style="font-weight:700; color:#334155; font-size:0.9rem;">${h.emotion} <span style="font-weight:400; color:#94a3b8; font-size:0.8rem;">Lv.${h.intensity}</span></div>
+                    <div style="font-size:0.75rem; color:#64748b;">${new Date(h.timestamp).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</div>
+                </div>
+            </div>
+        `).join('');
     },
 
     // 💡 Chart.js Integration for "Emotion Weather"
@@ -239,7 +269,11 @@ const Guardian = {
             const todayEntries = history.filter(h => new Date(h.timestamp).toDateString() === today);
             labels = todayEntries.map(h => new Date(h.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
             dataPoints = todayEntries.map(h => h.intensity);
-            color = '#f59e0b'; // Amber
+
+            // 💡 Map each point to its emotion color
+            pointColors = todayEntries.map(h => this.emotionColors[h.emotion] || '#94a3b8');
+
+            color = '#94a3b8'; // Neutral line color
         } else if (type === 'weekly') {
             // Last 7 days avg intensity
             chartType = 'bar';
@@ -276,10 +310,11 @@ const Guardian = {
                     label: 'Intensity Trend',
                     data: dataPoints,
                     borderColor: color,
-                    backgroundColor: color + '50', // Transparent fill
+                    backgroundColor: pointColors, // 💡 Use mapped colors
+                    pointBackgroundColor: pointColors, // 💡 Valid for line chart points
                     borderWidth: 2,
                     tension: 0.4,
-                    fill: chartType === 'line'
+                    fill: false
                 }]
             },
             options: {
@@ -312,7 +347,7 @@ const Guardian = {
 
             if (sadCount >= 2) {
                 insight = "Jason has been feeling down lately. Patterns show a dip in the evenings.";
-                suggestion = keywords ? `Try doing some ${keywords.split(',')[0]} together?` : "How about a warm cocoa and a chat?";
+                suggestion = keywords ? `Try doing some ${keywords.split(',')[0]} together ? ` : "How about a warm cocoa and a chat?";
             } else if (angryCount >= 2) {
                 insight = "High energy emotions detected. Might be frustration from school?";
                 suggestion = "A physical activity like running or 'Push the Wall' might help release tension.";
@@ -325,7 +360,7 @@ const Guardian = {
             }
         }
 
-        if (box) box.innerHTML = `<strong>Observation:</strong> ${insight}<br><br><strong>💡 Suggestion:</strong> ${suggestion}`;
+        if (box) box.innerHTML = `< strong > Observation :</strong > ${insight} < br > <br><strong>💡 Suggestion:</strong> ${suggestion}`;
 
         // Update Suggested Goal UI
         const goalEl = document.getElementById('suggestedGoal');
@@ -513,7 +548,7 @@ function renderHomeQuests() {
                 <span class="toggle-icon">${homeDisplayTab === 'morning' ? '🌅' : '🌙'}</span>
                 <span class="toggle-label" style="font-size:0.8rem; font-weight:600;">${homeDisplayTab.toUpperCase()}</span>
             </div>
-        `;
+            `;
     } else {
         // Just update the text if it exists
         const toggleIcon = titleArea.querySelector('.toggle-icon');
@@ -533,11 +568,11 @@ function renderHomeQuests() {
 
     // 2. 테스크 아이템 구조 복구 (과거 폼 유지)
     container.innerHTML = displayTasks.map(t => `
-        <div id="home-task-${t.id}" class="home-quest-item" onclick="handleRoutineCheck('${t.id}', 'home')">
-            <div class="custom-checkbox"></div>
-            <span class="routine-text">${t.text}</span>
-        </div>
-    `).join('');
+            <div id="home-task-${t.id}" class="home-quest-item" onclick="handleRoutineCheck('${t.id}', 'home')">
+                <div class="custom-checkbox"></div>
+                <span class="routine-text">${t.text}</span>
+            </div>
+            `).join('');
 }
 
 // Phase 2: Helper to toggle routine active state
@@ -605,18 +640,18 @@ function renderRoutineScreen() {
         }
 
         return `
-        <div class="routine-checkbox-item ${completedClass} ${disabledClass}" id="routine-${t.id}">
-            <div class="custom-checkbox" onclick="${checkAction}"></div>
-            <span class="routine-text" style="flex:1; font-weight:850; font-size:1.05rem;">${t.text}</span>
-            <div class="routine-controls">
-                ${controlsHtml}
+            <div class="routine-checkbox-item ${completedClass} ${disabledClass}" id="routine-${t.id}">
+                <div class="custom-checkbox" onclick="${checkAction}"></div>
+                <span class="routine-text" style="flex:1; font-weight:850; font-size:1.05rem;">${t.text}</span>
+                <div class="routine-controls">
+                    ${controlsHtml}
+                </div>
             </div>
-        </div>
-        `;
+            `;
     }).join('') + `
-        <div class="add-custom-routine">
-            <input type="text" id="customRoutineInput" placeholder="+ Add a task..." onkeypress="if(event.key === 'Enter') addCustomRoutine(this.value)">
-        </div>`;
+            <div class="add-custom-routine">
+                <input type="text" id="customRoutineInput" placeholder="+ Add a task..." onkeypress="if(event.key === 'Enter') addCustomRoutine(this.value)">
+            </div>`;
 
     UI.updateNavActive('navRoutine');
 }
@@ -735,39 +770,39 @@ function renderTrophyStats() {
     if (!content) return;
 
     content.innerHTML = `
-        <!-- 1. Goal Card (Top) - Clean Design -->
-        <div class="progress-card" style="margin-bottom:20px; padding:20px; background:white; border:1px solid #e2e8f0; border-radius:24px; position:relative; box-shadow:0 10px 25px rgba(0,0,0,0.05);">
-            <button onclick="editGoalMessage()" style="position:absolute; top:15px; right:15px; background:#f1f5f9; border:none; border-radius:50%; width:30px; height:30px; color:#64748b; font-size:1rem; cursor:pointer;">✏️</button>
-            <div style="font-weight:850; font-size:1.1rem; margin-bottom:10px; color:#1e293b;">🎁 Current Goal</div>
-            
-            <div style="font-size:1.05rem; margin-bottom:15px; color:#334155; font-weight:600;">${goalMsg}</div>
-            
-            <div style="display:flex; justify-content:space-between; font-size:0.85rem; margin-bottom:6px; color:#64748b;">
-                <span>Progress (Gold)</span>
-                <span>${goldCount}/${targetGold}</span>
-            </div>
-            <div class="progress-bar-bg" style="height:12px; background:#f1f5f9; border-radius:6px; overflow:hidden;">
-                <div style="width:${Math.min((goldCount / targetGold) * 100, 100)}%; height:100%; background:linear-gradient(90deg, #fbbf24, #d97706); transition:0.5s;"></div>
-            </div>
-        </div>
+            <!-- 1. Goal Card (Top) - Clean Design -->
+            <div class="progress-card" style="margin-bottom:20px; padding:20px; background:white; border:1px solid #e2e8f0; border-radius:24px; position:relative; box-shadow:0 10px 25px rgba(0,0,0,0.05);">
+                <button onclick="editGoalMessage()" style="position:absolute; top:15px; right:15px; background:#f1f5f9; border:none; border-radius:50%; width:30px; height:30px; color:#64748b; font-size:1rem; cursor:pointer;">✏️</button>
+                <div style="font-weight:850; font-size:1.1rem; margin-bottom:10px; color:#1e293b;">🎁 Current Goal</div>
 
-        <!-- 2. Medal Stats (4-Column Grid with Lego) -->
-        <div class="medal-grid" style="display:grid; grid-template-columns:repeat(4, 1fr); gap:8px; margin-bottom:20px; text-align:center;">
-            <div class="medal-slot">🥇<br><strong>${goldCount}</strong><div class="label">Gold</div></div>
-            <div class="medal-slot">🥈<br><strong>${silverCount}</strong><div class="label">Silver</div></div>
-            <div class="medal-slot">🥉<br><strong>${bronzeCount}</strong><div class="label">Bronze</div></div>
-            <div class="medal-slot">🧱<br><strong>${legoCount}</strong><div class="label">Block</div></div>
-        </div>
-        
-        <!-- 3. Conversion Rules & Custom Logic -->
-        <div style="background:#f8fafc; padding:15px; border-radius:16px; margin-bottom:20px; font-size:0.85rem; color:#64748b; line-height:1.6;">
-            <strong>ℹ️ Conversion Rules:</strong><br>
-            • 5 Days Complete = 1 Building Block 🧱<br>
-            • 10 Custom Tasks = 1 Bronze Medal 🥉<br>
-            • 10 Bronze Medals = 1 Silver Medal 🥈<br>
-            • 5 Silver Medals = 1 Gold Medal 🥇
-        </div>
-        `;
+                <div style="font-size:1.05rem; margin-bottom:15px; color:#334155; font-weight:600;">${goalMsg}</div>
+
+                <div style="display:flex; justify-content:space-between; font-size:0.85rem; margin-bottom:6px; color:#64748b;">
+                    <span>Progress (Gold)</span>
+                    <span>${goldCount}/${targetGold}</span>
+                </div>
+                <div class="progress-bar-bg" style="height:12px; background:#f1f5f9; border-radius:6px; overflow:hidden;">
+                    <div style="width:${Math.min((goldCount / targetGold) * 100, 100)}%; height:100%; background:linear-gradient(90deg, #fbbf24, #d97706); transition:0.5s;"></div>
+                </div>
+            </div>
+
+            <!-- 2. Medal Stats (4-Column Grid with Lego) -->
+            <div class="medal-grid" style="display:grid; grid-template-columns:repeat(4, 1fr); gap:8px; margin-bottom:20px; text-align:center;">
+                <div class="medal-slot">🥇<br><strong>${goldCount}</strong><div class="label">Gold</div></div>
+                <div class="medal-slot">🥈<br><strong>${silverCount}</strong><div class="label">Silver</div></div>
+                <div class="medal-slot">🥉<br><strong>${bronzeCount}</strong><div class="label">Bronze</div></div>
+                <div class="medal-slot">🧱<br><strong>${legoCount}</strong><div class="label">Block</div></div>
+            </div>
+
+            <!-- 3. Conversion Rules & Custom Logic -->
+            <div style="background:#f8fafc; padding:15px; border-radius:16px; margin-bottom:20px; font-size:0.85rem; color:#64748b; line-height:1.6;">
+                <strong>ℹ️ Conversion Rules:</strong><br>
+                    • 5 Days Complete = 1 Building Block 🧱<br>
+                        • 10 Custom Tasks = 1 Bronze Medal 🥉<br>
+                            • 10 Bronze Medals = 1 Silver Medal 🥈<br>
+                                • 5 Silver Medals = 1 Gold Medal 🥇
+                            </div>
+                            `;
 }
 
 // 💡 Fix: Robust Audio Check (Prevents crash if Audio API is missing)
