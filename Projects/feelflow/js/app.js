@@ -10,23 +10,7 @@ let homeDisplayTab = new Date().getHours() < 12 ? 'morning' : 'evening';
 let currentRoutineTab = homeDisplayTab;
 
 // 2. 통합 루틴 데이터 구조 (전체 목록 유지)
-// 💡 [Fix] 24시간 리셋 로직
-function checkAndResetDailyRoutines() {
-    const lastDate = localStorage.getItem('feelflow_last_date');
-    const today = new Date().toDateString();
 
-    // 💡 [Req] Always reset routines on app start
-    console.log("🔄 App Start: Resetting all routines...");
-    const routines = JSON.parse(localStorage.getItem('feelflow_routines')) || DailyRoutines;
-    if (routines) {
-        if (routines.morning) routines.morning.forEach(t => t.completed = false);
-        if (routines.evening) routines.evening.forEach(t => t.completed = false);
-        localStorage.setItem('feelflow_routines', JSON.stringify(routines));
-        DailyRoutines = routines;
-    }
-    localStorage.setItem('feelflow_last_date', today);
-}
-checkAndResetDailyRoutines();
 
 
 let DailyRoutines = JSON.parse(localStorage.getItem('feelflow_routines')) || {
@@ -48,6 +32,24 @@ let DailyRoutines = JSON.parse(localStorage.getItem('feelflow_routines')) || {
         { id: 'e5', text: '💤 Screens Off & Relax', completed: false }
     ]
 };
+
+// 💡 [Must run AFTER DailyRoutines is defined]
+function checkAndResetDailyRoutines() {
+    const lastDate = localStorage.getItem('feelflow_last_date');
+    const today = new Date().toDateString();
+
+    // 💡 [Req] Always reset routines on app start
+    console.log("🔄 App Start: Resetting all routines...");
+
+    // Use the global DailyRoutines if storage is empty or needs reset
+    if (DailyRoutines) {
+        if (DailyRoutines.morning) DailyRoutines.morning.forEach(t => t.completed = false);
+        if (DailyRoutines.evening) DailyRoutines.evening.forEach(t => t.completed = false);
+        localStorage.setItem('feelflow_routines', JSON.stringify(DailyRoutines));
+    }
+    localStorage.setItem('feelflow_last_date', today);
+}
+checkAndResetDailyRoutines();
 
 // ... (skip down to handleRoutineCheck) ...
 
