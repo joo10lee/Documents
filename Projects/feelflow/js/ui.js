@@ -2,19 +2,17 @@
  * UI 관리 모듈: 화면 전환, 네비게이션, 날씨 및 히스토리/차트 렌더링 담당
  */
 const UI = {
-    // 1. 화면 전환 함수 (ID 정규화 및 히스토리 기록)
+    // 1. 화면 전환 함수 (히스토리 스택 정규화)
     goToScreen(screenId, title) {
-        // 'screen4'든 '4'든 '4'로 정규화하여 처리
         const cleanId = screenId.toString().replace('screen', '');
         this.renderScreen(cleanId, title);
 
-        // 브라우저 히스토리에 정규화된 상태 저장
         const state = { screenId: cleanId, title: title };
         window.history.pushState(state, "", ""); 
-        console.log(`📍 History Pushed: ${cleanId}`);
+        console.log(`📍 History Pushed: screen${cleanId}`);
     },
 
-    // 💡 화면 렌더링 (DOM 조작)
+    // 💡 화면 렌더링 로직 (DOM 조작)
     renderScreen(screenId, title) {
         const cleanId = screenId.toString().replace('screen', '');
         console.log(`🎨 화면 렌더링: screen${cleanId}`);
@@ -31,28 +29,29 @@ const UI = {
             window.scrollTo(0, 0);
         }
 
-        // 활동 화면이 아닌 곳으로 이동 시 활동 중단
         if (cleanId !== 'Activity' && cleanId !== 'screenActivity' && window.Activities?.stopAll) {
             window.Activities.stopAll();
         }
     },
 
-    // 💡 인앱 백 버튼 (히스토리 상태 체크 강화)
+    // 💡 백 버튼 (상태 체크 강화)
     back() {
         console.log("🔙 Back Button Clicked");
-        if (window.history.state && window.history.length > 1) {
+        if (window.history.length > 1) {
             window.history.back();
         } else {
             this.goToScreen('1', 'How are you feeling?');
         }
     },
 
+    // 2. 하단 네비게이션 활성화 상태 업데이트
     updateNavActive(navId) {
         document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
         const activeBtn = document.getElementById(navId);
         if (activeBtn) activeBtn.classList.add('active');
     },
 
+    // 3. 7일 트렌드 차트 렌더링 (전체 로직 복구)
     renderEmotionChart(history) {
         setTimeout(() => {
             const ctx = document.getElementById('emotionChart');
@@ -82,24 +81,19 @@ const UI = {
                         backgroundColor: 'rgba(124, 58, 237, 0.1)',
                         borderWidth: 3,
                         tension: 0.4,
-                        fill: true,
-                        pointBackgroundColor: '#7c3aed',
-                        pointRadius: 5
+                        fill: true, pointBackgroundColor: '#7c3aed', pointRadius: 5
                     }]
                 },
                 options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: { beginAtZero: true, max: 10, ticks: { stepSize: 2 } },
-                        x: { grid: { display: false } }
-                    },
+                    responsive: true, maintainAspectRatio: false,
+                    scales: { y: { beginAtZero: true, max: 10, ticks: { stepSize: 2 } }, x: { grid: { display: false } } },
                     plugins: { legend: { display: false } }
                 }
             });
         }, 300);
     },
 
+    // 4. 감정 기록 리스트 렌더링 (전체 로직 복구)
     renderHistory(history) {
         const container = document.getElementById('historyList');
         if (!container) return;
@@ -132,6 +126,7 @@ const UI = {
         }).join('');
     },
 
+    // 5. 날씨 시스템
     getWeatherInfo(code, temp) {
         const weatherMap = { 0: '☀️', 3: '☁️', 61: '🌧️' };
         const icon = weatherMap[code] || '🌤️';
@@ -144,6 +139,9 @@ const UI = {
         if (document.getElementById('weatherTemp')) document.getElementById('weatherTemp').textContent = `${temp}°F`;
         if (document.getElementById('weatherIcon')) document.getElementById('weatherIcon').textContent = icon;
         if (document.getElementById('weatherTipText')) document.getElementById('weatherTipText').textContent = tip;
+        const now = new Date();
+        if (document.getElementById('weatherDate')) document.getElementById('weatherDate').textContent = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        if (document.getElementById('weatherDay')) document.getElementById('weatherDay').textContent = now.toLocaleDateString('en-US', { weekday: 'long' });
     },
 
     async fetchWeatherByCity() {
@@ -157,24 +155,35 @@ const UI = {
 
 /**
  * 🧠 지능형 전략 렌더러 (Fixed Ver.0215)
+ * Happy 1-2 로직 및 함수 이름(startQuest) 통일
  */
 window.renderStrategies = function(emotionName, intensity) {
     const container = document.getElementById('strategiesContainer');
     if (!container) return;
 
-    // 대소문자 및 타입 보정
     const name = emotionName ? emotionName.toString().trim().toLowerCase() : "";
-    const level = Number(intensity);
-
-    console.log(`🔍 [Strategy Logic] Emotion: ${name}, Level: ${level}`);
+    const level = parseInt(intensity);
+    console.log(`🔍 [Strategy Logic] Name: ${name}, Level: ${level}`);
 
     let strategyHtml = "";
 
     if (name === 'happy' || name === '😊') {
-        if (level > 2) {
+        if (level <= 2) {
+            // [Happy & Level 1-2] 🌱 SMALL JOY
+            strategyHtml = `
+                <div class="bento-card hero-card" onclick="startQuest('HappyNote', 'Happy Note')">
+                    <span class="recommend-tag">SMALL JOY</span>
+                    <span class="quest-icon">🌱</span>
+                    <div class="quest-info">
+                        <div class="quest-title">Happy Note</div>
+                        <div style="font-size:0.8rem; opacity:0.9;">What made you smile a little?</div>
+                    </div>
+                </div>`;
+        } else {
+            // [Happy & Level 3+] ✍️ JOY JOURNEY
             strategyHtml = `
                 <div class="strategy-grid">
-                    <div class="bento-card hero-card" onclick="startActivity('Happy Note')">
+                    <div class="bento-card hero-card" onclick="startQuest('HappyNote', 'Happy Note')">
                         <span class="recommend-tag">WRITE</span>
                         <span class="quest-icon">✍️</span>
                         <div class="quest-info">
@@ -183,21 +192,10 @@ window.renderStrategies = function(emotionName, intensity) {
                         </div>
                     </div>
                 </div>`;
-        } else {
-            // ✅ Happy Level 1, 2일 때 실행될 구간
-            strategyHtml = `
-                <div class="bento-card hero-card" onclick="startActivity('Happy Note')">
-                    <span class="recommend-tag">SMALL JOY</span>
-                    <span class="quest-icon">🌱</span>
-                    <div class="quest-info">
-                        <div class="quest-title">Happy Note</div>
-                        <div style="font-size:0.8rem; opacity:0.9;">What made you smile a little?</div>
-                    </div>
-                </div>`;
         }
     } else {
         strategyHtml = `
-            <div class="bento-card" onclick="startActivity('Deep Breath')">
+            <div class="bento-card" onclick="startQuest('DeepBreath', 'Deep Breath')">
                 <span class="quest-icon">🌬️</span>
                 <div class="quest-info">
                     <div class="quest-title">Deep Breath</div>
@@ -212,7 +210,6 @@ window.renderStrategies = function(emotionName, intensity) {
 // 💡 브라우저/하드웨어 백 버튼 클릭 시 실행
 window.onpopstate = function(event) {
     if (event.state && event.state.screenId) {
-        console.log("🔙 Popstate: Loading Screen", event.state.screenId);
         UI.renderScreen(event.state.screenId, event.state.title);
     } else {
         UI.renderScreen('1', 'How are you feeling?');
