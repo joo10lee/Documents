@@ -58,7 +58,9 @@ const Activities = {
             this.currentStream.getTracks().forEach(track => track.stop());
             this.currentStream = null;
         }
-        if (navigator.vibrate) navigator.vibrate(0);
+        if (navigator.vibrate) {
+            try { navigator.vibrate(0); } catch (e) { }
+        }
     },
 
     // 3. 🧠 [Master] 지능형 전략 렌더러 (매핑 오류 & 강도 분기 해결)
