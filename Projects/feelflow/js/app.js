@@ -177,6 +177,17 @@ function startOver() {
 function selectEmotion(name, emoji, color) {
     if (window.Activities) window.Activities.initAudio();
     currentEmotion = { name, emoji, color, intensity: 5 };
+
+    // 💡 [Fix] Update Screen 2 DOM
+    const emojiEl = document.getElementById('selectedEmoji');
+    const nameEl = document.getElementById('selectedName');
+    if (emojiEl) emojiEl.textContent = emoji;
+    if (nameEl) nameEl.textContent = name;
+    const slider = document.getElementById('intensitySlider');
+    if (slider) slider.value = 5;
+    const display = document.getElementById('intensityDisplay');
+    if (display) display.textContent = '5';
+
     UI.goToScreen('2', "How strong is it?");
 }
 
