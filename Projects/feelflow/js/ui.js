@@ -197,6 +197,73 @@ const UI = {
     }
 };
 
+/**
+ * 🧠 지능형 전략 렌더러 (Ver.0215-1500)
+ * 제이슨의 감정 상태를 분석하여 맞춤형 미션 카드를 생성합니다.
+ */
+window.renderStrategies = function(emotionName, intensity) {
+    const container = document.getElementById('strategiesContainer');
+    if (!container) return;
+
+    let strategyHtml = "";
+
+    if (emotionName === 'Happy') {
+        if (intensity > 2) {
+            // [Happy & High Intensity]: 조이 저니(하이브리드) 제안
+            strategyHtml = `
+                <div class="strategy-grid">
+                    <div class="bento-card hero-card" onclick="startActivity('Happy Note')">
+                        <span class="recommend-tag">WRITE</span>
+                        <span class="quest-icon">✍️</span>
+                        <div class="quest-info">
+                            <div class="quest-title">Happy Note</div>
+                            <div style="font-size:0.8rem; opacity:0.9;">Write your joy + Add Photo</div>
+                        </div>
+                    </div>
+                    <div class="bento-card silver-tier" onclick="startActivity('Share the Joy')">
+                        <span class="recommend-tag">SHARE</span>
+                        <span class="quest-icon">📢</span>
+                        <div class="quest-info">
+                            <div class="quest-title">Share Joy</div>
+                            <div style="font-size:0.8rem; opacity:0.9;">Send a smile to Joo!</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        } else {
+            // [Happy & Low Intensity]: 소소한 기록 제안
+            strategyHtml = `
+                <div class="bento-card hero-card" onclick="startActivity('Happy Note')">
+                    <span class="recommend-tag">BEST</span>
+                    <span class="quest-icon">🌱</span>
+                    <div class="quest-info">
+                        <div class="quest-title">Small Joy</div>
+                        <div style="font-size:0.8rem; opacity:0.9;">What made you smile a little?</div>
+                    </div>
+                </div>
+            `;
+        }
+    } else {
+        // [다른 감정들]: 기본 가이드 노출
+        strategyHtml = `
+            <div class="bento-card" onclick="startActivity('Deep Breath')">
+                <span class="quest-icon">🌬️</span>
+                <div class="quest-info">
+                    <div class="quest-title">Deep Breath</div>
+                    <div style="font-size:0.8rem; color:#64748b;">Let's calm down together.</div>
+                </div>
+            </div>
+        `;
+    }
+
+    // 최종 컨테이너에 주입
+    container.innerHTML = `
+        <h3 class="section-title" style="margin-top:25px;">Recommended for you</h3>
+        ${strategyHtml}
+    `;
+};
+
+
 // 전역 등록
 // 💡 브라우저/하드웨어 백 버튼 클릭 시 실행
 window.onpopstate = function(event) {

@@ -20,7 +20,7 @@
     <script>
         window.onload = function() {
             // 💡 끝에 "); 가 빠져있어 문장이 닫히지 않았습니다. 이를 수정합니다.
-            console.log("FeelFlow 인프라 Ver.0214-1502"); 
+            console.log("FeelFlow 인프라 Ver.0214-1611"); 
         
             if ('serviceWorker' in navigator) {
                 // 상대 경로인 './sw.js'를 사용하여 깃허브 페이지 배포 호환성을 높입니다.
@@ -35,12 +35,12 @@
             }
         };
     </script>  
-    <title>FeelFlow - Build Ver.0214-1502</title>
+    <title>FeelFlow - Build Ver.0214-1611</title>
 </head>
 <body>
     <header class="app-header">
         <div class="header-status">
-            <span></span> <span class="build-tag">Ver.0214-1502</span>
+            <span></span> <span class="build-tag">Ver.0214-1611</span>
         </div>
         <div class="header-main">
             <h1 class="greeting">Hey Joo, <br>how's it going?</h1>
@@ -109,23 +109,30 @@
     <main class="screen" id="screen2">
         <div class="intensity-screen">
             <div class="intensity-card">
-                <div class="selected-emotion-display" id="selectedEmoji">😊</div>
-                <div class="selected-emotion-name" id="selectedName">Happy</div>
-                <p class="intensity-question">How strong is this feeling?</p>
+                <div class="selected-emotion-display" id="selectedEmoji" style="font-size: 5rem;">😊</div>
+                <div class="selected-emotion-name" id="selectedName" style="font-size: 1.5rem; font-weight: 850;">Happy</div>
+                
+                <p class="intensity-question" style="margin-top: 20px; color: #64748b;">How strong is this feeling?</p>
+                
                 <div class="intensity-display" id="intensityDisplay">5</div>
+                
                 <input type="range" min="1" max="10" value="5" class="intensity-slider" id="intensitySlider" oninput="updateIntensity(this.value)">
-                <div class="slider-labels"><span>Mild</span><span>Very Strong</span></div>
+                
+                <div class="slider-labels" style="display: flex; justify-content: space-between; padding: 0 10px; font-size: 0.8rem; font-weight: 600;">
+                    <span>Mild</span>
+                    <span>Very Strong</span>
+                </div>
             </div>
             
             <div class="note-container" style="margin-top: 20px;">
-                <textarea id="emotionNote" placeholder="What's on your mind? (Optional)"></textarea>
+                <textarea id="actionNote" placeholder="What happened? (Optional)"></textarea>
             </div>
             
             <button class="btn-primary" onclick="goToResult()">Next</button>
-            <button class="btn btn-secondary" onclick="UI.back()">← Back</button>
+            <button class="btn-secondary" onclick="UI.back()" style="background:none; border:none; color:#64748b; margin-top:10px;">← Back</button>
         </div>
     </main>
-
+    
     <main class="screen" id="screen4">
         <div class="result-summary-bar" id="resultSummaryBar">
             <span id="summaryEmoji"></span>

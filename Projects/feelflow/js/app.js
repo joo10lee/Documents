@@ -311,15 +311,15 @@ function goToResult() {
     if (summaryEmoji) summaryEmoji.textContent = currentEmotion.emoji;
     if (summaryText) summaryText.textContent = `${currentEmotion.name} at Level ${currentEmotion.intensity}`;
     
-    // 강도에 따른 배경색 반투명 처리 (기존 로직 스티칭)
     if (summaryBar && currentEmotion.color) {
         summaryBar.style.backgroundColor = `${currentEmotion.color}20`; 
         summaryBar.style.borderColor = currentEmotion.color;
     }
 
-    // 2. 해당 감정에 맞는 추천 전략 렌더링 (ui.js 연동)
+    // 2. [수정됨] 감정 이름과 함께 '강도'도 함께 전달합니다.
+    // 이래야 Happy가 1일 때와 8일 때 다른 카드가 나옵니다!
     if (typeof window.renderStrategies === 'function') {
-        window.renderStrategies(currentEmotion.name);
+        window.renderStrategies(currentEmotion.name, currentEmotion.intensity);
     }
 
     // 3. 4번 화면(Strategies/Result)으로 이동

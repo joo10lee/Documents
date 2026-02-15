@@ -411,6 +411,62 @@ const Activities = {
 };
 
 /**
+ * 🚀 FeelFlow 통합 활동 엔진
+ */
+window.startActivity = function(mode) {
+    UI.goToScreen('screenActivity', mode);
+    const actionArea = document.getElementById('inAppActionArea');
+    const finishBtn = document.getElementById('activityBtn');
+    
+    // 1. 플레이스홀더 질문 (말문 터주기 넛지)
+    const prompts = [
+        "What made you smile just now?",
+        "Who are you with today?",
+        "Is it a small joy or a BIG joy?",
+        "Where are you feeling this happiness?"
+    ];
+    const randomPrompt = prompts[Math.floor(Math.random() * prompts.length)];
+
+    if (mode === 'Happy Note') {
+        // [Happy Note 모드]: 텍스트 우선
+        actionArea.innerHTML = `
+            <div class="workspace">
+                <textarea id="actionNote" placeholder="${randomPrompt}" oninput="revealOptions()"></textarea>
+                <div id="hiddenOptions" class="hidden-fade" style="opacity:0; margin-top:15px;">
+                    <div style="display:flex; gap:10px; justify-content:center;">
+                        <button class="option-btn bounce-in" onclick="openCamera()">📸 Add Photo</button>
+                        <button class="option-btn bounce-in" onclick="toggleShare()">📢 Share with Joo</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        finishBtn.textContent = "Save in my Book 📔";
+    } else {
+        // [Share the Joy 모드]: 사진/공유 우선
+        actionArea.innerHTML = `
+            <div class="workspace">
+                <p style="font-weight:850; color:#7c3aed; margin-bottom:15px;">Sharing joy with Joo (Dad) 📢</p>
+                <div class="choice-row">
+                    <div class="big-choice" onclick="openCamera()">📸<br>Photo</div>
+                    <div class="big-choice" onclick="focusNote()">✍️<br>Message</div>
+                </div>
+                <textarea id="actionNote" class="mini-note" placeholder="Add a short caption..." style="display:none;"></textarea>
+            </div>
+        `;
+        finishBtn.textContent = "Send to Joo! 🚀";
+    }
+};
+
+// 💡 넛지: 글을 쓰기 시작하면 카메라/공유 버튼이 스르륵 나타남
+function revealOptions() {
+    const options = document.getElementById('hiddenOptions');
+    const note = document.getElementById('actionNote').value;
+    if (note.length > 2) {
+        options.style.opacity = "1";
+        options.style.transform = "translateY(0)";
+    }
+}
+/**
  * 💓 Safe Vibrate Wrapper
  * 사용자 제스처 없이 호출되어 브라우저가 차단하는 것을 방어합니다.
  */
