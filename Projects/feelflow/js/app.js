@@ -563,9 +563,7 @@ window.menuNavigate = (target, event) => {
         if (tid === 'screenTracker') setTimeout(renderRoutineScreen, 100);
         if (tid === 'screenHistory') setTimeout(renderTrophyStats, 100);
         if (tid === 'screenSettings') {
-            // Need to fetch history. UI.renderHistory needs data.
             if (window.EmotionAPI && window.EmotionAPI.fetchHistory) {
-                // 💡 [수정] fetchHistory는 비동기 함수임
                 EmotionAPI.fetchHistory().then(history => {
                     if (window.UI && window.UI.renderHistory) {
                         UI.renderHistory(history);
@@ -575,6 +573,36 @@ window.menuNavigate = (target, event) => {
         }
     } else { goHome(); }
 };
+
+// 💡 Phase 2.5: Global EmotionAPI Definition (moved out of menuNavigate)
+async function fetchHistory() {
+    let history = JSON.parse(localStorage.getItem('feelflow_history')) || [];
+
+    // 💡 If empty, restore some sample data for "My Journey" (User req)
+    if (history.length === 0) {
+        history = [
+            { timestamp: "2026-02-14T10:30:00", emotion: "Happy", emoji: "😊", intensity: 7, note: "Played soccer with friends!", photo: null },
+            { timestamp: "2026-02-14T18:00:00", emotion: "Proud", emoji: "😎", intensity: 9, note: "Finished my lego castle", photo: null },
+            { timestamp: "2026-02-13T20:15:00", emotion: "Calm", emoji: "😌", intensity: 5, note: "Reading before bed", photo: null }
+        ];
+        localStorage.setItem('feelflow_history', JSON.stringify(history));
+    }
+    return history;
+}
+
+const EmotionAPI = {
+    saveCheckIn: async (data) => {
+        let history = JSON.parse(localStorage.getItem('feelflow_history')) || [];
+        history.push(data);
+        localStorage.setItem('feelflow_history', JSON.stringify(history));
+        return true;
+    },
+    fetchHistory: fetchHistory
+};
+global.EmotionAPI = EmotionAPI;
+window.EmotionAPI = EmotionAPI;
+
+
 
 window.initApp = function () {
     if (window.UI) window.UI.fetchWeatherByCity();
