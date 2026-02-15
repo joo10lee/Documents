@@ -483,40 +483,42 @@ function renderTrophyStats() {
     if (!content) return;
 
     content.innerHTML = `
-        <div class="medal-grid" style="display:grid; grid-template-columns:repeat(3, 1fr); gap:12px;">
-            <div class="medal-slot">🥇<br><strong>${goldCount}</strong><div class="label">Gold</div></div>
-            <div class="medal-slot">🥈<br><strong>${silverCount}</strong><div class="label">Silver</div></div>
-            <div class="medal-slot" style="background:${bonusBronze > 0 ? '#fff3e0' : '#f8fafc'}">🥉<br><strong>${bronzeCount}</strong><div class="label">Bronze</div></div>
-        </div>
-        
-        <div class="custom-stats-card" style="margin-top:10px; padding:15px; background:white; border-radius:20px; box-shadow:0 4px 10px rgba(0,0,0,0.03); border:1px solid #f1f5f9;">
-             <div style="font-size:0.9rem; font-weight:700; color:#475569; display:flex; justify-content:space-between;">
-                <span>🎯 Custom Challenges</span>
-                <span>${customCount} Done</span>
-             </div>
-             <div style="font-size:0.75rem; color:#94a3b8; margin-top:5px;">
-                10 Challenges = 1 Bronze Medal (Current Bonus: +${bonusBronze})
-             </div>
-        </div>
-
-        <div class="progress-card" style="margin-top:20px; padding:20px; background:linear-gradient(135deg, #1e293b 0%, #0f172a 100%); color:white; border-radius:24px; position:relative;">
-            <button onclick="editGoalMessage()" style="position:absolute; top:15px; right:15px; background:rgba(255,255,255,0.2); border:none; border-radius:50%; width:24px; height:24px; color:white; font-size:0.8rem; cursor:pointer;">✏️</button>
-            <div style="font-weight:850; font-size:1.1rem; margin-bottom:15px;">🎁 Next Goal</div>
+        <!-- 1. Goal Card (Top) - Clean Design -->
+        <div class="progress-card" style="margin-bottom:20px; padding:20px; background:white; border:1px solid #e2e8f0; border-radius:24px; position:relative; box-shadow:0 10px 25px rgba(0,0,0,0.05);">
+            <button onclick="editGoalMessage()" style="position:absolute; top:15px; right:15px; background:#f1f5f9; border:none; border-radius:50%; width:30px; height:30px; color:#64748b; font-size:1rem; cursor:pointer;">✏️</button>
+            <div style="font-weight:850; font-size:1.1rem; margin-bottom:10px; color:#1e293b;">🎁 Current Goal</div>
             
-            <div style="font-size:1rem; margin-bottom:5px; opacity:0.9;">${goalMsg}</div>
+            <div style="font-size:1.05rem; margin-bottom:15px; color:#334155; font-weight:600;">${goalMsg}</div>
             
-            <div style="display:flex; justify-content:space-between; font-size:0.8rem; margin-bottom:5px; opacity:0.7;">
+            <div style="display:flex; justify-content:space-between; font-size:0.85rem; margin-bottom:6px; color:#64748b;">
                 <span>Progress (Gold)</span>
                 <span>${goldCount}/${targetGold}</span>
             </div>
-            <div class="progress-bar-bg" style="height:10px; background:rgba(255,255,255,0.2); border-radius:5px; overflow:hidden;">
-                <div style="width:${Math.min((goldCount / targetGold) * 100, 100)}%; height:100%; background:#FFD700; transition:0.5s;"></div>
+            <div class="progress-bar-bg" style="height:12px; background:#f1f5f9; border-radius:6px; overflow:hidden;">
+                <div style="width:${Math.min((goldCount / targetGold) * 100, 100)}%; height:100%; background:linear-gradient(90deg, #fbbf24, #d97706); transition:0.5s;"></div>
             </div>
         </div>
+
+        <!-- 2. Medal Stats -->
+        <div class="medal-grid" style="display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; margin-bottom:20px;">
+            <div class="medal-slot">🥇<br><strong>${goldCount}</strong><div class="label">Gold</div></div>
+            <div class="medal-slot">🥈<br><strong>${silverCount}</strong><div class="label">Silver</div></div>
+            <div class="medal-slot" style="background:${bonusBronze > 0 ? '#fff7ed' : '#f8fafc'}">🥉<br><strong>${bronzeCount}</strong><div class="label">Bronze</div></div>
+        </div>
         
-        <div class="lego-status" style="margin-top:20px; text-align:center;">
-             <div style="font-size:2rem; margin-bottom:5px;">🧱 x ${legoCount}</div>
-             <div style="font-size:0.85rem; color:#64748b;">Lego Blocks Collected</div>
+        <!-- 3. Conversion Rules & Custom Logic -->
+        <div style="background:#f8fafc; padding:15px; border-radius:16px; margin-bottom:20px; font-size:0.85rem; color:#64748b; line-height:1.5;">
+            <strong>ℹ️ Conversion Rules:</strong><br>
+            • 5 Days Complete = 1 Lego Block 🧱<br>
+            • 10 Custom Tasks = 1 Bronze Medal 🥉<br>
+            • (Silver/Gold based on Emotion Intensity)
+        </div>
+
+        <!-- 4. Lego Box (High Visibility) -->
+        <div class="lego-status" style="text-align:center; background:#fffbeb; padding:20px; border-radius:24px; border:2px solid #fcd34d;">
+             <div style="font-size:3rem; margin-bottom:5px; text-shadow:0 2px 5px rgba(0,0,0,0.1);">🧱 x ${legoCount}</div>
+             <div style="font-size:0.9rem; font-weight:700; color:#b45309;">Lego Blocks Collected</div>
+             <div style="font-size:0.75rem; color:#d97706; margin-top:5px;">Keep building your set!</div>
         </div>
         `;
 }
