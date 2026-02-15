@@ -436,6 +436,7 @@ function saveRoutines() {
 
 function switchRoutine(type) {
     currentRoutineTab = type;
+    safeVibrate(15); // 💡 Phase 3: Haptic Feedback
     renderRoutineScreen();
 }
 

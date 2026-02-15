@@ -1479,6 +1479,72 @@ textarea {
     color: #94a3b8;
 }
 
+/* 💡 Phase 3: Single Line Greeting */
+.greeting {
+    font-size: 1.5rem;
+    /* Reduced from default h1 */
+    font-weight: 850;
+    line-height: 1.2;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 70vw;
+    /* Prevent overlap with home button */
+}
+
+/* 💡 Phase 3: Uniform Strategy Cards */
+.strategy-card {
+    background: white;
+    margin: 0 0 15px 0;
+    /* Margin handled by grid or container */
+    padding: 20px;
+    border-radius: 24px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+    border: 1px solid #f1f5f9;
+    min-height: 180px;
+    /* Enforce minimum height */
+    height: 100%;
+    /* Fill grid cell if using grid */
+}
+
+.strategy-card h3 {
+    font-size: 1.1rem;
+    font-weight: 750;
+    margin-bottom: 8px;
+    color: #1e293b;
+}
+
+.strategy-card p {
+    font-size: 0.9rem;
+    color: #64748b;
+    line-height: 1.5;
+    flex: 1;
+    /* Push button to bottom */
+    margin-bottom: 15px;
+}
+
+.strategy-card button {
+    width: 100%;
+    padding: 12px 0;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 12px;
+    background: #f1f5f9;
+    color: #334155;
+    border: none;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.strategy-card button:active {
+    transform: scale(0.98);
+    background: #e2e8f0;
+}
+
 .btn-control:hover {
     background: #cbd5e1;
     color: #475569;

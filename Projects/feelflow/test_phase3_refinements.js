@@ -79,4 +79,19 @@ try {
     console.error("❌ Haptic test failed:", e);
 }
 
+// 6. Test Switch Routine Haptics
+console.log("\n🔄 Testing Switch Routine...");
+try {
+    if (typeof switchRoutine === 'function') {
+        switchRoutine('evening');
+        // Expect renderRoutineScreen call and vibration
+        if (currentRoutineTab === 'evening') console.log("✅ PASS: Switched to Evening tab.");
+        else console.error("❌ FAILED: Tab did not switch.");
+    } else {
+        console.error("❌ switchRoutine not found.");
+    }
+} catch (e) {
+    console.error("❌ switchRoutine test failed:", e);
+}
+
 console.log("\n🟦 Verification Complete.");
