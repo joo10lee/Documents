@@ -516,7 +516,6 @@ function renderTrophyStats() {
             • 5 Silver Medals = 1 Gold Medal 🥇
         </div>
         `;
-    `;
 }
 
 function safeVibrate(pattern) {
