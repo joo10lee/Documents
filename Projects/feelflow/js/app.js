@@ -9,6 +9,14 @@ let activeTaskId = null;
 let homeDisplayTab = new Date().getHours() < 12 ? 'morning' : 'evening';
 let currentRoutineTab = homeDisplayTab;
 
+// 💡 New: Dynamic Greeting Logic
+function getGreeting() {
+    const hour = new Date().getHours();
+    if (hour < 12) return "Good Morning, Jason! ☀️";
+    if (hour < 18) return "Good Afternoon, Jason! 🌤️";
+    return "Good Evening, Jason! 🌙";
+}
+
 // 2. 통합 루틴 데이터 구조 (전체 목록 유지)
 
 
@@ -86,13 +94,13 @@ function handleRoutineCheck(id, source) {
         }
 
         if (task.completed && DailyRoutines[tab].every(t => t.completed)) {
-            // 💡 [수정] 5개 모두 완료 시 레고 블록 지급 애니메이션 (Bronze -> Lego)
-            FeelFlow.addXP(50, 'lego');
-            if (window.UI && window.UI.showLegoAnimation) {
-                window.UI.showLegoAnimation();
-            } else {
-                alert(`🎉 Fantastic! You earned a LEGO Block! 🧱`);
-            }
+            // 💡 [수정] 5개 모두 완료 시 블록 지급 (Lego -> Block)
+            FeelFlow.addMedalProgress(0, 'block');
+
+            // Haptic Feedback for completion
+            safeVibrate([50, 50, 50]);
+
+            alert(`🎉 Fantastic! You earned a Daily Block! 🧱`);
         }
     }
 }
@@ -109,46 +117,32 @@ window.userInteracted = false;
     }, { once: true });
 });
 
-// 4. 보상 시스템 엔진 (FeelFlow)
+// 4. 보상 시스템 엔진 (FeelFlow) - 💡 Unified Medal System
 const FeelFlow = {
-    totalXP: parseInt(localStorage.getItem('feelflow_xp')) || 0,
-    currentLevel: parseInt(localStorage.getItem('feelflow_level')) || 1,
     medals: JSON.parse(localStorage.getItem('feelflow_medals')) || [],
 
-    addXP(amount, tier = null) {
-        this.totalXP += amount;
-        if (tier) {
+    // 💡 Renamed addXP to addMedalProgress for clarity
+    addMedalProgress(amount, tier = null) {
+        // Simple logic: Routine completion directly awards progress or medals?
+        // User asked to replace points with medals.
+        // Let's keep internal XP but hide it, focusing on Medals in UI.
+
+        if (tier === 'block') { // Formerly 'lego'
+            this.medals.push("Block");
+        } else if (tier) {
             this.medals.push(tier.charAt(0).toUpperCase() + tier.slice(1) + " Medal");
         }
-        this.checkLevelUp();
         this.save();
     },
 
-    checkLevelUp() {
-        const nextLevelXP = this.currentLevel * 100;
-        if (this.totalXP >= nextLevelXP) {
-            this.currentLevel++;
-            this.medals.push(`Level ${this.currentLevel} Medal`);
-            // 💡 ui.js의 레벨업 애니메이션 호출
-            if (window.UI && window.UI.showLevelUp) window.UI.showLevelUp(this.currentLevel);
-        }
-    },
-
     save() {
-        localStorage.setItem('feelflow_xp', this.totalXP);
-        localStorage.setItem('feelflow_level', this.currentLevel);
         localStorage.setItem('feelflow_medals', JSON.stringify(this.medals));
-        localStorage.setItem('feelflow_progress', JSON.stringify({
-            totalXP: this.totalXP,
-            currentLevel: this.currentLevel,
-            medals: this.medals
-        }));
     }
 };
 
 // 5. 흐름 제어 및 내비게이션
 function goHome() {
-    UI.goToScreen('1', "Hey Jason!");
+    UI.goToScreen('1', getGreeting()); // 💡 Dynamic Greeting
     resetAppInput();
     renderHomeQuests();
 }
@@ -227,10 +221,10 @@ window.finishCheckIn = async function () {
         if (typeof EmotionAPI !== 'undefined') await EmotionAPI.saveCheckIn(entry);
 
         if (activeTaskId) {
-            FeelFlow.addXP(60, 'gold');
+            FeelFlow.addMedalProgress(0, 'gold');
         } else {
             const tier = currentEmotion.intensity >= 4 ? 'gold' : 'silver';
-            FeelFlow.addXP(tier === 'gold' ? 60 : 30, tier);
+            FeelFlow.addMedalProgress(0, tier);
         }
 
         activeTaskId = null;
@@ -256,11 +250,16 @@ function renderHomeQuests() {
 
     // Ensure we don't duplicate the toggle button if it already exists
     if (!titleArea.querySelector('.home-routine-toggle')) {
+        // 💡 [Req] Move Toggle to Right (Flexbox)
+        titleArea.style.display = 'flex';
+        titleArea.style.justifyContent = 'space-between';
+        titleArea.style.alignItems = 'center';
+
         titleArea.innerHTML = `
-            Daily Quest ⚔️
-            <div class="home-routine-toggle" onclick="toggleHomeRoutine()" style="width: auto; margin: 0;">
+            <span>Daily Quest ⚔️</span>
+            <div class="home-routine-toggle" onclick="toggleHomeRoutine()" style="display:flex; align-items:center; gap:5px; background:rgba(0,0,0,0.05); padding:4px 10px; border-radius:15px; cursor:pointer;">
                 <span class="toggle-icon">${homeDisplayTab === 'morning' ? '🌅' : '🌙'}</span>
-                <span class="toggle-label" style="margin-left: 5px;">${homeDisplayTab.toUpperCase()}</span>
+                <span class="toggle-label" style="font-size:0.8rem; font-weight:600;">${homeDisplayTab.toUpperCase()}</span>
             </div>
         `;
     } else {
@@ -467,7 +466,7 @@ function editGoalMessage() {
 window.editGoalMessage = editGoalMessage;
 
 function renderTrophyStats() {
-    const legoCount = FeelFlow.medals.filter(m => m.toLowerCase().includes('lego')).length;
+    const legoCount = FeelFlow.medals.filter(m => m.toLowerCase().includes('block')).length; // 💡 'Lego' -> 'Block'
     const goldCount = FeelFlow.medals.filter(m => m.includes('Gold')).length;
     const silverCount = FeelFlow.medals.filter(m => m.includes('Silver')).length;
 
@@ -504,13 +503,13 @@ function renderTrophyStats() {
             <div class="medal-slot">🥇<br><strong>${goldCount}</strong><div class="label">Gold</div></div>
             <div class="medal-slot">🥈<br><strong>${silverCount}</strong><div class="label">Silver</div></div>
             <div class="medal-slot">🥉<br><strong>${bronzeCount}</strong><div class="label">Bronze</div></div>
-            <div class="medal-slot">🧱<br><strong>${legoCount}</strong><div class="label">Lego</div></div>
+            <div class="medal-slot">🧱<br><strong>${legoCount}</strong><div class="label">Block</div></div>
         </div>
         
         <!-- 3. Conversion Rules & Custom Logic -->
         <div style="background:#f8fafc; padding:15px; border-radius:16px; margin-bottom:20px; font-size:0.85rem; color:#64748b; line-height:1.6;">
             <strong>ℹ️ Conversion Rules:</strong><br>
-            • 5 Days Complete = 1 Lego Block 🧱<br>
+            • 5 Days Complete = 1 Building Block 🧱<br>
             • 10 Custom Tasks = 1 Bronze Medal 🥉<br>
             • 10 Bronze Medals = 1 Silver Medal 🥈<br>
             • 5 Silver Medals = 1 Gold Medal 🥇
