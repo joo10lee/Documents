@@ -15,37 +15,19 @@ function checkAndResetDailyRoutines() {
     const lastDate = localStorage.getItem('feelflow_last_date');
     const today = new Date().toDateString();
 
-    if (lastDate !== today) {
-        console.log("🔄 New Day Detected! Resetting routines...");
-        const routines = JSON.parse(localStorage.getItem('feelflow_routines'));
-        if (routines) {
-            routines.morning.forEach(t => t.completed = false);
-            routines.evening.forEach(t => t.completed = false);
-            localStorage.setItem('feelflow_routines', JSON.stringify(routines));
-            // Update global variable will happen below
-        }
-        localStorage.setItem('feelflow_last_date', today);
+    // 💡 [Req] Always reset routines on app start
+    console.log("🔄 App Start: Resetting all routines...");
+    const routines = JSON.parse(localStorage.getItem('feelflow_routines')) || DailyRoutines;
+    if (routines) {
+        if (routines.morning) routines.morning.forEach(t => t.completed = false);
+        if (routines.evening) routines.evening.forEach(t => t.completed = false);
+        localStorage.setItem('feelflow_routines', JSON.stringify(routines));
+        DailyRoutines = routines;
     }
+    localStorage.setItem('feelflow_last_date', today);
 }
 checkAndResetDailyRoutines();
-// 💡 [Fix] 24시간 리셋 로직
-function checkAndResetDailyRoutines() {
-    const lastDate = localStorage.getItem('feelflow_last_date');
-    const today = new Date().toDateString();
 
-    if (lastDate !== today) {
-        console.log("🔄 New Day Detected! Resetting routines...");
-        const routines = JSON.parse(localStorage.getItem('feelflow_routines'));
-        if (routines) {
-            routines.morning.forEach(t => t.completed = false);
-            routines.evening.forEach(t => t.completed = false);
-            localStorage.setItem('feelflow_routines', JSON.stringify(routines));
-            DailyRoutines = routines;
-        }
-        localStorage.setItem('feelflow_last_date', today);
-    }
-}
-checkAndResetDailyRoutines();
 
 let DailyRoutines = JSON.parse(localStorage.getItem('feelflow_routines')) || {
     // ... existing default data ...
@@ -264,22 +246,28 @@ window.finishCheckIn = async function () {
  */
 function renderHomeQuests() {
     const container = document.getElementById('quickTaskList');
-    const titleArea = document.querySelector('#screen1 .section-title');
+    // 💡 [Fix] More robust selector for title area (in case it was already modified)
+    let titleArea = document.querySelector('#screen1 .section-title');
+
     if (!container || !titleArea) return;
 
-    // 1. 타이틀 영역 레이아웃 복구: 양끝 정렬
-    titleArea.style.display = "flex";
-    titleArea.style.justifyContent = "space-between";
-    titleArea.style.alignItems = "center";
-    titleArea.style.width = "calc(100% - 48px)"; // 패딩 고려
+    // Ensure we don't duplicate the toggle button if it already exists
+    if (!titleArea.querySelector('.home-routine-toggle')) {
+        titleArea.innerHTML = `
+            Daily Quest ⚔️
+            <div class="home-routine-toggle" onclick="toggleHomeRoutine()" style="width: auto; margin: 0;">
+                <span class="toggle-icon">${homeDisplayTab === 'morning' ? '🌅' : '🌙'}</span>
+                <span class="toggle-label" style="margin-left: 5px;">${homeDisplayTab.toUpperCase()}</span>
+            </div>
+        `;
+    } else {
+        // Just update the text if it exists
+        const toggleIcon = titleArea.querySelector('.toggle-icon');
+        const toggleLabel = titleArea.querySelector('.toggle-label');
+        if (toggleIcon) toggleIcon.textContent = homeDisplayTab === 'morning' ? '🌅' : '🌙';
+        if (toggleLabel) toggleLabel.textContent = homeDisplayTab.toUpperCase();
+    }
 
-    titleArea.innerHTML = `
-        Daily Quest ⚔️
-        <div class="home-routine-toggle" onclick="toggleHomeRoutine()" style="width: auto; margin: 0;">
-            <span class="toggle-icon">${homeDisplayTab === 'morning' ? '🌅' : '🌙'}</span>
-            <span class="toggle-label" style="margin-left: 5px;">${homeDisplayTab.toUpperCase()}</span>
-        </div>
-    `;
 
     const activeTasks = DailyRoutines[homeDisplayTab].filter(t => !t.completed);
     const displayTasks = activeTasks.slice(0, 3);
@@ -482,4 +470,7 @@ window.toggleHomeRoutine = toggleHomeRoutine;
 window.goHome = goHome;
 window.startOver = startOver;
 window.startQuest = startQuest;
-window.toggleMenu = () => document.getElementById('menuOverlay').classList.toggle('active');
+window.toggleMenu = function () {
+    const overlay = document.getElementById('menuOverlay');
+    if (overlay) overlay.classList.toggle('active');
+};
