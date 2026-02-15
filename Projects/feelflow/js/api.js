@@ -24,7 +24,7 @@ const EmotionAPI = {
     // B. [Main] 체크인 저장 (대기열 및 히스토리 즉시 반영)
     async saveCheckIn(entry) {
         console.log("🚀 저장 프로세스 시작:", entry.emotion);
-        
+
         // 1. 로컬 대기열 추가 (서버 장애 대비)
         let queue = JSON.parse(localStorage.getItem('emotionQueue') || '[]');
         queue.push(entry);
@@ -49,7 +49,7 @@ const EmotionAPI = {
 
         for (const item of queue) {
             try {
-                await this._postToServer(item); 
+                await this._postToServer(item);
                 console.log("✅ 서버 전송 성공:", item.emotion);
             } catch (error) {
                 console.warn("⚠️ 전송 실패: 대기열 유지", error.message);
@@ -72,78 +72,5 @@ const EmotionAPI = {
     }
 };
 
-/**
- * EmotionActions: 카메라 및 인앱 액션 관리
- */
-const EmotionActions = {
-    activeStream: null, 
-    capturedPhoto: null,
-
-    async startCamera() {
-        const video = document.getElementById('videoElement');
-        const container = document.getElementById('videoContainer');
-        const cameraBtn = document.getElementById('cameraBtn');
-        try {
-            if (this.activeStream) this.stopCamera();
-            const stream = await navigator.mediaDevices.getUserMedia({ 
-                video: { facingMode: "environment" }, 
-                audio: false 
-            });
-            this.activeStream = stream;
-            video.srcObject = stream;
-            container.style.display = 'block';
-            cameraBtn.style.display = 'none';
-        } catch (err) { alert("카메라를 켤 수 없습니다."); }
-    },
-
-    takePhoto() {
-        const video = document.getElementById('videoElement');
-        const canvas = document.getElementById('hiddenCanvas');
-        const previewImg = document.getElementById('capturedPhoto');
-        const previewContainer = document.getElementById('photoPreviewContainer');
-
-        if (!video || !video.videoWidth) return;
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        canvas.getContext('2d').drawImage(video, 0, 0);
-
-        this.capturedPhoto = canvas.toDataURL('image/jpeg', 0.5);
-        previewImg.src = this.capturedPhoto;
-        
-        previewContainer.style.display = 'block';
-        document.getElementById('videoContainer').style.display = 'none';
-        this.stopCamera();
-    },
-
-    stopCamera() {
-        if (this.activeStream) {
-            this.activeStream.getTracks().forEach(track => track.stop());
-            this.activeStream = null;
-        }
-        const video = document.getElementById('videoElement');
-        if (video) video.srcObject = null;
-    },
-
-    reset() {
-        console.log("🧹 UI 요소 초기화 중...");
-        this.stopCamera();
-
-        // 💡 방어 코드: 요소가 존재할 때만 스타일 변경 (빨간 줄 에러 해결)
-        const photoPreview = document.getElementById('photoPreviewContainer');
-        if (photoPreview) photoPreview.style.display = 'none';
-
-        const cameraBtn = document.getElementById('cameraBtn');
-        if (cameraBtn) cameraBtn.style.display = 'block';
-
-        const videoCont = document.getElementById('videoContainer');
-        if (videoCont) videoCont.style.display = 'none';
-
-        const actionNote = document.getElementById('actionNote');
-        if (actionNote) actionNote.value = '';
-        
-        this.capturedPhoto = null;
-    }
-};
-
 window.EmotionAPI = EmotionAPI;
-window.EmotionActions = EmotionActions;
+

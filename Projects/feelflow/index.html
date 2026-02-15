@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="mobile-web-app-capable" content="yes">
@@ -10,30 +11,31 @@
 
     <link rel="manifest" href="./manifest.json">
     <link rel="stylesheet" href="css/style.css">
-    
+
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="js/api.js"></script>  
+    <script src="js/api.js"></script>
     <script src="js/ui.js"></script>
-    <script src="js/activities.js"></script> 
+    <script src="js/activities.js"></script>
     <script src="js/app.js"></script>
 
     <script>
-        window.onload = function() {
-            console.log("🚀 FeelFlow 인프라 Ver.0215-FINAL 가동"); 
-        
+        window.onload = function () {
+            console.log("🚀 FeelFlow 인프라 Ver.0215-FINAL 가동");
+
             if ('serviceWorker' in navigator) {
                 navigator.serviceWorker.register('./sw.js')
                     .then(reg => console.log('🚀 SW Registered!'))
                     .catch(err => console.log('❌ SW fail:', err));
             }
-            
+
             if (typeof initApp === 'function') {
                 initApp();
             }
         };
-    </script>  
+    </script>
     <title>FeelFlow - Build Ver.0215-FINAL</title>
 </head>
+
 <body>
     <header class="app-header">
         <div class="header-status">
@@ -44,13 +46,13 @@
             <h1 class="greeting">Hey Jason, <br>how's it going?</h1>
         </div>
     </header>
-    
+
     <button class="hamburger-trigger" onclick="toggleMenu()">
         <div class="bar"></div>
         <div class="bar"></div>
         <div class="bar"></div>
     </button>
-    
+
     <div id="menuOverlay" class="menu-overlay">
         <button class="menu-close" onclick="toggleMenu()">×</button>
         <nav class="menu-content">
@@ -71,7 +73,7 @@
                 <div id="xpFill" style="width: 0%"></div>
             </div>
         </div>
-    
+
         <div class="emotion-bento">
             <button class="bento-card happy" onclick="selectEmotion('Happy', '😊', '#FFD93D')">
                 <span class="emoji">😊</span> <span class="label">Happy</span>
@@ -92,7 +94,7 @@
                 <span class="emoji">😫</span> <span class="label">Tired</span>
             </button>
         </div>
-    
+
         <div class="quick-mission-section">
             <h3 class="section-title">Daily Quest ⚔️</h3>
             <div id="quickTaskList" class="quick-task-grid"></div>
@@ -106,7 +108,8 @@
                 <div id="selectedName" style="font-size: 1.5rem; font-weight: 850;">Happy</div>
                 <p style="margin-top: 20px; color: #64748b;">How strong is this feeling?</p>
                 <div class="intensity-display" id="intensityDisplay">5</div>
-                <input type="range" min="1" max="10" value="5" class="intensity-slider" id="intensitySlider" oninput="updateIntensity(this.value)">
+                <input type="range" min="1" max="10" value="5" class="intensity-slider" id="intensitySlider"
+                    oninput="updateIntensity(this.value)">
                 <div class="slider-labels">
                     <span>Mild</span>
                     <span>Strong</span>
@@ -116,7 +119,7 @@
             <button class="btn-secondary" onclick="UI.back()">← Back</button>
         </div>
     </main>
-    
+
     <main class="screen" id="screen4">
         <div class="result-summary-bar" id="resultSummaryBar">
             <span id="summaryEmoji"></span>
@@ -126,7 +129,7 @@
         <div class="strategies-footer">
             <button class="btn btn-secondary" onclick="UI.back()">← Back</button>
         </div>
-    </main> 
+    </main>
 
     <main class="screen" id="screen5">
         <div class="result-card">
@@ -154,9 +157,9 @@
     <main class="screen" id="screenHistory">
         <div class="history-container">
             <h2 class="section-title" style="text-align:center;">Trophy Room</h2>
-            
-            <div id="trophyContent"></div> 
-            
+
+            <div id="trophyContent"></div>
+
             <div class="history-card">
                 <p style="font-weight:850; margin-bottom:15px;">7-Day Trend</p>
                 <div style="height: 180px;"><canvas id="emotionChart"></canvas></div>
@@ -169,7 +172,8 @@
     <main class="screen" id="screenTracker">
         <div class="tracker-container">
             <div class="tracker-tabs">
-                <button class="tracker-tab active" id="tabMorning" onclick="switchRoutine('morning')">🌅 Morning</button>
+                <button class="tracker-tab active" id="tabMorning" onclick="switchRoutine('morning')">🌅
+                    Morning</button>
                 <button class="tracker-tab" id="tabEvening" onclick="switchRoutine('evening')">🌙 Evening</button>
             </div>
             <div class="progress-card">
@@ -182,13 +186,9 @@
                 </div>
             </div>
             <div id="taskList"></div>
-            <div class="sticker-collection">
-                <p class="section-title">🏆 Stickers</p>
-                <div id="stickerGrid" class="sticker-grid"></div>
-            </div>
+
         </div>
     </main>
-
-    <div id="stickerReward" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); font-size:10rem; z-index:9999;">⭐</div>
 </body>
+
 </html>
