@@ -15,32 +15,30 @@
     <script src="js/api.js"></script>  
     <script src="js/ui.js"></script>
     <script src="js/activities.js"></script> 
-    <script src="js/tracker.js"></script> 
     <script src="js/app.js"></script>
+
     <script>
         window.onload = function() {
-            // 💡 끝에 "); 가 빠져있어 문장이 닫히지 않았습니다. 이를 수정합니다.
-            console.log("FeelFlow 인프라 Ver.0214-2058"); 
+            console.log("🚀 FeelFlow 인프라 Ver.0214-2133 가동"); 
         
             if ('serviceWorker' in navigator) {
-                // 상대 경로인 './sw.js'를 사용하여 깃허브 페이지 배포 호환성을 높입니다.
                 navigator.serviceWorker.register('./sw.js')
                     .then(reg => console.log('🚀 SW Registered!'))
                     .catch(err => console.log('❌ SW fail:', err));
             }
             
-            // app.js가 정상적으로 로드되었다면 초기화 함수를 호출합니다.
             if (typeof initApp === 'function') {
                 initApp();
             }
         };
     </script>  
-    <title>FeelFlow - Build Ver.0214-2058</title>
+    <title>FeelFlow - Build Ver.0214-2133</title>
 </head>
 <body>
     <header class="app-header">
         <div class="header-status">
-            <span></span> <span class="build-tag">Ver.0214-2058</span>
+            <span id="weatherIcon">🌤️</span> <span id="weatherTemp">--°F</span>
+            <span class="build-tag">Ver.0214-2133</span>
         </div>
         <div class="header-main">
             <h1 class="greeting">Hey Joo, <br>how's it going?</h1>
@@ -63,73 +61,59 @@
         </nav>
     </div>
 
-
     <main class="screen active" id="screen1">
-        <div class="xp-container" style="padding: 10px 24px;">
-            <div class="xp-header" style="display:flex; justify-content:space-between; font-size:0.8rem; font-weight:850; margin-bottom:6px;">
-                <span>Level 1 Adventurer</span>
+        <div class="xp-container">
+            <div class="xp-header">
+                <span>Jason the Adventurer</span>
                 <span id="xpText">0 XP</span>
             </div>
-            <div class="xp-bar-bg" style="height:10px; background:rgba(0,0,0,0.05); border-radius:5px; overflow:hidden;">
-                <div id="xpFill" style="width: 0%; height:100%; background:linear-gradient(90deg, #7c3aed, #a78bfa); transition:0.5s;"></div>
+            <div class="xp-bar-bg">
+                <div id="xpFill" style="width: 0%"></div>
             </div>
         </div>
     
         <div class="emotion-bento">
-            <button class="bento-card happy" onclick="Activities.initAudio(); selectEmotion('Happy', '😊', '#FFD93D')">
+            <button class="bento-card happy" onclick="selectEmotion('Happy', '😊', '#FFD93D')">
                 <span class="emoji">😊</span> <span class="label">Happy</span>
             </button>
-            <button class="bento-card sad" onclick="Activities.initAudio(); selectEmotion('Sad', '😢', '#6CB4EE')">
+            <button class="bento-card sad" onclick="selectEmotion('Sad', '😢', '#6CB4EE')">
                 <span class="emoji">😢</span> <span class="label">Sad</span>
             </button>
-            <button class="bento-card anxious" onclick="Activities.initAudio(); selectEmotion('Anxious', '😰', '#A084E8')">
+            <button class="bento-card anxious" onclick="selectEmotion('Anxious', '😰', '#A084E8')">
                 <span class="emoji">😰</span> <span class="label">Anxious</span>
             </button>
-            <button class="bento-card angry" onclick="Activities.initAudio(); selectEmotion('Angry', '😠', '#FF6B6B')">
+            <button class="bento-card angry" onclick="selectEmotion('Angry', '😠', '#FF6B6B')">
                 <span class="emoji">😠</span> <span class="label">Angry</span>
             </button>
-            <button class="bento-card calm" onclick="Activities.initAudio(); selectEmotion('Calm', '😌', '#6BCB77')">
+            <button class="bento-card calm" onclick="selectEmotion('Calm', '😌', '#6BCB77')">
                 <span class="emoji">😌</span> <span class="label">Calm</span>
             </button>
-            <button class="bento-card tired" onclick="Activities.initAudio(); selectEmotion('Tired', '😫', '#95A5A6')">
+            <button class="bento-card tired" onclick="selectEmotion('Tired', '😫', '#95A5A6')">
                 <span class="emoji">😫</span> <span class="label">Tired</span>
             </button>
         </div>
     
-        <div class="quick-mission-section" style="padding: 10px 24px 20px;">
-            <h3 class="section-title" style="margin-left:0; font-size: 0.95rem; display:flex; justify-content:space-between;">
-                Daily Quest ⚔️
-                <span id="medalStatus" style="font-size:1.1rem;">🥉</span>
-            </h3>
-            <div id="quickTaskList" class="quick-task-grid">
-                </div>
+        <div class="quick-mission-section">
+            <h3 class="section-title">Daily Quest ⚔️</h3>
+            <div id="quickTaskList" class="quick-task-grid"></div>
         </div>
     </main>
 
     <main class="screen" id="screen2">
         <div class="intensity-screen">
             <div class="intensity-card">
-                <div class="selected-emotion-display" id="selectedEmoji" style="font-size: 5rem;">😊</div>
-                <div class="selected-emotion-name" id="selectedName" style="font-size: 1.5rem; font-weight: 850;">Happy</div>
-                
-                <p class="intensity-question" style="margin-top: 20px; color: #64748b;">How strong is this feeling?</p>
-                
+                <div id="selectedEmoji" style="font-size: 5rem;">😊</div>
+                <div id="selectedName" style="font-size: 1.5rem; font-weight: 850;">Happy</div>
+                <p style="margin-top: 20px; color: #64748b;">How strong is this feeling?</p>
                 <div class="intensity-display" id="intensityDisplay">5</div>
-                
                 <input type="range" min="1" max="10" value="5" class="intensity-slider" id="intensitySlider" oninput="updateIntensity(this.value)">
-                
-                <div class="slider-labels" style="display: flex; justify-content: space-between; padding: 0 10px; font-size: 0.8rem; font-weight: 600;">
+                <div class="slider-labels">
                     <span>Mild</span>
-                    <span>Very Strong</span>
+                    <span>Strong</span>
                 </div>
             </div>
-            
-            <div class="note-container" style="margin-top: 20px;">
-                <textarea id="actionNote" placeholder="What happened? (Optional)"></textarea>
-            </div>
-            
             <button class="btn-primary" onclick="goToResult()">Next</button>
-            <button class="btn-secondary" onclick="UI.back()" style="background:none; border:none; color:#64748b; margin-top:10px;">← Back</button>
+            <button class="btn-secondary" onclick="UI.back()">← Back</button>
         </div>
     </main>
     
@@ -138,9 +122,7 @@
             <span id="summaryEmoji"></span>
             <span id="summaryText"></span>
         </div>
-        
         <div id="strategiesContainer"></div>
-        
         <div class="strategies-footer">
             <button class="btn btn-secondary" onclick="UI.back()">← Back</button>
         </div>
@@ -149,9 +131,9 @@
     <main class="screen" id="screen5">
         <div class="result-card">
             <div class="result-emoji">✨</div>
-            <p class="result-text" style="font-size: 1.4rem; font-weight: 800; margin-bottom: 12px;">Great job, Joo!</p>
-            <p id="finalMessage">Check-in recorded. You're doing great.</p>
-            <button class="btn-primary" onclick="startOver()" style="margin-top: 20px;">Check in again</button>
+            <p style="font-size: 1.4rem; font-weight: 800;">Great job, Jason!</p>
+            <p id="finalMessage">Mission Recorded Successfully.</p>
+            <button class="btn-primary" onclick="startOver()">Finish</button>
         </div>
     </main>
 
@@ -163,18 +145,24 @@
             </div>
             <div id="inAppActionArea"></div>
             <div class="activity-footer">
-                <button class="btn-primary" id="activityBtn" onclick="finishCheckIn()">Save & Finish</button>
+                <button class="btn-primary" id="activityBtn" style="display:none;">Save Mission</button>
                 <button class="btn btn-secondary" onclick="UI.back()">← Back</button>
             </div>
         </div>
     </main>
 
     <main class="screen" id="screenHistory">
-        <div class="history-container" style="text-align:center; padding:40px 24px;">
-            <h2 class="section-title" style="font-size:1.8rem;">My Trophy Room</h2>
-            <div id="medalDisplay" style="font-size:5rem; margin:30px 0;">🥇🥈🥉</div>
-            <p style="font-weight:700; color:#64748B;">You've collected 12 Medals this week!</p>
-            <div id="historyList" style="margin-top:30px;"></div>
+        <div class="history-container">
+            <h2 class="section-title" style="text-align:center;">Trophy Room</h2>
+            
+            <div id="trophyContent"></div> 
+            
+            <div class="history-card">
+                <p style="font-weight:850; margin-bottom:15px;">7-Day Trend</p>
+                <div style="height: 180px;"><canvas id="emotionChart"></canvas></div>
+            </div>
+
+            <div id="historyList"></div>
         </div>
     </main>
 
@@ -184,47 +172,22 @@
                 <button class="tracker-tab active" id="tabMorning" onclick="switchRoutine('morning')">🌅 Morning</button>
                 <button class="tracker-tab" id="tabEvening" onclick="switchRoutine('evening')">🌙 Evening</button>
             </div>
-
             <div class="progress-card">
                 <div class="progress-header">
-                    <span id="progressTitle" style="font-weight:850;">Routine</span>
+                    <span id="progressTitle" style="font-weight:850;">Jason's Routine</span>
                     <span id="progressFraction" style="color:#7c3aed; font-weight:850;">0/0</span>
                 </div>
                 <div class="progress-bar-container">
-                    <div id="progressBar" class="progress-bar-fill" style="width: 0%"></div>
+                    <div id="progressBar" class="progress-bar-fill"></div>
                 </div>
             </div>
-
             <div id="taskList"></div>
-
             <div class="sticker-collection">
-                <p class="section-title" style="margin-left:0;">🏆 Stickers</p>
+                <p class="section-title">🏆 Stickers</p>
                 <div id="stickerGrid" class="sticker-grid"></div>
             </div>
         </div>
     </main>
-
-
-    <main class="screen" id="screenSettings">
-        <div class="settings-container">
-            <h2 class="section-title">Profile</h2>
-            <div class="settings-field">
-                <label class="settings-label">Your Name</label>
-                <input type="text" class="settings-input" id="settingsName" placeholder="Joo" oninput="saveSettings()">
-            </div>
-            <div class="settings-field">
-                <label class="settings-label">Your Age</label>
-                <input type="number" class="settings-input" id="settingsAge" placeholder="18" oninput="saveSettings()">
-            </div>
-
-            <h2 class="section-title">Data Management</h2>
-            <button class="btn-danger" onclick="clearAllData()" style="width: calc(100% - 48px); margin: 0 24px; padding: 18px; border-radius: 20px; border:none;">Reset All Data</button>
-            <div id="settingsSaved" style="text-align:center; margin-top:10px; color:#10B981; display:none;">✓ Saved!</div>
-        </div>
-    </main>
-
-    <div id="trophyContent"></div> 
-    <div style="height: 200px; margin: 20px 0;"><canvas id="emotionChart"></canvas></div>
 
     <div id="stickerReward" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); font-size:10rem; z-index:9999;">⭐</div>
 </body>
