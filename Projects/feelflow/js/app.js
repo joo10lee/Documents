@@ -165,16 +165,25 @@ window.finishCheckIn = async function() {
 };
 
 // 7. 통합 루틴 관리 시스템 (Home & Tracker Sync)
+/**
+ * 🏠 홈 화면 전용: UI 복구 버전 (우측 토글 + 일렬 테스크)
+ */
 function renderHomeQuests() {
     const container = document.getElementById('quickTaskList');
-    const titleArea = document.querySelector('.section-title'); 
+    const titleArea = document.querySelector('#screen1 .section-title'); 
     if (!container || !titleArea) return;
 
+    // 1. 타이틀 영역 레이아웃 복구: 양끝 정렬
+    titleArea.style.display = "flex";
+    titleArea.style.justifyContent = "space-between";
+    titleArea.style.alignItems = "center";
+    titleArea.style.width = "calc(100% - 48px)"; // 패딩 고려
+    
     titleArea.innerHTML = `
         Daily Quest ⚔️
-        <div class="home-routine-toggle" onclick="toggleHomeRoutine()">
+        <div class="home-routine-toggle" onclick="toggleHomeRoutine()" style="width: auto; margin: 0;">
             <span class="toggle-icon">${homeDisplayTab === 'morning' ? '🌅' : '🌙'}</span>
-            <span class="toggle-label">${homeDisplayTab}</span>
+            <span class="toggle-label" style="margin-left: 5px;">${homeDisplayTab.toUpperCase()}</span>
         </div>
     `;
 
@@ -182,14 +191,15 @@ function renderHomeQuests() {
     const displayTasks = activeTasks.slice(0, 3);
 
     if (displayTasks.length === 0) {
-        container.innerHTML = `<div style="padding:20px; font-weight:850; color:#10b981;">All tasks done! 🎉</div>`;
+        container.innerHTML = `<div style="padding:20px; font-weight:850; color:#10b981; text-align:center;">All tasks done! 🎉</div>`;
         return;
     }
 
+    // 2. 테스크 아이템 구조 복구 (과거 폼 유지)
     container.innerHTML = displayTasks.map(t => `
         <div id="home-task-${t.id}" class="home-quest-item" onclick="handleRoutineCheck('${t.id}', 'home')">
             <div class="custom-checkbox"></div>
-            <div class="routine-text">${t.text}</div>
+            <span class="routine-text">${t.text}</span>
         </div>
     `).join('');
 }

@@ -1,6 +1,7 @@
 /**
  * 🏠 FeelFlow UI Module: Ver.0215-TOTAL_PLUS
- * 기능: 화면 전환, 백 버튼, 7일 차트, 히스토리, 날씨, 레벨업 연출, 전 감정 전략 통합
+ * 기능: 화면 전환, 백 버튼, 7일 차트, 히스토리, 날씨, 레벨업 연출
+ * 비고: 전략 렌더링(renderStrategies)은 activities.js에서 담당함
  */
 
 console.log("🚀 [SYSTEM] UI Module Initializing (TOTAL_PLUS)...");
@@ -32,12 +33,13 @@ const UI = {
             console.error(`❌ UI Error: screen${cleanId} 요소를 찾을 수 없습니다.`);
         }
 
+        // 활동 화면을 벗어날 때 정리 로직 (activities.js 연동)
         if (cleanId !== 'Activity' && window.Activities?.stopAll) {
             window.Activities.stopAll();
         }
     },
 
-    // 💡 [추가] 레벨업 축하 연출 (app.js 연동)
+    // 💡 레벨업 축하 연출 (app.js 연동)
     showLevelUp(level) {
         const burst = document.createElement('div');
         burst.className = 'xp-burst';
@@ -60,7 +62,7 @@ const UI = {
         if (activeBtn) activeBtn.classList.add('active');
     },
 
-    // 2. 7일 트렌드 차트 렌더링
+    // 2. 7일 트렌드 차트 렌더링 (Chart.js 연동)
     renderEmotionChart(history) {
         setTimeout(() => {
             const ctx = document.getElementById('emotionChart');
@@ -139,9 +141,6 @@ const UI = {
         const temp = Math.round(data.current.temperature_2m);
         if (document.getElementById('weatherTemp')) document.getElementById('weatherTemp').textContent = `${temp}°F`;
         if (document.getElementById('weatherIcon')) document.getElementById('weatherIcon').textContent = (temp > 80 ? '☀️' : '🌤️');
-        const now = new Date();
-        if (document.getElementById('weatherDate')) document.getElementById('weatherDate').textContent = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-        if (document.getElementById('weatherDay')) document.getElementById('weatherDay').textContent = now.toLocaleDateString('en-US', { weekday: 'long' });
     },
 
     async fetchWeatherByCity() {
@@ -153,3 +152,15 @@ const UI = {
     }
 };
 
+// 💡 [필수 보완] 브라우저 백 버튼 이벤트 핸들러
+window.onpopstate = function(event) {
+    if (event.state && event.state.screenId) {
+        UI.renderScreen(event.state.screenId, event.state.title);
+    } else {
+        UI.renderScreen('1', 'How are you feeling?');
+    }
+};
+
+// 💡 [필수 보완] 전역 바인딩 (app.js가 UI를 찾을 수 있게 함)
+window.UI = UI;
+window.renderEmotionChart = (h) => UI.renderEmotionChart(h);

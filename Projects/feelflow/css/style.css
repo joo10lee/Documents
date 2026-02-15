@@ -757,21 +757,27 @@
 }
 
 /* 체크 시 즉시 적용되는 스타일 */
-/* 1. 홈 토글 버튼 - 이제 확실히 보일 거예요 */
+/* 💡 홈 토글 버튼: 가로로 길게 늘어나는 문제 해결 */
 .home-routine-toggle {
-    display: flex !important;
-    align-items: center !important;
-    background: rgba(124, 58, 237, 0.1) !important;
-    border: 1.5px solid #7c3aed !important;
-    padding: 4px 12px !important;
-    border-radius: 12px !important;
-    cursor: pointer !important;
+    display: inline-flex !important; /* flex에서 inline-flex로 변경 */
+    align-items: center;
+    background: rgba(124, 58, 237, 0.1);
+    border: 1.5px solid #7c3aed;
+    padding: 6px 14px;
+    border-radius: 14px;
+    cursor: pointer;
+    white-space: nowrap; /* 텍스트 줄바꿈 방지 */
 }
-/* 2. 즉시 취소선 및 체크박스 변화 */
-.home-quest-item.checked-strikethrough .routine-text {
-    text-decoration: line-through !important;
-    color: #94a3b8 !important;
-    opacity: 0.6;
+.home-quest-item {
+    display: flex;
+    align-items: center;
+    background: white;
+    margin: 0 24px 10px;
+    padding: 18px;
+    border-radius: 22px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+    cursor: pointer;
+    transition: all 0.2s ease;
 }
 
 .home-quest-item.checked-strikethrough .custom-checkbox {
@@ -840,3 +846,18 @@
     box-shadow: 0 8px 20px rgba(0,0,0,0.05);
     border: 2px solid #f1f5f9;
 }
+
+
+
+/* 💡 홈 토글 버튼: 가로로 길게 늘어나는 문제 해결 */
+.home-routine-toggle {
+    display: inline-flex !important; /* flex에서 inline-flex로 변경 */
+    align-items: center;
+    background: rgba(124, 58, 237, 0.1);
+    border: 1.5px solid #7c3aed;
+    padding: 6px 14px;
+    border-radius: 14px;
+    cursor: pointer;
+    white-space: nowrap; /* 텍스트 줄바꿈 방지 */
+}
+
