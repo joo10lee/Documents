@@ -204,24 +204,18 @@ const UI = {
 /**
  * 🧠 지능형 전략 렌더러 (Ver.0215-1700 / Debug Mode)
  */
-window.renderStrategies = function(emotionName, intensity) {
+wwindow.renderStrategies = function(emotionName, intensity) {
     const container = document.getElementById('strategiesContainer');
-    if (!container) {
-        console.error("❌ 에러: 'strategiesContainer' 요소를 찾을 수 없습니다.");
-        return;
-    }
+    if (!container) return;
 
-    // 💡 [DEBUG] 현재 어떤 데이터가 들어오는지 콘솔에 출력합니다.
     console.log(`🔍 [Strategy Logic] Emotion: ${emotionName}, Intensity: ${intensity}`);
 
     let strategyHtml = "";
-    
-    // 대소문자 실수 방지를 위해 모두 소문자로 변환하여 비교
-    const normalizedName = emotionName ? emotionName.trim().toLowerCase() : "";
+    const name = emotionName ? emotionName.trim().toLowerCase() : "";
 
-    if (normalizedName === 'happy') {
+    // 💡 텍스트 "happy" 뿐만 아니라 에모지 "😊" 도 직접 체크합니다.
+    if (name === 'happy' || name === '😊') {
         if (Number(intensity) > 2) {
-            console.log("✅ 결과: High Happy 로직 실행 (Joy Journey)");
             strategyHtml = `
                 <div class="strategy-grid">
                     <div class="bento-card hero-card" onclick="startActivity('Happy Note')">
@@ -234,7 +228,6 @@ window.renderStrategies = function(emotionName, intensity) {
                     </div>
                 </div>`;
         } else {
-            console.log("✅ 결과: Low Happy 로직 실행 (Small Joy)");
             strategyHtml = `
                 <div class="bento-card hero-card" onclick="startActivity('Happy Note')">
                     <span class="recommend-tag">SMALL JOY</span>
@@ -246,7 +239,7 @@ window.renderStrategies = function(emotionName, intensity) {
                 </div>`;
         }
     } else {
-        console.log(`⚠️ 결과: 기본 로직 실행 (Deep Breath) - 입력된 값: ${normalizedName}`);
+        // Happy가 아닐 때만 Deep Breath
         strategyHtml = `
             <div class="bento-card" onclick="startActivity('Deep Breath')">
                 <span class="quest-icon">🌬️</span>
@@ -257,10 +250,7 @@ window.renderStrategies = function(emotionName, intensity) {
             </div>`;
     }
 
-    container.innerHTML = `
-        <h3 class="section-title" style="margin-top:25px;">Recommended for you</h3>
-        ${strategyHtml}
-    `;
+    container.innerHTML = `<h3 class="section-title" style="margin-top:25px;">Recommended for you</h3>${strategyHtml}`;
 };
 
 
