@@ -1726,14 +1726,110 @@ label {
     box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
 }
 
-/* Compact Adjustments (Round 2) */
-.guardian-container {
-    padding-bottom: 80px !important;
-}
-
 #guardianLegend .emotion-legend-item {
     background: #f8fafc;
     padding: 4px 8px;
     border-radius: 8px;
     border: 1px solid #e2e8f0;
+}
+
+/* =========================================
+   🛡️ GUARDIAIN DASHBOARD STANDARDIZATION
+   ========================================= */
+
+.guardian-container {
+    padding: 24px;
+    padding-bottom: 120px;
+    /* Space for bottom nav */
+}
+
+/* Custom Card for Guardian (Auto Height, Compact) */
+.guardian-card {
+    background: white;
+    border-radius: 24px;
+    /* Standard App Radius */
+    padding: 20px;
+    margin-bottom: 16px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+    border: 1px solid #f1f5f9;
+    display: flex;
+    flex-direction: column;
+}
+
+.guardian-card.compact {
+    padding: 16px;
+    gap: 12px;
+}
+
+.guardian-section-title {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: #1e293b;
+    margin: 0;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.guardian-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+/* Weather Specifics */
+.weather-header {
+    text-align: center;
+    margin-bottom: 12px;
+}
+
+.weather-controls {
+    display: inline-flex;
+    background: #f8fafc;
+    padding: 4px;
+    border-radius: 14px;
+    margin-top: 8px;
+}
+
+.weather-tab {
+    padding: 6px 14px;
+    font-size: 0.85rem;
+    border-radius: 10px;
+}
+
+/* Goal Tracker Specifics */
+.goal-card {
+    background: linear-gradient(145deg, #ffffff 0%, #fcfcfc 100%);
+}
+
+.goal-score-badge {
+    background: #fbbf24;
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 800;
+    box-shadow: 0 2px 6px rgba(251, 191, 36, 0.4);
+}
+
+/* Recent History Specifics */
+#guardianRecentHistory {
+    max-height: 300px;
+    height: 300px;
+    /* Explicit height */
+    overflow-y: auto;
+    border: 1px solid #f1f5f9;
+    border-radius: 16px;
+    background: #fff;
+}
+
+.recent-history-item {
+    padding: 12px;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.recent-history-item:last-child {
+    border-bottom: none;
 }
