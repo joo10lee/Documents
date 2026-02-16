@@ -1698,7 +1698,13 @@ label {
 /* Recent History */
 #guardianRecentHistory {
     max-height: 300px;
+    height: 250px;
+    /* Force height */
     overflow-y: auto;
+    display: block !important;
+    /* Force display */
+    background: #fff;
+    /* White background to ensure contrast */
 }
 
 /* Guardian Weather Tabs */
