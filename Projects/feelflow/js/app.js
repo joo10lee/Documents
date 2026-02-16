@@ -235,6 +235,12 @@ const Guardian = {
         const container = document.getElementById('guardianRecentHistory');
         if (!container) return;
         const history = safeJSONParse('feelflow_history', []) || [];
+
+        if (history.length === 0) {
+            container.innerHTML = `<div style="text-align:center; padding:20px; color:#94a3b8; font-size:0.9rem;">No activity data yet.</div>`;
+            return;
+        }
+
         // 💡 Recent: Show last 15, include photos
         const recent = history.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)).slice(0, 15);
 

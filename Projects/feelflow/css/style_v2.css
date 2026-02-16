@@ -1,0 +1,1733 @@
+/* * FeelFlow Premium UI Stack 
+ * Build: Ver.0213-1610 (iOS Safari Scroll Lock)
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;850&display=swap');
+
+/* 💡 핵심: iOS에서 바디가 밀리는 것을 방지 */
+html,
+body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    position: fixed;
+    /* iOS 스크롤 방지 핵심 */
+    overflow: hidden;
+    -webkit-user-select: none;
+    /* 텍스트 선택 방지 */
+    touch-action: none;
+    /* 브라우저 기본 제스처 차단 */
+}
+
+body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: linear-gradient(180deg, #F8FAFC 0%, #E2E8F0 100%);
+    display: flex;
+    flex-direction: column;
+}
+
+/* ===== SCREEN SYSTEM ===== */
+.screen {
+    display: none;
+    flex: 1;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    /* 💡 서브 화면만 내부 스크롤 허용 */
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.screen.active {
+    display: flex;
+}
+
+/* Screen 1 (Home)은 절대 움직이지 않음 */
+#screen1 {
+    overflow: hidden !important;
+    touch-action: none;
+    padding-bottom: 110px;
+}
+
+/* 나머지 프리미엄 벤토 스타일은 Ver.0213-1600과 동일하게 유지 */
+/* Ver.0213-2510: Emotion Bento 2x3 Grid */
+.emotion-bento {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    /* 2열 */
+    grid-template-rows: repeat(3, 1fr);
+    /* 3행 */
+    gap: 12px;
+    padding: 10px 24px;
+    flex: 1;
+    /* 가용 공간 모두 사용 */
+    min-height: 320px;
+    /* 아이폰에서 적절한 높이 확보 */
+}
+
+.bento-card {
+    border-radius: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
+}
+
+.bento-card .emoji {
+    font-size: 2.2rem;
+}
+
+.bento-card .label {
+    font-weight: 850;
+    font-size: 0.9rem;
+    margin-top: 4px;
+}
+
+.bento-card:active {
+    transform: scale(0.94);
+}
+
+/* 터치 피드백 */
+.bento-card .emoji {
+    font-size: 2.2rem;
+    margin-bottom: 4px;
+}
+
+.bento-card .label {
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: #475569;
+}
+
+/* 감정별 은은한 프리미엄 컬러셋 */
+.happy {
+    background: rgba(255, 217, 61, 0.1);
+}
+
+.sad {
+    background: rgba(108, 180, 238, 0.1);
+}
+
+.anxious {
+    background: rgba(160, 132, 232, 0.1);
+}
+
+.angry {
+    background: rgba(255, 107, 107, 0.1);
+}
+
+.calm {
+    background: rgba(107, 203, 119, 0.1);
+}
+
+.tired {
+    background: rgba(149, 165, 166, 0.1);
+}
+
+/* 5. 프리미엄 카드 UI (Intensity, Result, Tracker 등) */
+.intensity-card,
+.result-card,
+.progress-card,
+.history-card {
+    background: white;
+    margin: 10px 24px;
+    padding: 24px 20px;
+    border-radius: 32px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
+}
+
+.intensity-display {
+    font-size: 4rem;
+    font-weight: 850;
+    margin: 15px 0;
+    color: #1e293b;
+}
+
+/* 커스텀 프리미엄 슬라이더 */
+.intensity-slider {
+    width: 100%;
+    height: 40px;
+    -webkit-appearance: none;
+    background: transparent;
+}
+
+.intensity-slider::-webkit-slider-runnable-track {
+    height: 10px;
+    background: #E2E8F0;
+    border-radius: 5px;
+}
+
+.intensity-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    height: 30px;
+    width: 30px;
+    border-radius: 50%;
+    background: #1e293b;
+    margin-top: -10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* Ver.0213-1630: Result Summary Bar Style */
+.result-summary-bar {
+    margin: 20px 24px 10px;
+    padding: 12px 20px;
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    animation: slideDown 0.4s ease-out;
+}
+
+#summaryEmoji {
+    font-size: 1.8rem;
+}
+
+#summaryText {
+    font-size: 1rem;
+    font-weight: 800;
+    color: #1e293b;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+
+/* 6. 전략 및 태스크 리스트 (Tracker, History) */
+.section-title {
+    font-size: 1.1rem;
+    font-weight: 850;
+    margin: 20px 24px 12px;
+    color: #1e293b;
+}
+
+.strategy-card,
+.task-item,
+.history-item {
+    background: white;
+    margin: 0 24px 10px;
+    padding: 18px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+}
+
+.task-checkbox {
+    width: 26px;
+    height: 26px;
+    border: 2.5px solid #CBD5E1;
+    border-radius: 50%;
+    transition: 0.2s;
+}
+
+.task-item.completed .task-checkbox {
+    background: #10B981;
+    border-color: #10B981;
+}
+
+/* 하단 바 제거 */
+.bottom-nav {
+    display: none !important;
+}
+
+/* 햄버거 트리거 */
+.hamburger-trigger {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    width: 48px;
+    height: 48px;
+    background: white;
+    border: none;
+    border-radius: 14px;
+    display: flex;
+    /* 💡 [Fix] Z-Index to ensure it's clickable */
+    z-index: 5000;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 0;
+    /* Clean up duplicate z-index */
+}
+
+.bar {
+    width: 24px;
+    height: 3px;
+    background: #1e293b;
+    border-radius: 2px;
+}
+
+/* 메뉴 오버레이 */
+.menu-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    z-index: 4000;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: 0.3s ease;
+}
+
+.menu-overlay.active {
+    display: flex;
+    animation: fadeIn 0.3s forwards;
+}
+
+.menu-content a {
+    font-size: 2rem;
+    font-weight: 850;
+    color: #1e293b;
+    text-decoration: none;
+    margin: 15px 0;
+    display: block;
+}
+
+.menu-close {
+    position: absolute;
+    top: 20px;
+    right: 24px;
+    font-size: 3rem;
+    border: none;
+    background: none;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.menu-item {
+    background: none;
+    border: none;
+    font-size: 2rem;
+    font-weight: 850;
+    color: #1e293b;
+    margin: 15px 0;
+    display: block;
+    width: 100%;
+    text-align: center;
+    cursor: pointer;
+    font-family: inherit;
+}
+
+.icon-btn {
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+/* 8. 기타 공통 요소 */
+.btn-primary {
+    background: #1e293b;
+    color: white;
+    padding: 18px;
+    border-radius: 20px;
+    font-weight: 700;
+    border: none;
+    width: calc(100% - 48px);
+    margin: 10px 24px;
+    font-size: 1rem;
+}
+
+textarea {
+    width: calc(100% - 48px);
+    margin: 10px 24px;
+    padding: 15px;
+    border-radius: 18px;
+    border: 2px solid #E2E8F0;
+    font-family: inherit;
+    outline: none;
+}
+
+/* 스티커 그리드 복구 */
+.sticker-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px;
+    margin: 10px 24px;
+}
+
+.sticker-slot {
+    aspect-ratio: 1;
+    background: #F1F5F9;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+}
+
+/* Ver.0213-2400: Medal & XP Styling */
+.quick-task-item {
+    background: white;
+    padding: 16px;
+    border-radius: 20px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.quick-task-item.done {
+    background: #f8fafc;
+    border-color: #10b981;
+    opacity: 0.8;
+}
+
+.task-reward {
+    margin-left: auto;
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: #7c3aed;
+    background: rgba(124, 58, 237, 0.1);
+    padding: 4px 8px;
+    border-radius: 8px;
+}
+
+/* 1+2 벤토 그리드 레이아웃 */
+.strategy-grid {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr;
+    /* 2열 구조 */
+    gap: 16px;
+    padding: 10px 24px;
+}
+
+/* 🥇 1번 카드 (Gold): 상단 전체 차지 (2칸) */
+.strategy-grid .hero-card {
+    grid-column: span 2;
+    padding: 28px 24px !important;
+    flex-direction: row !important;
+    /* 가로 배치 */
+    justify-content: flex-start !important;
+    gap: 20px;
+    position: relative;
+    border-radius: 32px;
+}
+
+/* 🥈 2, 3번 카드 (Silver): 좌우로 나란히 (1칸씩) */
+.bento-card.silver-tier {
+    grid-column: span 1;
+    background: white;
+    padding: 24px 16px;
+    flex-direction: column;
+    /* 세로 배치 */
+    align-items: center;
+    text-align: center;
+    border-radius: 28px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+}
+
+.hero-card .quest-icon {
+    font-size: 3.5rem;
+}
+
+.silver-tier .quest-icon {
+    font-size: 2.5rem;
+    margin-bottom: 8px;
+}
+
+.recommend-tag {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: #FFD700;
+    color: #000;
+    font-size: 0.6rem;
+    font-weight: 900;
+    padding: 4px 8px;
+    border-radius: 8px;
+}
+
+/* 🏅 골드 메달 획득 시 애니메이션 */
+@keyframes medalBounce {
+
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.3) rotate(10deg);
+    }
+}
+
+.medal-unlocked {
+    animation: medalBounce 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* Ver.0213-2600: Celebration Effects */
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.7);
+    }
+
+    70% {
+        transform: scale(1.05);
+        box-shadow: 0 0 0 15px rgba(255, 215, 0, 0);
+    }
+
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(255, 215, 0, 0);
+    }
+}
+
+.xp-burst {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 5rem;
+    z-index: 9999;
+    animation: burstUp 1s forwards;
+}
+
+@keyframes burstUp {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.5);
+    }
+
+    50% {
+        opacity: 1;
+        transform: translate(-50%, -80%) scale(1.2);
+    }
+
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -100%) scale(1);
+    }
+}
+
+/* 루틴 아이템 스타일 */
+.routine-checkbox-item {
+    display: flex;
+    align-items: center;
+    padding: 18px;
+    background: white;
+    border-radius: 20px;
+    margin-bottom: 12px;
+    transition: all 0.3s ease;
+}
+
+.routine-checkbox-item.completed {
+    opacity: 0.5;
+    background: #f8fafc;
+}
+
+.routine-checkbox-item.completed .routine-text {
+    text-decoration: line-through;
+    color: #94a3b8;
+}
+
+/* 커스텀 체크박스 디자인 */
+.custom-checkbox {
+    width: 26px;
+    height: 26px;
+    border: 3px solid #7c3aed;
+    border-radius: 8px;
+    margin-right: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.completed .custom-checkbox {
+    background: #7c3aed;
+}
+
+.completed .custom-checkbox::after {
+    content: '✓';
+    color: white;
+    font-weight: bold;
+}
+
+/* 💡 추가: Routine 탭 스타일 (AM/PM 선택기) */
+.tracker-tabs {
+    display: flex;
+    background: rgba(0, 0, 0, 0.05);
+    padding: 6px;
+    border-radius: 16px;
+    margin: 10px 24px 20px;
+}
+
+.tracker-tab {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: 12px;
+    font-weight: 850;
+    font-size: 0.9rem;
+    background: transparent;
+    color: #64748b;
+    transition: 0.3s;
+}
+
+.tracker-tab.active {
+    background: white;
+    color: #7c3aed;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+/* * FeelFlow Premium UI Stack 
+ * Build: Ver.0213-1610 (iOS Safari Scroll Lock)
+ */
+
+
+
+/* 💡 핵심: iOS에서 바디가 밀리는 것을 방지 */
+html,
+body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    position: fixed;
+    /* iOS 스크롤 방지 핵심 */
+    overflow: hidden;
+    -webkit-user-select: none;
+    /* 텍스트 선택 방지 */
+    touch-action: none;
+    /* 브라우저 기본 제스처 차단 */
+}
+
+body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: linear-gradient(180deg, #F8FAFC 0%, #E2E8F0 100%);
+    display: flex;
+    flex-direction: column;
+}
+
+/* ===== SCREEN SYSTEM ===== */
+.screen {
+    display: none;
+    flex: 1;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    /* 💡 서브 화면만 내부 스크롤 허용 */
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.screen.active {
+    display: flex;
+}
+
+/* Screen 1 (Home)은 절대 움직이지 않음 */
+#screen1 {
+    overflow: hidden !important;
+    touch-action: none;
+    padding-bottom: 110px;
+}
+
+/* 나머지 프리미엄 벤토 스타일은 Ver.0213-1600과 동일하게 유지 */
+/* Ver.0213-2510: Emotion Bento 2x3 Grid */
+.emotion-bento {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    /* 2열 */
+    grid-template-rows: repeat(3, 1fr);
+    /* 3행 */
+    gap: 12px;
+    padding: 10px 24px;
+    flex: 1;
+    /* 가용 공간 모두 사용 */
+    min-height: 320px;
+    /* 아이폰에서 적절한 높이 확보 */
+}
+
+.bento-card {
+    border-radius: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
+}
+
+.bento-card .emoji {
+    font-size: 2.2rem;
+}
+
+.bento-card .label {
+    font-weight: 850;
+    font-size: 0.9rem;
+    margin-top: 4px;
+}
+
+.bento-card:active {
+    transform: scale(0.94);
+}
+
+/* 터치 피드백 */
+.bento-card .emoji {
+    font-size: 2.2rem;
+    margin-bottom: 4px;
+}
+
+.bento-card .label {
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: #475569;
+}
+
+/* 감정별 은은한 프리미엄 컬러셋 */
+.happy {
+    background: rgba(255, 217, 61, 0.1);
+}
+
+.sad {
+    background: rgba(108, 180, 238, 0.1);
+}
+
+.anxious {
+    background: rgba(160, 132, 232, 0.1);
+}
+
+.angry {
+    background: rgba(255, 107, 107, 0.1);
+}
+
+.calm {
+    background: rgba(107, 203, 119, 0.1);
+}
+
+.tired {
+    background: rgba(149, 165, 166, 0.1);
+}
+
+/* 5. 프리미엄 카드 UI (Intensity, Result, Tracker 등) */
+.intensity-card,
+.result-card,
+.progress-card,
+.history-card {
+    background: white;
+    margin: 10px 24px;
+    padding: 24px 20px;
+    border-radius: 32px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
+}
+
+.intensity-display {
+    font-size: 4rem;
+    font-weight: 850;
+    margin: 15px 0;
+    color: #1e293b;
+}
+
+/* 커스텀 프리미엄 슬라이더 */
+.intensity-slider {
+    width: 100%;
+    height: 40px;
+    -webkit-appearance: none;
+    background: transparent;
+}
+
+.intensity-slider::-webkit-slider-runnable-track {
+    height: 10px;
+    background: #E2E8F0;
+    border-radius: 5px;
+}
+
+.intensity-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    height: 30px;
+    width: 30px;
+    border-radius: 50%;
+    background: #1e293b;
+    margin-top: -10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* Ver.0213-1630: Result Summary Bar Style */
+.result-summary-bar {
+    margin: 20px 24px 10px;
+    padding: 12px 20px;
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    animation: slideDown 0.4s ease-out;
+}
+
+#summaryEmoji {
+    font-size: 1.8rem;
+}
+
+/* 💡 [Fix] Strikethrough for Checkbox */
+.home-quest-item.checked-strikethrough .routine-text,
+.routine-checkbox-item.completed .routine-text {
+    text-decoration: line-through;
+    color: #94a3b8;
+    transition: all 0.3s ease;
+}
+
+#summaryText {
+    font-size: 1rem;
+    font-weight: 800;
+    color: #1e293b;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+
+/* 6. 전략 및 태스크 리스트 (Tracker, History) */
+.section-title {
+    font-size: 1.1rem;
+    font-weight: 850;
+    margin: 20px 24px 12px;
+    color: #1e293b;
+}
+
+.strategy-card,
+.task-item,
+.history-item {
+    background: white;
+    margin: 0 24px 10px;
+    padding: 18px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+}
+
+.task-checkbox {
+    width: 26px;
+    height: 26px;
+    border: 2.5px solid #CBD5E1;
+    border-radius: 50%;
+    transition: 0.2s;
+}
+
+.task-item.completed .task-checkbox {
+    background: #10B981;
+    border-color: #10B981;
+}
+
+/* 하단 바 제거 */
+.bottom-nav {
+    display: none !important;
+}
+
+
+
+.bar {
+    width: 24px;
+    height: 3px;
+    background: #1e293b;
+    border-radius: 2px;
+}
+
+/* 메뉴 오버레이 */
+
+
+.menu-item {
+    font-size: 1.8rem;
+    font-weight: 850;
+    color: #1e293b;
+    text-decoration: none;
+    margin: 15px 0;
+    display: block;
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.menu-item:active {
+    transform: scale(0.95);
+    color: #7c3aed;
+}
+
+.menu-close {
+    position: absolute;
+    top: 20px;
+    right: 24px;
+    font-size: 3rem;
+    border: none;
+    background: none;
+    cursor: pointer;
+    z-index: 5000;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.menu-item {
+    background: none;
+    border: none;
+    font-size: 2rem;
+    font-weight: 850;
+    color: #1e293b;
+    margin: 15px 0;
+    display: block;
+    width: 100%;
+    text-align: center;
+    cursor: pointer;
+    font-family: inherit;
+}
+
+.icon-btn {
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+/* 8. 기타 공통 요소 */
+.btn-primary {
+    background: #1e293b;
+    color: white;
+    padding: 18px;
+    border-radius: 20px;
+    font-weight: 700;
+    border: none;
+    width: calc(100% - 48px);
+    margin: 10px 24px;
+    font-size: 1rem;
+}
+
+textarea {
+    width: calc(100% - 48px);
+    margin: 10px 24px;
+    padding: 15px;
+    border-radius: 18px;
+    border: 2px solid #E2E8F0;
+    font-family: inherit;
+    outline: none;
+}
+
+/* 스티커 그리드 복구 */
+.sticker-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px;
+    margin: 10px 24px;
+}
+
+.sticker-slot {
+    aspect-ratio: 1;
+    background: #F1F5F9;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+}
+
+/* Ver.0213-2400: Medal & XP Styling */
+.quick-task-item {
+    background: white;
+    padding: 16px;
+    border-radius: 20px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.quick-task-item.done {
+    background: #f8fafc;
+    border-color: #10b981;
+    opacity: 0.8;
+}
+
+.task-reward {
+    margin-left: auto;
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: #7c3aed;
+    background: rgba(124, 58, 237, 0.1);
+    padding: 4px 8px;
+    border-radius: 8px;
+}
+
+/* 1+2 벤토 그리드 레이아웃 */
+.strategy-grid {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr;
+    /* 2열 구조 */
+    gap: 16px;
+    padding: 10px 24px;
+}
+
+/* 🥇 1번 카드 (Gold): 상단 전체 차지 (2칸) */
+.strategy-grid .hero-card {
+    grid-column: span 2;
+    padding: 28px 24px !important;
+    flex-direction: row !important;
+    /* 가로 배치 */
+    justify-content: flex-start !important;
+    gap: 20px;
+    position: relative;
+    border-radius: 32px;
+}
+
+/* 🥈 2, 3번 카드 (Silver): 좌우로 나란히 (1칸씩) */
+.bento-card.silver-tier {
+    grid-column: span 1;
+    background: white;
+    padding: 24px 16px;
+    flex-direction: column;
+    /* 세로 배치 */
+    align-items: center;
+    text-align: center;
+    border-radius: 28px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+}
+
+.hero-card .quest-icon {
+    font-size: 3.5rem;
+}
+
+.silver-tier .quest-icon {
+    font-size: 2.5rem;
+    margin-bottom: 8px;
+}
+
+.recommend-tag {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: #FFD700;
+    color: #000;
+    font-size: 0.6rem;
+    font-weight: 900;
+    padding: 4px 8px;
+    border-radius: 8px;
+}
+
+/* 🏅 골드 메달 획득 시 애니메이션 */
+@keyframes medalBounce {
+
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.3) rotate(10deg);
+    }
+}
+
+.medal-unlocked {
+    animation: medalBounce 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* Ver.0213-2600: Celebration Effects */
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.7);
+    }
+
+    70% {
+        transform: scale(1.05);
+        box-shadow: 0 0 0 15px rgba(255, 215, 0, 0);
+    }
+
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(255, 215, 0, 0);
+    }
+}
+
+.xp-burst {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 5rem;
+    z-index: 9999;
+    animation: burstUp 1s forwards;
+}
+
+@keyframes burstUp {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.5);
+    }
+
+    50% {
+        opacity: 1;
+        transform: translate(-50%, -80%) scale(1.2);
+    }
+
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -100%) scale(1);
+    }
+}
+
+/* 루틴 아이템 스타일 */
+.routine-checkbox-item {
+    display: flex;
+    align-items: center;
+    padding: 18px;
+    background: white;
+    border-radius: 20px;
+    margin-bottom: 12px;
+    transition: all 0.3s ease;
+}
+
+.routine-checkbox-item.completed {
+    opacity: 0.5;
+    background: #f8fafc;
+}
+
+.routine-checkbox-item.completed .routine-text {
+    text-decoration: line-through;
+    color: #94a3b8;
+}
+
+/* 커스텀 체크박스 디자인 */
+.custom-checkbox {
+    width: 26px;
+    height: 26px;
+    border: 3px solid #7c3aed;
+    border-radius: 8px;
+    margin-right: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.completed .custom-checkbox {
+    background: #7c3aed;
+}
+
+.completed .custom-checkbox::after {
+    content: '✓';
+    color: white;
+    font-weight: bold;
+}
+
+/* 💡 추가: Routine 탭 스타일 (AM/PM 선택기) */
+.tracker-tabs {
+    display: flex;
+    background: rgba(0, 0, 0, 0.05);
+    padding: 6px;
+    border-radius: 16px;
+    margin: 10px 24px 20px;
+}
+
+.tracker-tab {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: 12px;
+    font-weight: 850;
+    font-size: 0.9rem;
+    background: transparent;
+    color: #64748b;
+    transition: 0.3s;
+}
+
+.tracker-tab.active {
+    background: white;
+    color: #7c3aed;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+/* 체크 시 즉시 적용되는 스타일 */
+/* 💡 홈 토글 버튼: 가로로 길게 늘어나는 문제 해결 */
+.home-routine-toggle {
+    display: inline-flex !important;
+    /* flex에서 inline-flex로 변경 */
+    align-items: center;
+    background: rgba(124, 58, 237, 0.1);
+    border: 1.5px solid #7c3aed;
+    padding: 6px 14px;
+    border-radius: 14px;
+    cursor: pointer;
+    white-space: nowrap;
+    /* 텍스트 줄바꿈 방지 */
+}
+
+.home-quest-item {
+    display: flex;
+    align-items: center;
+    background: white;
+    margin: 0 24px 10px;
+    padding: 18px;
+    border-radius: 22px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.home-quest-item.checked-strikethrough .custom-checkbox {
+    background: #10b981 !important;
+    border-color: #10b981 !important;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+}
+
+/* 체크박스 안의 'V' 표시 */
+.home-quest-item.checked-strikethrough .custom-checkbox::after {
+    content: '✓' !important;
+    color: white !important;
+    font-size: 0.9rem !important;
+    font-weight: 900 !important;
+}
+
+/* 3. 3초 뒤 사라지는 효과 */
+/* 3. 3초 뒤 사라지는 효과 */
+.home-quest-item.fade-out {
+    opacity: 0 !important;
+    transform: translateX(30px) !important;
+    transition: all 0.5s ease !important;
+}
+
+/* 💡 Add Task Input Redesign */
+.add-custom-routine {
+    display: flex;
+    align-items: center;
+    padding: 18px;
+    background: rgba(255, 255, 255, 0.6);
+    border: 2px dashed #cbd5e1;
+    border-radius: 20px;
+    margin-bottom: 20px;
+}
+
+#customRoutineInput {
+    border: none;
+    background: transparent;
+    width: 100%;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1e293b;
+    outline: none;
+    font-family: inherit;
+}
+
+#customRoutineInput::placeholder {
+    color: #94a3b8;
+    font-weight: 500;
+}
+
+/* Back Button Style Update (Unified) */
+.btn-secondary {
+    background: #f1f5f9;
+    color: #475569;
+    padding: 18px;
+    border-radius: 20px;
+    font-weight: 700;
+    border: none;
+    width: calc(100% - 48px);
+    margin: 10px 24px;
+    font-size: 1rem;
+}
+
+
+
+.home-routine-toggle:active {
+    transform: scale(0.95);
+    background: rgba(124, 58, 237, 0.2);
+}
+
+.toggle-label {
+    font-size: 0.75rem;
+    font-weight: 900;
+    color: #7c3aed;
+    text-transform: uppercase;
+}
+
+.toggle-icon {
+    font-size: 0.8rem;
+}
+
+/* 옵션 버튼이 통통 튀며 나타나는 효과 */
+@keyframes bounceIn {
+    0% {
+        transform: scale(0.3);
+        opacity: 0;
+    }
+
+    50% {
+        transform: scale(1.05);
+    }
+
+    70% {
+        transform: scale(0.9);
+    }
+
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.bounce-in {
+    animation: bounceIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.hidden-fade {
+    transition: all 0.6s ease;
+    transform: translateY(10px);
+}
+
+.big-choice {
+    flex: 1;
+    background: white;
+    padding: 30px 15px;
+    border-radius: 24px;
+    font-weight: 850;
+    font-size: 1.1rem;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+    border: 2px solid #f1f5f9;
+}
+
+
+
+/* 💡 홈 토글 버튼: 가로로 길게 늘어나는 문제 해결 */
+.home-routine-toggle {
+    display: inline-flex !important;
+    /* flex에서 inline-flex로 변경 */
+    align-items: center;
+    background: rgba(124, 58, 237, 0.1);
+    border: 1.5px solid #7c3aed;
+    padding: 6px 14px;
+    border-radius: 14px;
+    cursor: pointer;
+    white-space: nowrap;
+    /* 텍스트 줄바꿈 방지 */
+}
+
+/* Phase 2: Medal Label */
+.medal-slot .label {
+    font-size: 0.7rem;
+    color: #64748b;
+    margin-top: 5px;
+    font-weight: 600;
+}
+
+/* Phase 2: History Card */
+.history-card {
+    background: white;
+    border-radius: 16px;
+    padding: 15px;
+    margin-bottom: 15px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
+    border: 1px solid #f1f5f9;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.history-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.85rem;
+    color: #94a3b8;
+}
+
+.history-mood {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #334155;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.history-photo {
+    width: 100%;
+    border-radius: 12px;
+    margin-top: 5px;
+    object-fit: cover;
+}
+
+.history-note {
+    background: #f8fafc;
+    padding: 10px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    color: #475569;
+}
+
+/* 💡 Phase 2.5: Disabled Routine - Total Gray */
+.routine-checkbox-item.disabled {
+    opacity: 0.5;
+    filter: grayscale(100%);
+    background: #f1f5f9;
+    pointer-events: none;
+}
+
+/* 💡 Phase 2.5: Scrollable Daily Quest */
+.quick-mission-section {
+    flex: 1;
+    /* Take remaining space */
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    /* Critical for nested flex scrolling */
+    margin-top: 20px;
+    overflow: hidden;
+    /* Container fixed, child scrolls */
+}
+
+#quickTaskListContainer {
+    flex: 1;
+    overflow-y: auto;
+    padding-bottom: 20px;
+    /* Space for scrolling */
+    -webkit-overflow-scrolling: touch;
+    /* Smooth scroll iOS */
+}
+
+.quick-task-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.routine-checkbox-item.disabled .routine-controls {
+    pointer-events: auto;
+    filter: none;
+}
+
+/* Control Buttons - Subtle */
+.btn-control {
+    background: #e2e8f0;
+    border: none;
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: 0.2s;
+    font-weight: 600;
+    color: #94a3b8;
+}
+
+/* 💡 Phase 3: Single Line Greeting */
+.greeting {
+    font-size: 1.5rem;
+    /* Reduced from default h1 */
+    font-weight: 850;
+    line-height: 1.2;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 70vw;
+    /* Prevent overlap with home button */
+}
+
+/* 💡 Phase 3: Uniform Strategy Cards */
+.strategy-card {
+    background: white;
+    margin: 0 0 15px 0;
+    /* Margin handled by grid or container */
+    padding: 20px;
+    border-radius: 24px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+    border: 1px solid #f1f5f9;
+    min-height: 180px;
+    /* Enforce minimum height */
+    height: 100%;
+    /* Fill grid cell if using grid */
+}
+
+.strategy-card h3 {
+    font-size: 1.1rem;
+    font-weight: 750;
+    margin-bottom: 8px;
+    color: #1e293b;
+}
+
+.strategy-card p {
+    font-size: 0.9rem;
+    color: #64748b;
+    line-height: 1.5;
+    flex: 1;
+    /* Push button to bottom */
+    margin-bottom: 15px;
+}
+
+.strategy-card button {
+    width: 100%;
+    padding: 12px 0;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 12px;
+    background: #f1f5f9;
+    color: #334155;
+    border: none;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.strategy-card button:active {
+    transform: scale(0.98);
+    background: #e2e8f0;
+}
+
+/* 💡 New: Dual Button Container for Equal Sizing */
+.dual-btn-container {
+    display: flex;
+    gap: 10px;
+    width: 100%;
+    margin-top: auto;
+    /* Push to bottom if in flex container */
+}
+
+.dual-btn-container button {
+    flex: 1;
+    /* Equal width */
+    margin-top: 0;
+    /* Reset margin */
+}
+
+
+.btn-control:hover {
+    background: #cbd5e1;
+    color: #475569;
+}
+
+.btn-control:active {
+    transform: scale(0.95);
+}
+
+.btn-control.delete {
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.1);
+}
+
+/* 💡 Phase 2.5: Floating Home Button */
+.nav-home-btn.floating-home {
+    position: fixed;
+    top: 20px;
+    /* Match hamburger top alignment */
+    right: 80px;
+    /* Left of hamburger (20px + 48px + gap) */
+    width: 48px;
+    /* Match hamburger size */
+    height: 48px;
+    background: white;
+    border-radius: 14px;
+    /* Match hamburger radius */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    z-index: 5000;
+    /* Match hamburger z-index */
+    font-size: 1.5rem;
+    display: flex;
+    /* Hidden by default via JS, but if shown */
+    align-items: center;
+    justify-content: center;
+    border: none;
+    cursor: pointer;
+}
+
+/* 9. Guardian Auth & Settings Styles */
+.auth-container,
+.settings-container {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 80vh;
+    /* Center vertically */
+}
+
+input[type="password"],
+input[type="tel"],
+input[type="number"],
+input[type="text"] {
+    background: #f8fafc;
+    border: 2px solid #e2e8f0;
+    font-family: inherit;
+    font-weight: 700;
+    color: #334155;
+    outline: none;
+    transition: 0.2s;
+}
+
+input:focus {
+    border-color: #7c3aed;
+    background: white;
+}
+
+/* Chart Container */
+.chart-container {
+    position: relative;
+    width: 100%;
+    height: 250px;
+    margin-bottom: 20px;
+}
+
+/* AI Insight Box */
+#aiInsightBox {
+    background: #f0f9ff;
+    border: 1px solid #bae6fd;
+    border-radius: 16px;
+    padding: 20px;
+    color: #334155;
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+/* Guardian Home Button Override */
+.nav-home-btn.guardian-mode {
+    background: #f1f5f9;
+    color: #64748b;
+}
+
+/* Settings Card */
+.settings-card {
+    background: white;
+    padding: 20px;
+    border-radius: 20px;
+    margin-bottom: 15px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+}
+
+label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 700;
+    color: #475569;
+    font-size: 0.9rem;
+}
+
+/* Guardian Legend */
+#guardianLegend>div {
+    background: #f8fafc;
+    padding: 4px 10px;
+    border-radius: 15px;
+    border: 1px solid #e2e8f0;
+}
+
+/* Compact Goal Manager */
+.goal-manager-compact h3 {
+    margin: 0 !important;
+    font-size: 0.95rem;
+}
+
+.goal-manager-compact input {
+    font-size: 0.9rem;
+}
+
+.goal-manager-compact button {
+    font-size: 0.9rem;
+    padding: 6px 12px;
+}
+
+/* Recent History */
+#guardianRecentHistory {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+/* Guardian Weather Tabs */
+.weather-tab {
+    background: #f1f5f9;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #64748b;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.weather-tab.active {
+    background: #3b82f6;
+    color: white;
+    box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+}
+
+/* Compact Adjustments (Round 2) */
+.guardian-container {
+    padding-bottom: 80px !important;
+}
+
+#guardianLegend .emotion-legend-item {
+    background: #f8fafc;
+    padding: 4px 8px;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+}

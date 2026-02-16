@@ -11,7 +11,7 @@
 
     <link rel="manifest" href="./manifest.json">
     <link rel="icon" href="./favicon.ico" type="image/x-icon">
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/style_v2.css">
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="js/api.js?v=2.6.3"></script>
@@ -42,7 +42,7 @@
         <div class="header-status">
             <span id="weatherIcon">🌤️</span>
             <!-- 💡 Phase 2.5: Version Format (Date-Time) -->
-            <span class="build-tag">Ver.0215-1824</span>
+            <span class="build-tag">Ver.0215-1847</span>
         </div>
         <div class="header-main">
 
@@ -264,18 +264,14 @@
                 </div>
             </div>
 
-            <!-- Weather Tabs -->
-            <div class="tracker-tabs" style="margin-bottom:15px;">
-                <button class="tracker-tab active" onclick="Guardian.renderWeather('today', this)">Today</button>
-                <button class="tracker-tab" onclick="Guardian.renderWeather('weekly', this)">Weekly</button>
-                <button class="tracker-tab" onclick="Guardian.renderWeather('monthly', this)">Monthly</button>
-            </div>
+            <!-- Weather Tabs Removed (Duplicate) -->
+
 
             <!-- Stats & Insight -->
-            <div class="strategy-card" style="min-height:auto; padding:15px;">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                    <h3 style="margin:0; font-size:1.1rem;">📊 Emotion Weather</h3>
-                    <div class="weather-controls" style="display:flex; gap:5px;">
+            <div class="strategy-card" style="min-height:auto; padding:15px; margin-bottom:10px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+                    <h3 style="margin:0; font-size:1rem;">📊 Emotion Weather</h3>
+                    <div class="weather-controls" style="display:flex; gap:4px;">
                         <button class="weather-tab active"
                             onclick="Guardian.renderWeather('today', this)">Today</button>
                         <button class="weather-tab" onclick="Guardian.renderWeather('weekly', this)">Week</button>
@@ -283,19 +279,19 @@
                     </div>
                 </div>
 
-                <div class="chart-container" style="position:relative; height:200px; width:100%;">
+                <div class="chart-container" style="position:relative; height:180px; width:100%;">
                     <canvas id="guardianChart"></canvas>
                 </div>
 
                 <!-- Legend Compact -->
                 <div id="guardianLegend"
-                    style="display:flex; flex-wrap:wrap; margin-top:10px; justify-content:center; gap:8px;"></div>
+                    style="display:flex; flex-wrap:wrap; margin-top:5px; justify-content:center; gap:6px;"></div>
 
                 <div id="aiInsightBox"
-                    style="margin-top:15px; padding:10px; background:#f0f9ff; border-radius:8px; border-left:4px solid #0ea5e9;">
-                    <div style="font-weight:700; color:#0284c7; font-size:0.85rem; margin-bottom:4px;">🤖 AI Insight
+                    style="margin-top:10px; padding:8px; background:#f0f9ff; border-radius:8px; border-left:3px solid #0ea5e9;">
+                    <div style="font-weight:700; color:#0284c7; font-size:0.8rem; margin-bottom:2px;">🤖 AI Insight
                     </div>
-                    <p id="aiInsightText" style="font-size:0.85rem; color:#334155; line-height:1.4; margin:0;">Analyzing
+                    <p id="aiInsightText" style="font-size:0.8rem; color:#334155; line-height:1.3; margin:0;">Analyzing
                         data...</p>
                 </div>
             </div>
@@ -328,14 +324,15 @@
                 <div id="suggestedGoal"
                     style="display:none; margin-top:8px; font-size:0.8rem; color:#64748b; cursor:pointer;"></div>
             </div>
-            style="display:none; font-size:0.8rem; color:#059669; margin-top:5px; cursor:pointer;">
-            ✨ Suggestion: <span style="text-decoration:underline;">Family Movie Night</span>
-        </div>
-        </div>
 
-        <!-- Recent Journey (Last 15) -->
-        <h3 class="section-title" style="margin:20px 0 10px;">Recent Activity (Last 15)</h3>
-        <div id="guardianRecentHistory" style="display:flex; flex-direction:column; gap:8px;"></div>
+            <!-- Recent Activity -->
+            <div class="strategy-card" style="min-height:auto; padding:15px; margin-bottom:80px;">
+                <h3 style="margin:0 0 10px 0; font-size:1rem;">🕒 Recent Activity</h3>
+                <div id="guardianRecentHistory" style="max-height:300px; overflow-y:auto;">
+                    <div style="text-align:center; color:#94a3b8; font-size:0.85rem; padding:10px;">Loading history...
+                    </div>
+                </div>
+            </div>
         </div>
     </main>
 
