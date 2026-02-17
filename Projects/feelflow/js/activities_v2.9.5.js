@@ -960,14 +960,15 @@ const Activities = {
         burst.innerHTML = `<div style=\"font-size:6rem;\">${tier === 'gold' ? '🥇' : '🥈'}</div><div style=\"font-weight:900; font-size:2rem; color:${tier === 'gold' ? '#FFD700' : '#7c3aed'};\">${tier.toUpperCase()}!<br>+${xp} XP</div>`;
         document.body.appendChild(burst);
         setTimeout(() => burst.remove(), 2500);
+    },
 
-        // 5. Activity Animations (Phase 5)
-        startSqueezeRelease() {
-            const area = document.getElementById('inAppActionArea');
-            let round = 1;
-            const totalRounds = 3;
+    // 5. Activity Animations (Phase 5)
+    startSqueezeRelease() {
+        const area = document.getElementById('inAppActionArea');
+        let round = 1;
+        const totalRounds = 3;
 
-            area.innerHTML = `
+        area.innerHTML = `
             <div style="padding:20px; text-align:center;">
                 <h2 style="margin-bottom:10px; font-weight:800; color:#334155;">Round <span id="sqRound">1</span>/3</h2>
                 <div id="squeezeEmoji" style="font-size:8rem; margin:20px 0; transition:transform 0.2s;">✋</div>
@@ -979,87 +980,87 @@ const Activities = {
             </div>
         `;
 
-            const emoji = document.getElementById('squeezeEmoji');
-            const status = document.getElementById('sqStatus');
-            const bar = document.getElementById('sqBar');
-            const roundDisplay = document.getElementById('sqRound');
+        const emoji = document.getElementById('squeezeEmoji');
+        const status = document.getElementById('sqStatus');
+        const bar = document.getElementById('sqBar');
+        const roundDisplay = document.getElementById('sqRound');
 
-            const runCycle = () => {
-                if (round > totalRounds) {
-                    this.completeAction('silver', 30);
-                    return;
-                }
-                roundDisplay.innerText = round;
+        const runCycle = () => {
+            if (round > totalRounds) {
+                this.completeAction('silver', 30);
+                return;
+            }
+            roundDisplay.innerText = round;
 
-                // SQUEEZE Phase (5s)
-                status.innerText = "SQUEEZE!";
-                status.style.color = "#ef4444";
-                emoji.innerText = "✊";
-                emoji.style.transform = "scale(0.8)";
-                bar.style.background = "#ef4444";
+            // SQUEEZE Phase (5s)
+            status.innerText = "SQUEEZE!";
+            status.style.color = "#ef4444";
+            emoji.innerText = "✊";
+            emoji.style.transform = "scale(0.8)";
+            bar.style.background = "#ef4444";
 
-                let p = 0;
-                const squeezeInt = setInterval(() => {
-                    p += 2; // 50 * 2 = 100% in 50 steps (100ms * 50 = 5s)
-                    if (p > 100) p = 100;
-                    bar.style.width = p + "%";
+            let p = 0;
+            const squeezeInt = setInterval(() => {
+                p += 2; // 50 * 2 = 100% in 50 steps (100ms * 50 = 5s)
+                if (p > 100) p = 100;
+                bar.style.width = p + "%";
 
-                    // Haptic Pulse
-                    if (p % 20 === 0 && window.navigator.vibrate) window.navigator.vibrate(50);
+                // Haptic Pulse
+                if (p % 20 === 0 && window.navigator.vibrate) window.navigator.vibrate(50);
+            }, 100);
+
+            this.activeTimeouts.push(setTimeout(() => {
+                clearInterval(squeezeInt);
+
+                // RELEASE Phase (5s)
+                status.innerText = "RELEASE...";
+                status.style.color = "#3b82f6";
+                emoji.innerText = "✋";
+                emoji.style.transform = "scale(1.1)";
+                bar.style.background = "#3b82f6";
+                if (window.navigator.vibrate) window.navigator.vibrate([100, 50, 100]); // Sigh pattern
+
+                let r = 100;
+                const releaseInt = setInterval(() => {
+                    r -= 2;
+                    if (r < 0) r = 0;
+                    bar.style.width = r + "%";
                 }, 100);
 
                 this.activeTimeouts.push(setTimeout(() => {
-                    clearInterval(squeezeInt);
-
-                    // RELEASE Phase (5s)
-                    status.innerText = "RELEASE...";
-                    status.style.color = "#3b82f6";
-                    emoji.innerText = "✋";
-                    emoji.style.transform = "scale(1.1)";
-                    bar.style.background = "#3b82f6";
-                    if (window.navigator.vibrate) window.navigator.vibrate([100, 50, 100]); // Sigh pattern
-
-                    let r = 100;
-                    const releaseInt = setInterval(() => {
-                        r -= 2;
-                        if (r < 0) r = 0;
-                        bar.style.width = r + "%";
-                    }, 100);
-
-                    this.activeTimeouts.push(setTimeout(() => {
-                        clearInterval(releaseInt);
-                        round++;
-                        runCycle();
-                    }, 5000));
-
+                    clearInterval(releaseInt);
+                    round++;
+                    runCycle();
                 }, 5000));
-            };
 
-            // Start after 1s delay
-            this.activeTimeouts.push(setTimeout(runCycle, 1000));
+            }, 5000));
+        };
 
-            const btn = document.getElementById('activityBtn');
-            if (btn) btn.style.display = 'none';
-        },
+        // Start after 1s delay
+        this.activeTimeouts.push(setTimeout(runCycle, 1000));
 
-        startDeepBreathing() {
-            const area = document.getElementById('inAppActionArea');
-            // Step 1: Selection
-            area.innerHTML = `
+        const btn = document.getElementById('activityBtn');
+        if (btn) btn.style.display = 'none';
+    },
+
+    startDeepBreathing() {
+        const area = document.getElementById('inAppActionArea');
+        // Step 1: Selection
+        area.innerHTML = `
             <div style="padding:20px; text-align:center;">
                 <h2 style="margin-bottom:30px; font-weight:800;">Choose Pattern</h2>
                 <button class="btn-primary" onclick="Activities.runBreathingSession('box')" style="background:#8b5cf6; margin-bottom:15px;">📦 Box Breathing (4-4-4-4)</button>
                 <button class="btn-primary" onclick="Activities.runBreathingSession('478')" style="background:#ec4899;">🌙 4-7-8 Calm</button>
             </div>
         `;
-            const btn = document.getElementById('activityBtn');
-            if (btn) btn.style.display = 'none';
+        const btn = document.getElementById('activityBtn');
+        if (btn) btn.style.display = 'none';
 
-            this.runBreathingSession = (pattern) => {
-                let rounds = 5;
-                let currentRound = 1;
+        this.runBreathingSession = (pattern) => {
+            let rounds = 5;
+            let currentRound = 1;
 
-                area.innerHTML = `
+            area.innerHTML = `
                 <div style="padding:20px; text-align:center; position:relative; min-height:400px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
                     <div id="bCircle" style="width:150px; height:150px; background:#ddd6fe; border-radius:50%; display:flex; align-items:center; justify-content:center; transition: all 1s ease-in-out; position:relative;">
                         <span id="bTimer" style="font-size:3rem; font-weight:800; color:#7c3aed;">4</span>
@@ -1071,75 +1072,75 @@ const Activities = {
                 </div>
             `;
 
-                const circle = document.getElementById('bCircle');
-                const timer = document.getElementById('bTimer');
-                const text = document.getElementById('bText');
+            const circle = document.getElementById('bCircle');
+            const timer = document.getElementById('bTimer');
+            const text = document.getElementById('bText');
 
-                const tick = (sec, label, scale, color, next) => {
-                    text.innerText = label;
-                    circle.style.transform = `scale(${scale})`;
-                    circle.style.backgroundColor = color;
+            const tick = (sec, label, scale, color, next) => {
+                text.innerText = label;
+                circle.style.transform = `scale(${scale})`;
+                circle.style.backgroundColor = color;
 
-                    let t = sec;
-                    timer.innerText = t;
+                let t = sec;
+                timer.innerText = t;
 
-                    const int = setInterval(() => {
-                        t--;
-                        if (t < 0) {
-                            clearInterval(int);
-                            next();
-                        } else {
-                            timer.innerText = t;
-                        }
-                    }, 1000);
-                    this.activeTimeouts.push(setTimeout(() => clearInterval(int), (sec + 1) * 1000));
-                };
-
-                const runRound = () => {
-                    if (currentRound > rounds) {
-                        this.finishBreathing();
-                        return;
-                    }
-
-                    // Update dots
-                    document.querySelectorAll('.b-dot').forEach((d, i) => d.style.background = i < currentRound ? '#7c3aed' : '#e2e8f0');
-
-                    if (pattern === 'box') {
-                        // Inhale 4 (Scale 1 -> 2, Purple)
-                        tick(4, "Inhale...", 1.8, "#c4b5fd", () => {
-                            // Hold 4 (Scale 2, Blue)
-                            tick(4, "Hold...", 1.8, "#a5b4fc", () => {
-                                // Exhale 4 (Scale 2 -> 1, Gray)
-                                tick(4, "Exhale...", 1.0, "#e2e8f0", () => {
-                                    // Hold 4 (Scale 1, Gray)
-                                    tick(4, "Hold...", 1.0, "#e2e8f0", () => {
-                                        currentRound++;
-                                        runRound();
-                                    });
-                                });
-                            });
-                        });
+                const int = setInterval(() => {
+                    t--;
+                    if (t < 0) {
+                        clearInterval(int);
+                        next();
                     } else {
-                        // 4-7-8 Pattern
-                        // Inhale 4
-                        tick(4, "Inhale...", 1.8, "#f9a8d4", () => {
-                            // Hold 7
-                            tick(7, "Hold...", 1.8, "#fbcfe8", () => {
-                                // Exhale 8
-                                tick(8, "Exhale...", 1.0, "#e2e8f0", () => {
+                        timer.innerText = t;
+                    }
+                }, 1000);
+                this.activeTimeouts.push(setTimeout(() => clearInterval(int), (sec + 1) * 1000));
+            };
+
+            const runRound = () => {
+                if (currentRound > rounds) {
+                    this.finishBreathing();
+                    return;
+                }
+
+                // Update dots
+                document.querySelectorAll('.b-dot').forEach((d, i) => d.style.background = i < currentRound ? '#7c3aed' : '#e2e8f0');
+
+                if (pattern === 'box') {
+                    // Inhale 4 (Scale 1 -> 2, Purple)
+                    tick(4, "Inhale...", 1.8, "#c4b5fd", () => {
+                        // Hold 4 (Scale 2, Blue)
+                        tick(4, "Hold...", 1.8, "#a5b4fc", () => {
+                            // Exhale 4 (Scale 2 -> 1, Gray)
+                            tick(4, "Exhale...", 1.0, "#e2e8f0", () => {
+                                // Hold 4 (Scale 1, Gray)
+                                tick(4, "Hold...", 1.0, "#e2e8f0", () => {
                                     currentRound++;
                                     runRound();
                                 });
                             });
                         });
-                    }
-                };
-
-                setTimeout(runRound, 1000);
+                    });
+                } else {
+                    // 4-7-8 Pattern
+                    // Inhale 4
+                    tick(4, "Inhale...", 1.8, "#f9a8d4", () => {
+                        // Hold 7
+                        tick(7, "Hold...", 1.8, "#fbcfe8", () => {
+                            // Exhale 8
+                            tick(8, "Exhale...", 1.0, "#e2e8f0", () => {
+                                currentRound++;
+                                runRound();
+                            });
+                        });
+                    });
+                }
             };
 
-            this.finishBreathing = () => {
-                area.innerHTML = `
+            setTimeout(runRound, 1000);
+        };
+
+        this.finishBreathing = () => {
+            area.innerHTML = `
                 <div style="padding:30px; text-align:center;">
                     <h2 style="margin-bottom:20px;">How do you feel?</h2>
                     <div style="font-size:4rem; margin-bottom:30px;">😌</div>
@@ -1148,16 +1149,16 @@ const Activities = {
                     </div>
                 </div>
             `;
-            };
-        },
+        };
+    },
 
-        safeVibrate(pattern) {
-            if (!navigator.vibrate) return;
-            try { navigator.vibrate(pattern); } catch (e) { }
-        }
-    };
+    safeVibrate(pattern) {
+        if (!navigator.vibrate) return;
+        try { navigator.vibrate(pattern); } catch (e) { }
+    }
+};
 
-    window.Activities = Activities;
-    window.renderStrategies = (n, i) => Activities.renderStrategies(n, i);
-    window.feedback = (t) => Activities.feedback(t);
-    ['click', 'touchstart'].forEach(e => window.addEventListener(e, () => Activities.initAudio(), { once: false }));
+window.Activities = Activities;
+window.renderStrategies = (n, i) => Activities.renderStrategies(n, i);
+window.feedback = (t) => Activities.feedback(t);
+['click', 'touchstart'].forEach(e => window.addEventListener(e, () => Activities.initAudio(), { once: false }));
