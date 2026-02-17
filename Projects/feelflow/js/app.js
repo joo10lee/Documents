@@ -769,6 +769,7 @@ function goToResult() {
     }
 
     // 💡 강도(intensity)를 함께 전달하여 Happy 1단계 '🌱' 분기 활성화
+    console.log("Calling renderStrategies with:", currentEmotion.name, currentEmotion.intensity);
     if (typeof window.renderStrategies === 'function') {
         window.renderStrategies(currentEmotion.name, currentEmotion.intensity);
     }
