@@ -1460,5 +1460,5 @@ async function initApp() {
     }
 }
 
-// 💡 Fix: Do not auto-run. Let window.onload handle it.
-window.initApp = initApp;
+// Start!
+initApp();

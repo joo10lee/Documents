@@ -1,0 +1,154 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: FeelFlow Backend - Serverless API
+
+Globals:
+  Function:
+    Timeout: 20
+    Runtime: nodejs18.x
+    Environment:
+      Variables:
+        GEMINI_API_KEY: !Ref GeminiApiKey
+  Api:
+    Cors:
+      AllowMethods: "'GET,POST,OPTIONS'"
+      AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+      AllowOrigin: "'*'"
+
+Parameters:
+  GeminiApiKey:
+    Type: String
+    Description: "API Key for Google Gemini"
+    NoEcho: true
+
+Resources:
+  # DynamoDB Table
+  FeelFlowTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: FeelFlowData
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: PK
+          AttributeType: S
+        - AttributeName: SK
+          AttributeType: S
+      KeySchema:
+        - AttributeName: PK
+          KeyType: HASH
+        - AttributeName: SK
+          KeyType: RANGE
+
+  # Lambda Function (Save Emotion)
+  PostEmotionFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/
+      Handler: postEmotion.handler
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref FeelFlowTable
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /emotion
+            Method: post
+
+  # Lambda Function (Get History)
+  GetHistoryFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/
+      Handler: getHistory.handler
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref FeelFlowTable
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /history
+            Method: get
+
+  # Lambda Function (AI Insight)
+  PostInsightFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/
+      Handler: postInsight.handler
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /ai/insight
+            Method: post
+
+  # S3 Bucket (Private)
+  FrontendBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+  # CloudFront OAI (Secure Access)
+  CloudFrontOAI:
+    Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
+    Properties:
+      CloudFrontOriginAccessIdentityConfig:
+        Comment: "OAI for FeelFlow Frontend"
+
+  # Bucket Policy (Allow OAI only)
+  FrontendBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref FrontendBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: AllowCloudFrontOAI
+            Effect: Allow
+            Principal:
+              CanonicalUser: !GetAtt CloudFrontOAI.S3CanonicalUserId
+            Action: "s3:GetObject"
+            Resource: !Sub "${FrontendBucket.Arn}/*"
+
+  # CloudFront Distribution
+  FrontendDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Origins:
+          - DomainName: !GetAtt FrontendBucket.RegionalDomainName
+            Id: S3Origin
+            S3OriginConfig:
+              OriginAccessIdentity: !Sub "origin-access-identity/cloudfront/${CloudFrontOAI}"
+        Enabled: true
+        DefaultRootObject: index.html
+        DefaultCacheBehavior:
+          TargetOriginId: S3Origin
+          ViewerProtocolPolicy: redirect-to-https
+          AllowedMethods: [GET, HEAD, OPTIONS]
+          CachedMethods: [GET, HEAD, OPTIONS]
+          ForwardedValues:
+            QueryString: false
+            Cookies:
+              Forward: none
+        ViewerCertificate:
+          CloudFrontDefaultCertificate: true
+
+Outputs:
+  ApiUrl:
+    Description: "API Gateway endpoint URL"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
+  
+  CloudFrontURL:
+    Description: "Frontend URL (HTTPS)"
+    Value: !GetAtt FrontendDistribution.DomainName
+
+  S3BucketName:
+    Description: "S3 Bucket Name"
+    Value: !Ref FrontendBucket

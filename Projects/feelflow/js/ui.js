@@ -27,22 +27,33 @@ const UI = {
         // 💡 Phase 2: Header Logic
         const headerTitle = document.getElementById('headerTitle');
         const homeBtn = document.getElementById('navHomeBtn');
-        const weatherIcon = document.getElementById('weatherIcon');
+        const hamburgerBtn = document.querySelector('.hamburger-trigger');
+        const appHeader = document.querySelector('.app-header');
 
-        if (cleanId === '1') {
-            // Home Screen: Time-based Greeting
-            const hour = new Date().getHours();
-            let greeting = "Hey Jason,<br>how's it going?";
-            if (hour >= 5 && hour < 12) greeting = "Good Morning,<br>Jason! ☀️";
-            else if (hour >= 12 && hour < 18) greeting = "Good Afternoon,<br>Jason! 🌤️";
-            else if (hour >= 18) greeting = "Good Evening,<br>Jason! 🌙";
-
-            if (headerTitle) headerTitle.innerHTML = greeting;
-            if (homeBtn) homeBtn.style.display = 'none'; // Hide Home Button
+        // 💡 Hide Navigation Elements on Landing & Auth Screens
+        if (cleanId === 'Landing' || cleanId === 'Login' || cleanId === 'Signup') {
+            if (hamburgerBtn) hamburgerBtn.style.display = 'none';
+            if (homeBtn) homeBtn.style.display = 'none';
+            if (appHeader) appHeader.style.display = 'none'; // Hide header too for clean look
         } else {
-            // Other Screens: Specific Title
-            if (headerTitle) headerTitle.textContent = title || "FeelFlow";
-            if (homeBtn) homeBtn.style.display = 'block'; // Show Home Button
+            if (hamburgerBtn) hamburgerBtn.style.display = 'flex';
+            if (appHeader) appHeader.style.display = 'flex';
+
+            // Home Screen Specifics
+            if (cleanId === '1') {
+                const hour = new Date().getHours();
+                // ... (greeting logic)
+                let greeting = "Hey Jason,<br>how's it going?";
+                if (hour >= 5 && hour < 12) greeting = "Good Morning,<br>Jason! ☀️";
+                else if (hour >= 12 && hour < 18) greeting = "Good Afternoon,<br>Jason! 🌤️";
+                else if (hour >= 18) greeting = "Good Evening,<br>Jason! 🌙";
+
+                if (headerTitle) headerTitle.innerHTML = greeting;
+                if (homeBtn) homeBtn.style.display = 'none';
+            } else {
+                if (headerTitle) headerTitle.textContent = title || "FeelFlow";
+                if (homeBtn) homeBtn.style.display = 'block';
+            }
         }
 
         if (target) {
@@ -67,20 +78,41 @@ const UI = {
         setTimeout(() => burst.remove(), 2500);
     },
 
-    // 💡 레고 블록 획득 애니메이션
-    showLegoAnimation() {
-        const burst = document.createElement('div');
-        burst.className = 'xp-burst';
-        burst.style.zIndex = '9999';
-        burst.innerHTML = `
-            <div style="font-size:5rem; animation: bounceIn 1s;">🧱</div>
-            <div style="font-weight:900; font-size:1.5rem; color:#d97706; margin-top:10px; text-shadow:0 2px 10px rgba(0,0,0,0.2);">
-                LEGO BLOCK GET!<br>
-                <span style="font-size:1rem; color:white;">+50 XP</span>
+    // 4. XP 획득 애니메이션 (Lego -> XP)
+    showXPAnimation(type = 'default') {
+        const overlay = document.createElement('div');
+        overlay.style.position = 'fixed';
+        overlay.style.top = '0';
+        overlay.style.left = '0';
+        overlay.style.width = '100%';
+        overlay.style.height = '100%';
+        overlay.style.display = 'flex';
+        overlay.style.justifyContent = 'center';
+        overlay.style.alignItems = 'center';
+        overlay.style.zIndex = '9999';
+        overlay.style.background = 'rgba(0,0,0,0.6)';
+
+        // 💡 XP Animation
+        overlay.innerHTML = `
+            <div style="text-align:center; animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
+                <div style="font-size:5rem; filter:drop-shadow(0 4px 10px rgba(0,0,0,0.3));">🌟</div>
+                <div style="font-size:2rem; font-weight:900; color:#fbbf24; text-shadow:0 2px 4px rgba(0,0,0,0.3); margin-top:10px;">
+                    XP EARNED!
+                </div>
+                <div style="font-size:1.2rem; color:white; margin-top:5px; font-weight:700;">Great job!</div>
             </div>
         `;
-        document.body.appendChild(burst);
-        setTimeout(() => burst.remove(), 3000);
+
+        document.body.appendChild(overlay);
+
+        // Sound
+        if (typeof playSound === 'function') playSound('success');
+
+        setTimeout(() => {
+            overlay.style.opacity = '0';
+            overlay.style.transition = 'opacity 0.3s';
+            setTimeout(() => overlay.remove(), 300);
+        }, 1500);
     },
 
     back() {
@@ -142,10 +174,11 @@ const UI = {
 
     // 3. 감정 기록 리스트 렌더링
     renderHistory(history) {
+        console.log("📅 renderHistory called with:", history ? history.length : "null");
         const container = document.getElementById('historyList');
-        if (!container || !history) return;
+        if (!container) return;
 
-        if (history.length === 0) {
+        if (!history || history.length === 0) {
             container.innerHTML = '<div class="empty-history"><p>No records yet!</p></div>';
             return;
         }
@@ -201,6 +234,30 @@ const UI = {
             const data = await res.json();
             this.displayWeather(data);
         } catch (e) { console.error("Weather Fail"); }
+    },
+
+    // 5. XP Toast Feedback
+    showXPToast(message, subtext) {
+        const toast = document.createElement('div');
+        toast.className = 'xp-toast';
+        toast.innerHTML = `
+            <div style="font-size:1.5rem; margin-bottom:4px;">⭐ ${message}</div>
+            <div style="font-size:0.9rem; opacity:0.9;">${subtext}</div>
+        `;
+        document.body.appendChild(toast);
+
+        // Animate
+        requestAnimationFrame(() => {
+            toast.style.opacity = '1';
+            toast.style.transform = 'translate(-50%, 20px)';
+        });
+
+        // Remove
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translate(-50%, -20px)';
+            setTimeout(() => toast.remove(), 300);
+        }, 2000);
     }
 };
 

@@ -11,13 +11,12 @@
 
     <link rel="manifest" href="./manifest.json">
     <link rel="icon" href="./favicon.ico" type="image/x-icon">
-    <link rel="stylesheet" href="css/style_v2.css?v=2.6.4">
+    <link rel="stylesheet" href="css/style_v2.css?v=2.9.0">
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="js/api.js?v=2.6.3"></script>
-    <script src="js/ui.js?v=2.6.3"></script>
-    <script src="js/activities.js?v=2.6.3"></script>
-    <script src="js/app.js?v=2.6.3"></script>
+    <script src="js/api.js?v=2.9.2"></script>
+    <script src="js/ui.js?v=2.9.2"></script>
+    <script src="js/activities_v2.9.5.js"></script>
+    <script src="js/app.js?v=2.9.3"></script>
 
     <script>
         window.onload = function () {
@@ -42,7 +41,7 @@
         <div class="header-status">
             <span id="weatherIcon">🌤️</span>
             <!-- 💡 Phase 2.5: Version Format (Date-Time) -->
-            <span class="build-tag">Ver.0215-1926</span>
+            <span class="build-tag">Ver.0217-1418</span>
         </div>
         <div class="header-main">
 
@@ -76,7 +75,25 @@
         </nav>
     </div>
 
-    <main class="screen active" id="screen1">
+    <main class="screen active" id="screenLanding">
+        <div class="auth-container"
+            style="padding: 60px 24px; text-align: center; display: flex; flex-direction: column; justify-content: center; height: 100vh;">
+            <div style="font-size: 4rem; margin-bottom: 20px;">👋</div>
+            <h1 style="font-size: 2.5rem; color: #1e293b; margin-bottom: 10px; font-weight: 850;">FeelFlow</h1>
+            <p style="color: #64748b; margin-bottom: 50px; font-size: 1.1rem;">Who are you?</p>
+
+            <button class="btn-primary" onclick="setMode('child')"
+                style="margin-bottom: 20px; padding: 20px; font-size: 1.2rem; background: #3b82f6;">
+                🧒 I'm Jason
+            </button>
+
+            <button class="btn-secondary" onclick="setMode('guardian')" style="padding: 20px; font-size: 1.2rem;">
+                🛡️ I'm a Guardian
+            </button>
+        </div>
+    </main>
+
+    <main class="screen" id="screen1">
 
 
         <div class="emotion-bento">
@@ -139,11 +156,25 @@
     </main>
 
     <main class="screen" id="screen5">
-        <div class="result-card">
-            <div class="result-emoji">✨</div>
-            <p style="font-size: 1.4rem; font-weight: 800;">Great job, Jason!</p>
-            <p id="finalMessage">Mission Recorded Successfully.</p>
-            <button class="btn-primary" onclick="startOver()">Finish</button>
+        <div class="result-card" style="text-align:center;">
+            <div class="result-emoji" style="font-size:4rem; margin-bottom:10px;">✨</div>
+            <p style="font-size: 1.4rem; font-weight: 800; margin-bottom:5px;">Great job, Jason!</p>
+
+            <!-- 💡 Dynamic XP Display -->
+            <div
+                style="background:#dcfce7; color:#15803d; padding:10px 20px; border-radius:20px; display:inline-block; font-weight:800; font-size:1.2rem; margin-bottom:20px;">
+                +<span id="screen5XpDisplay">30</span> XP Earned!
+            </div>
+
+            <p id="finalMessage" style="color:#64748b; margin-bottom:30px;">Emotion Recorded.</p>
+
+            <!-- 💡 Share Bonus -->
+            <button class="btn-primary" id="btnShareFamily" onclick="shareWithFamily()"
+                style="background:#8b5cf6; margin-bottom:10px; width:100%;">
+                👨‍👩‍👦 Share with Family (+100 XP)
+            </button>
+
+            <button class="btn-secondary" onclick="startOver()" style="width:100%;">Finish</button>
         </div>
     </main>
 
@@ -319,14 +350,17 @@
                 </div>
                 <div id="suggestedGoal"
                     style="display:none; margin-top:10px; font-size:0.85rem; color:#64748b; cursor:pointer;">
-                    <span></span></div>
+                    <span></span>
+                </div>
             </div>
 
             <!-- Recent Activity -->
             <div class="guardian-card">
                 <h3 class="guardian-section-title">🕒 Recent Activity</h3>
                 <div id="guardianRecentHistory">
-                    <div style="text-align:center; color:#94a3b8; font-size:0.9rem; padding:20px;">Loading history...
+                    <!-- 🆕 Visual Build Tag -->
+                    <div style="text-align:center; padding:20px; color:#cbd5e1; font-size:0.7rem; margin-top:40px;">
+                        FeelFlow Kids • Ver.0217-1418
                     </div>
                 </div>
             </div>

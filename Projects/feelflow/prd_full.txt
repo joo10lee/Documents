@@ -1,0 +1,269 @@
+
+FEELFLOW
+Emotion Regulation Strategies
+Product Requirements Document
+Product:
+FeelFlow — Autism Transition Skills App
+Target Users:
+ASD Teenagers (Ages 13–18)
+Version:
+1.0 (MVP)
+Date:
+February 2026
+Author:
+Joo & Jason
+
+Table of Contents
+1. Overview
+2. User Flow Summary
+3. Emotion Strategy Matrix
+4. Universal Design Principles
+5. Accessibility & Sensory Settings
+6. Data & Privacy
+7. Success Metrics
+8. Implementation Priority
+
+1. Overview
+FeelFlow is an emotion regulation app designed specifically for teenagers on the autism spectrum (ASD Level 1, ages 13–18). The app guides users through a structured emotion check-in process: identifying their current emotion, measuring its intensity, and receiving personalized, evidence-based coping strategies.
+This PRD defines the 18 coping strategies across 6 emotion categories, specifying exact app behaviors, interaction patterns, and the ASD-specific design rationale behind each decision.
+1.1 Design Philosophy
+Every strategy in FeelFlow is built on three pillars tailored to the ASD cognitive and sensory profile:
+	•	Sensory-First Regulation: Strategies prioritize body-based and sensory approaches over purely cognitive ones, recognizing that cognitive strategies are less accessible during emotional dysregulation.
+	•	Predictability & Structure: Every interaction follows a predictable pattern with numbered steps, visible timers, and consistent navigation. No surprises, no ambiguity.
+	•	Autonomy & Zero Pressure: Nothing is mandatory. Every screen has a skip option. Social features are opt-in only. The app never judges, scores, or compares.
+
+2. User Flow Summary
+The core check-in flow follows a consistent 6-step linear progression. Users always know where they are and what comes next.
+Step
+Screen
+User Action
+App Response
+1
+Emotion Selection
+Tap one of 6 emotion buttons (Happy, Sad, Anxious, Angry, Calm, Tired)
+Highlight selected emotion with color-coded border. Transition to Step 2
+2
+Intensity Thermometer
+Drag slider from 1 (low) to 10 (high) to rate emotion intensity
+Real-time thermometer fill animation. Store baseline intensity value
+3
+Strategy Cards
+View 3 strategy cards. Tap any card to open guided activity
+Display 3 strategies specific to selected emotion. Cards show icon, title, and one-line description
+4
+Guided Activity
+Follow step-by-step instructions within the chosen strategy
+Timer, animations, prompts per strategy specification (see Section 3)
+5
+Re-measurement
+Rate emotion intensity again on same 1–10 scale
+Show before/after comparison with visual delta. Store post-strategy intensity
+6
+Completion
+View summary and optionally try another strategy or finish
+Encouragement message. Save check-in to history. Update streak counter
+
+3. Emotion Strategy Matrix
+The following table defines every strategy’s exact app behavior, interaction design, and the evidence-based rationale for its inclusion. Each of the 6 emotions has 3 strategies (18 total).
+Emotion
+Strategy
+App Behavior (UX / Interaction)
+ASD Design Rationale
+😊 Happy
+📝 Happy Journal
+Text input field with sentence starter prompt ("I feel happy because...") + emoji stamp selector (6 preset emojis) + Save button that stores entry in "Memory Bank" for future review
+Structured Expression — Provides sentence scaffolding instead of blank screen to reduce expressive demand
+
+📷 Capture the Moment
+Camera launch button + auto-tag photo with current emotion label and timestamp + Save to chronological "Happy Moments" gallery organized by date and emotion
+Visual Documentation — Connects abstract emotions to concrete images, building a personal coping resource library
+
+🔄 Body Scan
+Display human silhouette outline. User taps body areas where happiness is felt (chest, face, stomach). Tapped areas glow with warm animation. App suggests descriptive labels (e.g., "Warm chest", "Light head", "Relaxed shoulders")
+Interoception Training — Builds emotion-body connection awareness, a core deficit area in ASD. Replaces social-demand strategy ("Share Your Joy") with self-directed sensory exploration
+😢 Sad
+🧸 Comfort Object
+5-step guided sequence with 60-second timer: (1) Find something soft (2) Hold it close (3) Notice texture and temperature (4) Take 3 deep breaths (5) Stay as long as needed. Optional haptic vibration feedback on each step transition
+Sensory Anchoring — Tactile stimulation activates parasympathetic nervous system for calming
+
+🎵 Listen to Music
+Built-in sound library with 4 categories: Nature Sounds, Lo-fi Beats, White Noise, Classical. Volume slider with visual level indicator. Timer options: 3, 5, or 10 minutes. "My Calm Playlist" favorites feature. No sudden volume changes
+Predictable Sensory Input — Consistent auditory stimulation without unexpected changes that could cause sensory overload
+
+💬 Talk to Someone
+3 pre-written script cards displayed as tappable options: "I feel sad because ___", "Can you just listen?", "I need a hug". Tap to select + Copy/Share button. Pre-configured trusted contacts list (set in Settings) for quick sharing
+Social Scaffolding — Provides ready-made scripts for social-communication situations that are challenging for ASD individuals. Removes the cognitive load of formulating emotional expressions
+😰 Anxious
+🫁 Deep Breathing
+Expanding/contracting circle animation synchronized to breath pattern. Two pattern options: Box Breathing (4-4-4-4) and 4-7-8 Calm. Numerical countdown overlay on circle. Progress bar showing rounds completed (default: 5 rounds). Post-exercise body check: "How does your body feel now?" with intensity re-measurement
+Visual Pacing — Transforms abstract "breathe slowly" instruction into concrete visual guide. Circle animation provides predictable, rhythmic sensory input
+
+5️⃣ 5-4-3-2-1 Grounding
+Sequential screen transitions through 5 stages: 5 things you SEE (with text input for each) → 4 things you HEAR → 3 things you TOUCH → 2 things you SMELL → 1 thing you TASTE. Each stage has its own screen with clear numbering. Completion generates summary card showing all entries
+External Sensory Reconnection — Redirects attention from internal anxiety to present environment through structured sensory engagement
+
+🧊 Hold Something Cold
+60-second countdown timer with 4-step guided sequence: (1) Find ice or cold water (2) Hold in your hands (3) Focus on the cold sensation (4) Notice your body changing. Completion triggers intensity re-measurement to show change
+Dive Reflex Activation — Cold stimulus activates mammalian diving reflex, directly stimulating vagus nerve to lower heart rate. Provides immediate physiological intervention
+😠 Angry
+🚶 Take a Walk
+5-minute countdown timer with step counter (accelerometer-based). Sequential mindfulness prompts at intervals: 1:00 "Feel your feet on the ground" → 2:30 "What do you see around you?" → 4:00 "Is your body loosening up?" Completion screen with step count and intensity re-measurement
+Motor Energy Discharge — Converts anger’s physiological arousal (increased heart rate, muscle tension) into purposeful movement. Timed prompts prevent rumination during walk
+
+✊ Squeeze & Release
+3-round guided animation: Fist emoji (✊) displays for 5 seconds ("SQUEEZE") → Open hand emoji (✋) displays for 5 seconds ("RELEASE") → Repeat. Haptic vibration pulse during squeeze phase. Visual tension meter decreases with each round
+Progressive Muscle Relaxation (PMR) — Tension-release contrast teaches the body to recognize and achieve relaxation state. Simple enough for anger state when cognitive capacity is reduced
+
+🎨 Angry Drawing
+Full-screen blank canvas with 3 color options only (red, black, orange). Finger drawing enabled with thick brush stroke. Shake device to erase (with satisfying animation). "Feeling better?" check after 60 seconds. Drawings are intentionally NOT saved — emphasis on process, not product
+Non-verbal Expression — Replaces cognitive strategy (Count Backwards) which can increase frustration when angry. Drawing provides physical outlet without language demands. No-save design removes performance anxiety and judgment
+😌 Calm
+🧘 Mindful Moment
+60-second guided sequence with 5 text cards transitioning every 12 seconds: (1) Close your eyes (2) Notice your body (3) Feel the calm in your chest (4) Smile gently (5) Enjoy this moment. Soft chime sound at completion. Minimal visual design — dark background, white text only
+Structured Mindfulness — Replaces vague "be mindful" with concrete, timed, sequential steps. Dark UI reduces visual stimulation during calm state
+
+💭 Gratitude
+3-field input form: (1) A person I’m grateful for (2) A thing I’m grateful for (3) A place I’m grateful for. Each field has emoji selector. Save adds a flower to "Gratitude Garden" — visual garden grows with each entry over time
+Positive Reinforcement Visualization — Gamifies gratitude practice with growing garden metaphor. Concrete categories (person/thing/place) reduce the overwhelm of open-ended gratitude prompts
+
+📷 Calm Catalog
+Camera launch with prompt: "Take a photo of something peaceful right now." Auto-tags with "😌 Calm" label and timestamp. Saves to "My Calm Collection" album. This collection becomes accessible from the Anxious and Sad strategy screens as a coping resource
+Sensory Resource Library — Builds a personalized calm-stimulus library during good moments that can be accessed as a regulation tool during difficult moments. Replaces vague "Quiet Activity" with concrete, actionable behavior
+😫 Tired
+💧 Drink Water
+Glass-filling animation: tap to fill 25% per tap (4 taps = full glass). Celebratory animation on completion. Daily water counter: "You’ve had N glasses today." Optional reminder notification setup
+Visual Reward for Simple Action — Transforms mundane hydration into interactive micro-achievement. Immediate visual feedback motivates completion
+
+🌬️ Fresh Air
+2-minute timer with 5-step guided sequence: (1) Open window or go outside (2) Breathe the fresh air deeply (3) Feel the temperature on your skin (4) Listen to outdoor sounds (5) Come back inside. Completion triggers energy level re-measurement
+Environmental Shift — Changes sensory input through physical environment transition. Multi-sensory engagement (temperature, sound, air) resets arousal level
+
+🤸 Energy Shake
+4-round quick exercise guide, 15 seconds each (60 seconds total): Round 1: Arm shaking (arm emoji animation) → Round 2: Jumping in place (jump emoji) → Round 3: Body twist (twist emoji) → Round 4: Deep breath (calm down). Energetic countdown with upbeat visual tempo. Energy level re-measurement after completion
+Micro-Movement Activation — 60-second burst raises arousal level without requiring sustained exercise commitment. Replaces "Rest Your Eyes" which risks increasing drowsiness. Structured rounds with clear end point prevent over-exertion
+
+4. Universal Design Principles
+These 8 principles apply to ALL strategy screens and must be implemented consistently across the entire app. They form the foundation of FeelFlow’s ASD-accessible design.
+#
+Design Principle
+Implementation Detail
+ASD Rationale
+1
+Timer Always Visible
+Every guided activity displays a countdown timer showing exact remaining time. Eliminates "How long do I have to do this?" anxiety. Timer uses large, high-contrast numerals with progress bar.
+ASD individuals experience heightened anxiety with open-ended tasks. Visible timers provide temporal predictability and a concrete endpoint.
+2
+Numbered Steps
+All multi-step strategies display step numbers (e.g., "Step 2 of 5") with a progress indicator. Each step fits on one screen without scrolling.
+Sequencing and executive function challenges are common in ASD. Numbered steps reduce cognitive load and provide clear "what comes next" information.
+3
+Post-Strategy Intensity Re-measurement
+After completing any strategy, the app re-displays the emotion intensity thermometer (1–10 scale). Shows before/after comparison with visual delta indicator.
+Builds self-efficacy by making regulation progress visible and measurable. Teaches the metacognitive skill of recognizing that emotions can change through action.
+4
+Universal Skip/Exit Button
+Every strategy screen includes a visible "Skip" or "Back" button. No strategy is mandatory. User can exit mid-exercise without penalty or guilt messaging.
+Autonomy and control are critical for ASD emotional regulation. Forced completion can trigger meltdowns. Skip options respect sensory and cognitive limits.
+5
+Multi-Modal Sensory Feedback
+Progress and transitions communicated through multiple channels simultaneously: visual (color changes, animations), auditory (soft chimes, not harsh sounds), and haptic (gentle vibration pulses). All sensory channels individually toggleable in Settings.
+Reduces reliance on text-only communication. Customizable sensory channels accommodate individual sensory profiles (hyper/hypo-sensitivity).
+6
+Minimal Visual Clutter
+Maximum 3 interactive elements per screen. High contrast text (WCAG AA minimum). No decorative animations during active exercises. Consistent color coding per emotion throughout the app.
+Visual processing differences in ASD mean cluttered interfaces increase cognitive load and can trigger sensory overload. Consistency reduces re-learning on each screen.
+7
+Predictable Navigation
+Same flow every time: Emotion → Intensity → Strategies → Activity → Re-measure → Complete. No surprise pop-ups, no dynamic layout changes, no auto-playing content.
+Routine and predictability are foundational needs in ASD. Consistent navigation patterns become automatic, freeing cognitive resources for emotional processing.
+8
+No Social Pressure by Default
+Sharing and social features are opt-in only. No leaderboards, no social comparisons, no mandatory sharing. "Talk to Someone" provides scripts but never forces communication.
+Social communication challenges are a core feature of ASD. Removing social pressure allows focus on self-regulation without interpersonal anxiety.
+
+5. Accessibility & Sensory Settings
+FeelFlow includes a dedicated Sensory Settings panel accessible from the main Settings screen. These controls allow users (or their parents/caregivers) to customize the app’s sensory output to match individual sensory profiles.
+Setting
+Options
+Default
+Purpose
+Haptic Feedback
+On / Off
+On
+Some users are tactile-sensitive; allows disabling vibration
+Sound Effects
+On / Off / Volume slider
+On (50%)
+Controls chimes, completion sounds. Auditory sensitivity accommodation
+Animation Speed
+Slow / Normal / Fast
+Normal
+Visual processing speed varies; allows matching app tempo to user
+High Contrast Mode
+On / Off
+Off
+WCAG AAA compliance for users with visual processing differences
+Text Size
+Small / Medium / Large / XL
+Medium
+Reading comfort and accessibility
+Trusted Contacts
+Add name + contact method
+Empty
+Pre-configures "Talk to Someone" strategy recipients
+
+6. Data & Privacy
+FeelFlow handles sensitive emotional and behavioral data for minors. The following requirements are non-negotiable:
+	•	Local-First Storage: All check-in history, photos, and journal entries stored on-device by default. No cloud sync without explicit opt-in.
+	•	COPPA Compliance: No data collection from users under 13 without verified parental consent. Age verification at onboarding.
+	•	No Analytics on Emotional Data: Emotion check-ins are never sent to analytics services. Only anonymized usage patterns (screens visited, features used) may be collected.
+	•	Parental Dashboard (Optional): Parents/caregivers can opt-in to view aggregated weekly summaries (e.g., most frequent emotion, streak count) but cannot access individual journal entries or photos.
+	•	Data Deletion: Clear All Data option in Settings with confirmation dialog. Immediate, permanent deletion with no recovery.
+7. Success Metrics
+Metric
+Target (MVP)
+Measurement Method
+Timeframe
+Daily Active Check-ins
+≥ 1 check-in per day
+Local counter
+First 30 days
+Strategy Completion Rate
+≥ 60% of started strategies completed
+Start vs. completion events
+Ongoing
+Intensity Reduction
+Average ≥2 point decrease post-strategy
+Before/after intensity delta
+Ongoing
+7-Day Streak Rate
+≥ 40% of users achieve 7-day streak
+Streak calculation
+First 60 days
+Skip Rate per Strategy
+≤30% skip rate for any single strategy
+Skip button taps
+Ongoing (review monthly)
+
+8. Implementation Priority
+Strategies are prioritized based on implementation complexity and user impact. Phase 1 covers the MVP launch.
+Phase
+Strategies
+Complexity
+Dependencies
+Phase 1 (MVP)
+Deep Breathing, 5-4-3-2-1 Grounding, Squeeze & Release, Count to Calm, Comfort Object, Drink Water
+Low — Timer + text + basic animation
+None — standalone UI components
+Phase 2
+Happy Journal, Gratitude, Talk to Someone (scripts), Take a Walk, Energy Shake, Fresh Air, Mindful Moment
+Medium — Text input, storage, step counter
+Local storage, accelerometer API
+Phase 3
+Body Scan, Angry Drawing, Calm Catalog, Capture the Moment, Listen to Music
+High — Canvas, camera, audio player, body map UI
+Camera API, Canvas/drawing lib, audio assets, body silhouette SVG
+
+
+End of Document
+For questions or feedback, contact the FeelFlow product team.

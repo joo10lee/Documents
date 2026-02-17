@@ -153,8 +153,8 @@ const Activities = {
         if (typeof UI !== 'undefined' && UI.goToScreen) UI.goToScreen('Activity', type);
 
         setTimeout(() => {
-            const area = document.getElementById('activityArea');
-            const btn = document.getElementById('activityActionBtn');
+            const area = document.getElementById('inAppActionArea');
+            const btn = document.getElementById('activityBtn');
             const title = document.getElementById('activityTitle');
             if (!area) return;
             area.innerHTML = '';
@@ -218,8 +218,8 @@ const Activities = {
 
             // 💡 Phase 10: PRD New Strategies (Detailed Implementation)
 
-            // 1. Happy Journal (Emoji Stamps + Text)
-            else if (type === 'Happy Journal') {
+            // 1. Happy Journal / Happy Note (Emoji Stamps + Text)
+            else if (type === 'Happy Journal' || type === 'Happy Note') {
                 const emojis = ['😊', '😂', '🥰', '🎉', '🌟', '🍩'];
                 area.innerHTML = `
                     <p style="margin-bottom:10px; font-weight:600;">I feel happy because...</p>
@@ -250,7 +250,8 @@ const Activities = {
                 `;
                 // Simple visual feedback when typing
                 ['Person', 'Thing', 'Place'].forEach(f => {
-                    document.getElementById(`gratitude${f}`).addEventListener('input', (e) => {
+                    const el = document.getElementById(`gratitude${f}`);
+                    if (el) el.addEventListener('input', (e) => {
                         if (e.target.value.length === 1) { // Add flower on first char
                             document.getElementById('gratitudeGarden').innerHTML += ['🌻', '🌷', '🌹'][Math.floor(Math.random() * 3)];
                             if (typeof playSound === 'function') playSound('tap');
@@ -261,13 +262,12 @@ const Activities = {
                 if (btn) { btn.textContent = "Grow My Garden (+60 XP)"; btn.onclick = () => this.completeAction('gold', 60); }
             }
 
-            // 3. Talk to Someone (Script Cards)
-            else if (type === 'Talk to Someone') {
-                const scripts = [
-                    "I feel sad because...",
-                    "Can you just listen?",
-                    "I need a hug"
-                ];
+            // 3. Talk to Someone / Share the Joy / Big Hug (Script Cards or Interaction)
+            else if (type === 'Talk to Someone' || type === 'Share the joy') {
+                const scripts = type === 'Share the joy' ?
+                    ["I have good news!", "I feel great because...", "Let's celebrate!"] :
+                    ["I feel sad because...", "Can you just listen?", "I need a hug"];
+
                 area.innerHTML = `
                     <div style="display:flex; flex-direction:column; gap:10px;">
                         ${scripts.map(s => `
@@ -290,6 +290,12 @@ const Activities = {
                 };
 
                 if (btn) { btn.textContent = "I Shared It (+30 XP)"; btn.onclick = () => this.completeAction('silver', 30); }
+            }
+
+            else if (type === 'Big Hug') {
+                // Use Comfort Object logic or dedicated timer
+                this.startBigHugTimer(); // Using the existing method for Big Hug
+                if (btn) btn.style.display = 'none';
             }
 
             // 4. Timer/Sequence Strategies (Pass-through to specific logic below)
@@ -397,8 +403,14 @@ const Activities = {
                 timeLeft--;
                 if (document.getElementById('shakeTimer')) document.getElementById('shakeTimer').innerText = timeLeft;
 
+                // 💡 Add Shake Animation
+                const iconEl = document.getElementById('shakeIcon');
+                if (iconEl) iconEl.classList.add('shake-active');
+
                 if (timeLeft <= 0) {
                     round++;
+                    if (iconEl) iconEl.classList.remove('shake-active'); // Stop shaking during break
+
                     if (round >= 4) {
                         clearInterval(this.currentInterval);
                         this.completeAction('gold', 60);
@@ -566,7 +578,7 @@ const Activities = {
         const render = (i) => {
             const s = steps[i];
             area.innerHTML = `
-                <div style="text-align:center; padding:40px 24px;">
+                <div style="text-align:center; padding:40px 24px;" class="animate-pop">
                     <div style="font-size:5rem; font-weight:900; color:${s.c}; margin-bottom:20px;">${s.n}</div>
                     <h2 style="font-weight:850; color:#1e293b;">Things you ${s.s}</h2>
                     <button id="nextG" class="btn-primary" style="margin-top:40px; background:${s.c}; border:none;">${i === 4 ? 'Finish Mission' : 'Next Step'}</button>

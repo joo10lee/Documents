@@ -1,21 +1,23 @@
-// 1. 서버 주소 설정 (ngrok)
-const API_BASE_URL = 'https://ungainable-sonja-bewailingly.ngrok-free.dev';
+// 1. 서버 주소 설정 (AWS API Gateway)
+const API_BASE_URL = 'https://f8ambn0bkg.execute-api.us-west-2.amazonaws.com/Prod';
 
 /**
  * [통합] EmotionAPI: 서버 통신 및 로컬 대기열(Queue) 관리
  */
 const EmotionAPI = {
     headers: {
-        'Content-Type': 'application/json',
-        'ngrok-skip-browser-warning': 'true'
+        'Content-Type': 'application/json'
     },
 
     // A. 실제 서버로 전송 (내부용)
     async _postToServer(entry) {
-        const response = await fetch(`${API_BASE_URL}/api/emotions`, {
+        // Ensure userId is present
+        const payload = { ...entry, userId: entry.userId || "test_user" };
+
+        const response = await fetch(`${API_BASE_URL}/emotion`, {
             method: 'POST',
             headers: this.headers,
-            body: JSON.stringify(entry)
+            body: JSON.stringify(payload)
         });
         if (!response.ok) throw new Error("서버 응답 오류");
         return await response.json();
@@ -60,14 +62,38 @@ const EmotionAPI = {
     },
 
     // D. 전체 기록 가져오기 (GET)
+    // D. 전체 기록 가져오기 (GET)
     async fetchHistory() {
         try {
-            const response = await fetch(`${API_BASE_URL}/api/emotions`, { headers: this.headers });
+            const response = await fetch(`${API_BASE_URL}/history?userId=test_user`, { headers: this.headers });
             if (!response.ok) throw new Error("로드 에러");
+            const data = await response.json();
+
+            // 💡 Persistence Fix: Update LocalStorage with server data
+            if (Array.isArray(data)) {
+                localStorage.setItem('feelflow_history', JSON.stringify(data));
+                console.log("✅ History synced with server:", data.length, "items");
+            }
+            return data;
+        } catch (error) {
+            console.warn("서버 로드 실패, 로컬 데이터를 불러옵니다.", error);
+            return JSON.parse(localStorage.getItem('feelflow_history') || '[]');
+        }
+    },
+
+    // E. AI Insight 가져오기 (POST)
+    async getAIInsight(history) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/ai/insight`, {
+                method: 'POST',
+                headers: this.headers,
+                body: JSON.stringify({ history })
+            });
+            if (!response.ok) throw new Error("AI 분석 실패");
             return await response.json();
         } catch (error) {
-            console.warn("서버 로드 실패, 로컬 데이터를 불러옵니다.");
-            return JSON.parse(localStorage.getItem('feelflow_history') || '[]');
+            console.error(error);
+            return { insight: "AI analysis unavailable right now. Keep tracking!" };
         }
     }
 };

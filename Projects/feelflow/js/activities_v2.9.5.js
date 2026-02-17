@@ -83,41 +83,45 @@ const Activities = {
                     { title: 'Share the joy', icon: '✨', tier: 'silver', xp: 30, color: '#fff' }
                 ];
             } else {
+                // PRD 일치: Happy Journal, Capture the Moment, Body Scan
                 quests = [
                     { title: 'Happy Journal', icon: '✍️', tier: 'gold', xp: 60, color: '#1e293b', tag: 'WRITE' },
-                    { title: 'Gratitude', icon: '🙏', tier: 'silver', xp: 30, color: '#fff' }
+                    { title: 'Capture the Moment', icon: '📸', tier: 'silver', xp: 50, color: '#fff' },
+                    { title: 'Body Scan', icon: '🧘', tier: 'silver', xp: 30, color: '#fff', tag: 'AWARENESS' }
                 ];
             }
         }
         else if (name.includes('sad') || name.includes('😢')) {
             quests = [
                 { title: 'Comfort Object', icon: '🧸', tier: 'gold', xp: 60, color: '#1e293b', tag: 'HUG' },
-                { title: 'Talk to Someone', icon: '🗣️', tier: 'silver', xp: 30, color: '#fff' },
-                { title: 'Big Hug', icon: '🫂', tier: 'silver', xp: 30, color: '#fff' }
+                { title: 'Listen to Music', icon: '🎵', tier: 'silver', xp: 30, color: '#fff' },
+                { title: 'Talk to Someone', icon: '🗣️', tier: 'silver', xp: 30, color: '#fff' }
             ];
         }
         else if (name.includes('anxious') || name.includes('😰')) {
             quests = [
-                { title: 'Count to Calm', icon: '🔢', tier: 'gold', xp: 60, color: '#1e293b', tag: 'FOCUS' },
-                { title: 'Mindful Moment', icon: '🧘‍♀️', tier: 'silver', xp: 30, color: '#fff' }
+                { title: 'Deep Breathing', icon: '🌬️', tier: 'gold', xp: 60, color: '#1e293b', tag: 'BREATHE' },
+                { title: '5-4-3-2-1 Grounding', icon: '🖐️', tier: 'silver', xp: 30, color: '#fff', tag: 'SENSES' },
+                { title: 'Calm Catalog', icon: '🌌', tier: 'silver', xp: 30, color: '#fff' } // PRD상 Calm전략이지만 Anxious에도 유용하여 배치됨
             ];
         }
         else if (name.includes('angry') || name.includes('😠')) {
             quests = [
-                { title: 'Energy Shake', icon: '📳', tier: 'gold', xp: 60, color: '#1e293b', tag: 'SHAKE' },
-                { title: 'Fresh Air', icon: '🌬️', tier: 'silver', xp: 30, color: '#fff' }
+                { title: 'Angry Drawing', icon: '🖍️', tier: 'gold', xp: 60, color: '#ef4444', tag: 'SCRIBBLE' },
+                { title: 'Squeeze & Release', icon: '✊', tier: 'silver', xp: 30, color: '#fff' },
+                { title: 'Take a Walk', icon: '🚶', tier: 'silver', xp: 30, color: '#fff' }
             ];
         }
         else if (name.includes('calm') || name.includes('😌')) {
             quests = [
-                { title: 'Meditation', icon: '🧘', tier: 'gold', xp: 60, color: '#1e293b', tag: 'ZEN' },
-                { title: 'Listen to music', icon: '🎵', tier: 'silver', xp: 30, color: '#fff' }
+                { title: 'Calm Catalog', icon: '🌌', tier: 'gold', xp: 60, color: '#1e293b', tag: 'ZEN' },
+                { title: 'Meditation', icon: '🧘', tier: 'silver', xp: 30, color: '#fff' }
             ];
         }
         else if (name.includes('tired') || name.includes('😫')) {
             quests = [
-                { title: 'Drink Water', icon: '💧', tier: 'gold', xp: 60, color: '#1e293b', tag: 'HYDRATE' },
-                { title: 'Take a Walk', icon: '🚶', tier: 'silver', xp: 30, color: '#fff' }
+                { title: 'Body Scan', icon: '🧘', tier: 'gold', xp: 60, color: '#1e293b', tag: 'REST' },
+                { title: 'Drink Water', icon: '💧', tier: 'silver', xp: 30, color: '#fff' }
             ];
         }
         else {
@@ -153,8 +157,8 @@ const Activities = {
         if (typeof UI !== 'undefined' && UI.goToScreen) UI.goToScreen('Activity', type);
 
         setTimeout(() => {
-            const area = document.getElementById('activityArea');
-            const btn = document.getElementById('activityActionBtn');
+            const area = document.getElementById('inAppActionArea');
+            const btn = document.getElementById('activityBtn');
             const title = document.getElementById('activityTitle');
             if (!area) return;
             area.innerHTML = '';
@@ -209,17 +213,18 @@ const Activities = {
                 area.innerHTML = `<textarea id="actionNote" placeholder="What's on your mind?" style="width:100%; height:100px; border-radius:12px; border:1px solid #cbd5e1; padding:10px;"></textarea>`;
                 if (btn) { btn.textContent = "Save (+30 XP)"; btn.onclick = () => this.completeAction('silver', 30); }
             }
-            else if (type === 'Capture the moment') {
-                // ... (Camera logic roughly same, just update text)
-                area.innerHTML = `<div id="cameraPreview" style="background:#000; height:200px; border-radius:12px;"></div>`;
-                this.startCamera();
-                if (btn) { btn.textContent = "Capture! (+30 XP)"; btn.onclick = () => this.capturePhoto(); }
+            else if (type === 'Capture the Moment' || type === 'Capture the moment') {
+                // startCaptureAction 함수가 UI 렌더링까지 모두 처리하므로 여기서 innerHTML을 비우고 넘깁니다.
+                this.startCaptureAction();
+            }
+            else if (type === 'Body Scan') {
+                this.startBodyScan();
             }
 
             // 💡 Phase 10: PRD New Strategies (Detailed Implementation)
 
-            // 1. Happy Journal (Emoji Stamps + Text)
-            else if (type === 'Happy Journal') {
+            // 1. Happy Journal / Happy Note (Emoji Stamps + Text)
+            else if (type === 'Happy Journal' || type === 'Happy Note') {
                 const emojis = ['😊', '😂', '🥰', '🎉', '🌟', '🍩'];
                 area.innerHTML = `
                     <p style="margin-bottom:10px; font-weight:600;">I feel happy because...</p>
@@ -250,7 +255,8 @@ const Activities = {
                 `;
                 // Simple visual feedback when typing
                 ['Person', 'Thing', 'Place'].forEach(f => {
-                    document.getElementById(`gratitude${f}`).addEventListener('input', (e) => {
+                    const el = document.getElementById(`gratitude${f}`);
+                    if (el) el.addEventListener('input', (e) => {
                         if (e.target.value.length === 1) { // Add flower on first char
                             document.getElementById('gratitudeGarden').innerHTML += ['🌻', '🌷', '🌹'][Math.floor(Math.random() * 3)];
                             if (typeof playSound === 'function') playSound('tap');
@@ -261,13 +267,12 @@ const Activities = {
                 if (btn) { btn.textContent = "Grow My Garden (+60 XP)"; btn.onclick = () => this.completeAction('gold', 60); }
             }
 
-            // 3. Talk to Someone (Script Cards)
-            else if (type === 'Talk to Someone') {
-                const scripts = [
-                    "I feel sad because...",
-                    "Can you just listen?",
-                    "I need a hug"
-                ];
+            // 3. Talk to Someone / Share the Joy / Big Hug (Script Cards or Interaction)
+            else if (type === 'Talk to Someone' || type === 'Share the joy') {
+                const scripts = type === 'Share the joy' ?
+                    ["I have good news!", "I feel great because...", "Let's celebrate!"] :
+                    ["I feel sad because...", "Can you just listen?", "I need a hug"];
+
                 area.innerHTML = `
                     <div style="display:flex; flex-direction:column; gap:10px;">
                         ${scripts.map(s => `
@@ -290,6 +295,12 @@ const Activities = {
                 };
 
                 if (btn) { btn.textContent = "I Shared It (+30 XP)"; btn.onclick = () => this.completeAction('silver', 30); }
+            }
+
+            else if (type === 'Big Hug') {
+                // Use Comfort Object logic or dedicated timer
+                this.startBigHugTimer(); // Using the existing method for Big Hug
+                if (btn) btn.style.display = 'none';
             }
 
             // 4. Timer/Sequence Strategies (Pass-through to specific logic below)
@@ -397,8 +408,14 @@ const Activities = {
                 timeLeft--;
                 if (document.getElementById('shakeTimer')) document.getElementById('shakeTimer').innerText = timeLeft;
 
+                // 💡 Add Shake Animation
+                const iconEl = document.getElementById('shakeIcon');
+                if (iconEl) iconEl.classList.add('shake-active');
+
                 if (timeLeft <= 0) {
                     round++;
+                    if (iconEl) iconEl.classList.remove('shake-active'); // Stop shaking during break
+
                     if (round >= 4) {
                         clearInterval(this.currentInterval);
                         this.completeAction('gold', 60);
@@ -566,7 +583,7 @@ const Activities = {
         const render = (i) => {
             const s = steps[i];
             area.innerHTML = `
-                <div style="text-align:center; padding:40px 24px;">
+                <div style="text-align:center; padding:40px 24px;" class="animate-pop">
                     <div style="font-size:5rem; font-weight:900; color:${s.c}; margin-bottom:20px;">${s.n}</div>
                     <h2 style="font-weight:850; color:#1e293b;">Things you ${s.s}</h2>
                     <button id="nextG" class="btn-primary" style="margin-top:40px; background:${s.c}; border:none;">${i === 4 ? 'Finish Mission' : 'Next Step'}</button>
@@ -649,6 +666,261 @@ const Activities = {
         area.innerHTML = `<div style=\"text-align:center; padding:40px;\"><div style=\"font-size:6rem; margin-bottom:20px;\">🎵</div><button class=\"btn-primary\" style=\"background:#FF0000;\" onclick=\"window.open('https://www.youtube.com/results?search_query=relaxing+music', '_blank')\">📺 Open YouTube</button></div>`;
         const btn = document.getElementById('activityBtn');
         if (btn) { btn.textContent = "Finished! 🥈"; btn.onclick = () => this.completeAction('silver', 30); }
+    },
+
+    startBodyScan() {
+        const area = document.getElementById('inAppActionArea');
+        area.innerHTML = `
+            <div style="text-align:center; padding:20px;">
+                <div style="width:200px; height:300px; margin:0 auto; background:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 200"><path d="M50 20 C50 10 60 10 60 20 C60 30 50 30 50 20 M50 30 L50 80 M20 40 L50 40 L80 40 M20 40 L20 70 M80 40 L80 70 M50 80 L30 140 M50 80 L70 140 M30 140 L30 180 M70 140 L70 180" stroke="%23cbd5e1" stroke-width="4" fill="none" stroke-linecap="round"/></svg>') no-repeat center/contain; position:relative;">
+                    <div class="body-node" id="node-head" style="top:10%; left:50%; width:20px; height:20px; background:#cbd5e1; border-radius:50%; position:absolute; transform:translate(-50%,-50%); transition:0.3s;"></div>
+                    <div class="body-node" id="node-shoulders" style="top:25%; left:50%; width:20px; height:20px; background:#cbd5e1; border-radius:50%; position:absolute; transform:translate(-50%,-50%); transition:0.3s;"></div>
+                    <div class="body-node" id="node-hands" style="top:45%; left:20%; width:20px; height:20px; background:#cbd5e1; border-radius:50%; position:absolute; transform:translate(-50%,-50%); transition:0.3s;"></div>
+                    <div class="body-node" id="node-hands-r" style="top:45%; left:80%; width:20px; height:20px; background:#cbd5e1; border-radius:50%; position:absolute; transform:translate(-50%,-50%); transition:0.3s;"></div>
+                    <div class="body-node" id="node-stomach" style="top:45%; left:50%; width:20px; height:20px; background:#cbd5e1; border-radius:50%; position:absolute; transform:translate(-50%,-50%); transition:0.3s;"></div>
+                    <div class="body-node" id="node-feet" style="top:85%; left:35%; width:20px; height:20px; background:#cbd5e1; border-radius:50%; position:absolute; transform:translate(-50%,-50%); transition:0.3s;"></div>
+                    <div class="body-node" id="node-feet-r" style="top:85%; left:65%; width:20px; height:20px; background:#cbd5e1; border-radius:50%; position:absolute; transform:translate(-50%,-50%); transition:0.3s;"></div>
+                </div>
+                <h2 id="bodyScanText" style="margin-top:20px; font-weight:850; color:#334155; min-height:60px;">Focus on your head...</h2>
+            </div>
+        `;
+
+        const steps = [
+            { id: ['node-head'], text: "Relax your head... Soften your face." },
+            { id: ['node-shoulders'], text: "Drop your shoulders... Let go of tension." },
+            { id: ['node-hands', 'node-hands-r'], text: "Unclench your hands... Let them float." },
+            { id: ['node-stomach'], text: "Breathe into your stomach... Soft and easy." },
+            { id: ['node-feet', 'node-feet-r'], text: "Feel your feet... Connected to the ground." }
+        ];
+
+        let index = -1;
+        const nextStep = () => {
+            index++;
+            if (index >= steps.length) {
+                this.completeAction('gold', 60);
+                return;
+            }
+
+            document.querySelectorAll('.body-node').forEach(n => {
+                n.style.background = '#cbd5e1'; n.style.transform = 'translate(-50%,-50%) scale(1)';
+            });
+
+            const s = steps[index];
+            if (document.getElementById('bodyScanText')) document.getElementById('bodyScanText').textContent = s.text;
+
+            s.id.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.style.background = '#3b82f6';
+                    el.style.transform = 'translate(-50%,-50%) scale(1.5)';
+                }
+            });
+            this.feedback('tick');
+
+            this.activeTimeouts.push(setTimeout(nextStep, 4000));
+        };
+
+        // Start after slight delay
+        this.activeTimeouts.push(setTimeout(nextStep, 1000));
+
+        const btn = document.getElementById('activityBtn');
+        if (btn) { btn.textContent = "I feel relaxed 🏅"; btn.onclick = () => this.completeAction('gold', 60); }
+    },
+
+    startAngryDrawing() {
+        const area = document.getElementById('inAppActionArea');
+        // Hide default padding for full canvas
+        area.style.padding = '0';
+        area.innerHTML = `
+            <div id="drawingContainer" style="position:relative; height:350px; width:100%; overflow:hidden; border-radius:24px;">
+                <canvas id="drawingCanvas" style="width:100%; height:100%;"></canvas>
+                <div style="position:absolute; top:10px; right:10px; display:flex; gap:8px;">
+                     <button onclick="Activities.setBrushColor('#000')" style="width:30px; height:30px; background:black; border-radius:50%; border:2px solid white;"></button>
+                     <button onclick="Activities.setBrushColor('#ef4444')" style="width:30px; height:30px; background:#ef4444; border-radius:50%; border:2px solid white;"></button>
+                </div>
+                <div style="position:absolute; bottom:20px; left:50%; transform:translateX(-50%);">
+                     <button class="btn-primary" style="background:#ef4444; margin:0; width:auto; padding:12px 24px;" onclick="Activities.crumpleAndToss()">Crumple & Toss! 🗑️</button>
+                </div>
+            </div>
+            <p style="text-align:center; color:#64748b; margin-top:10px;">Scribble as fast as you can!</p>
+        `;
+
+        const canvas = document.getElementById('drawingCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Resize
+        const rect = canvas.getBoundingClientRect();
+        canvas.width = rect.width;
+        canvas.height = rect.height;
+
+        ctx.lineWidth = 5;
+        ctx.lineCap = 'round';
+        ctx.strokeStyle = '#000';
+
+        let drawing = false;
+
+        const start = (e) => { drawing = true; draw(e); };
+        const end = () => { drawing = false; ctx.beginPath(); };
+        const draw = (e) => {
+            if (!drawing) return;
+            const x = (e.clientX || e.touches[0].clientX) - rect.left;
+            const y = (e.clientY || e.touches[0].clientY) - rect.top;
+
+            ctx.lineTo(x, y);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+
+            if (Math.random() > 0.8) this.feedback('tick'); // Haptic feedback on draw
+        };
+
+        canvas.addEventListener('mousedown', start);
+        canvas.addEventListener('touchstart', start);
+        canvas.addEventListener('mouseup', end);
+        canvas.addEventListener('touchend', end);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('touchmove', (e) => { e.preventDefault(); draw(e); }, { passive: false });
+
+        this.setBrushColor = (c) => { ctx.strokeStyle = c; ctx.lineWidth = (c === '#000' ? 5 : 10); };
+
+        this.crumpleAndToss = () => {
+            const c = document.getElementById('drawingContainer');
+            this.feedback('success');
+            if (window.navigator.vibrate) window.navigator.vibrate(200);
+            c.classList.add('crumple-effect');
+            setTimeout(() => {
+                c.style.display = 'none';
+                this.completeAction('gold', 60);
+            }, 800);
+        };
+
+        const btn = document.getElementById('activityBtn');
+        if (btn) btn.style.display = 'none';
+    },
+
+    startCalmCatalog() {
+        const area = document.getElementById('inAppActionArea');
+        area.style.padding = '0'; // Full width for scroll
+        area.innerHTML = `
+            <div style="padding:20px 24px 0;">
+                <h2 style="font-weight:850; margin-bottom:10px;">Calm Catalog</h2>
+                <p style="color:#64748b; margin-bottom:15px;">Swipe & Listen</p>
+            </div>
+            <div class="calm-gallery">
+                <div class="calm-card" onclick="Activities.playSoundscape('rain', this)">
+                    <div style="font-size:4rem;">🌧️</div>
+                    <h3 style="font-weight:800; margin-top:20px;">Rainy Day</h3>
+                    <p style="color:#64748b;">White Noise</p>
+                </div>
+                <div class="calm-card" onclick="Activities.playSoundscape('forest', this)">
+                    <div style="font-size:4rem;">🌲</div>
+                    <h3 style="font-weight:800; margin-top:20px;">Deep Forest</h3>
+                    <p style="color:#64748b;">Pink Noise</p>
+                </div>
+                <div class="calm-card" onclick="Activities.playSoundscape('space', this)">
+                    <div style="font-size:4rem;">🌌</div>
+                    <h3 style="font-weight:800; margin-top:20px;">Galaxy</h3>
+                    <p style="color:#64748b;">Deep Drone</p>
+                </div>
+            </div>
+            <div style="padding:20px; text-align:center;">
+                 <button class="btn-primary" onclick="Activities.completeAction('gold', 60)">I feel calm now (+60 XP)</button>
+            </div>
+        `;
+
+        const btn = document.getElementById('activityBtn');
+        if (btn) btn.style.display = 'none';
+
+        // Soundscape Logic
+        this.playSoundscape = (type, el) => {
+            // Stop existing
+            this.stopAll();
+            this.initAudio();
+
+            // UI Update
+            document.querySelectorAll('.calm-card').forEach(c => c.classList.remove('active'));
+            el.classList.add('active');
+
+            // Generate Sound
+            const gain = audioCtx.createGain();
+            gain.connect(audioCtx.destination);
+
+            if (type === 'rain') {
+                // White Noise
+                const bufferSize = audioCtx.sampleRate * 2;
+                const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+
+                const noise = audioCtx.createBufferSource();
+                noise.buffer = buffer;
+                noise.loop = true;
+
+                // Filter for rain sound
+                const filter = audioCtx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.value = 800;
+
+                noise.connect(filter);
+                filter.connect(gain);
+
+                noise.start();
+                this.currentAudioSource = noise;
+            }
+            else if (type === 'forest') {
+                // Pink Noise (approx)
+                const bufferSize = audioCtx.sampleRate * 2;
+                const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+                const data = buffer.getChannelData(0);
+                let b0, b1, b2, b3, b4, b5, b6;
+                b0 = b1 = b2 = b3 = b4 = b5 = b6 = 0.0;
+                for (let i = 0; i < bufferSize; i++) {
+                    const white = Math.random() * 2 - 1;
+                    b0 = 0.99886 * b0 + white * 0.0555179;
+                    b1 = 0.99332 * b1 + white * 0.0750759;
+                    b2 = 0.96900 * b2 + white * 0.1538520;
+                    b3 = 0.86650 * b3 + white * 0.3104856;
+                    b4 = 0.55000 * b4 + white * 0.5329522;
+                    b5 = -0.7616 * b5 - white * 0.0168980;
+                    data[i] = b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362;
+                    data[i] *= 0.11; // (roughly) compensate for gain
+                    b6 = white * 0.115926;
+                }
+                const noise = audioCtx.createBufferSource();
+                noise.buffer = buffer;
+                noise.loop = true;
+                noise.connect(gain);
+                noise.start();
+                this.currentAudioSource = noise;
+            }
+            else if (type === 'space') {
+                const osc = audioCtx.createOscillator();
+                osc.type = 'sine';
+                osc.frequency.value = 100;
+                // LFO for drone effect
+                const lfo = audioCtx.createOscillator();
+                lfo.type = 'sine';
+                lfo.frequency.value = 0.2;
+                const lfoGain = audioCtx.createGain();
+                lfoGain.gain.value = 50;
+                lfo.connect(lfoGain);
+                lfoGain.connect(osc.frequency);
+                lfo.start();
+
+                osc.connect(gain);
+                osc.start();
+                this.currentAudioSource = osc;
+                this.activeTimeouts.push(setTimeout(() => lfo.stop(), 99999));
+            }
+
+            // Register cleanup
+            this.currentInterval = setInterval(() => { }, 1000); // Dummy to trigger stopAll cleanup rights
+            const originalStop = this.currentAudioSource.stop.bind(this.currentAudioSource);
+            this.currentAudioSource.stop = () => {
+                try { originalStop(); } catch (e) { }
+                gain.disconnect();
+            };
+        };
     },
 
     startColdSqueezeAnimation() {
