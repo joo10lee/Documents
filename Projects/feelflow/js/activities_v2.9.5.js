@@ -220,6 +220,9 @@ const Activities = {
             else if (type === 'Body Scan') {
                 this.startBodyScan();
             }
+            else if (type === 'Angry Drawing') {
+                this.startAngryDrawing();
+            }
 
             // 💡 Phase 10: PRD New Strategies (Detailed Implementation)
 
@@ -734,6 +737,10 @@ const Activities = {
 
     startAngryDrawing() {
         const area = document.getElementById('inAppActionArea');
+        // 💡 Hide duplicated title header for this immersive activity
+        const headerEl = document.querySelector('.activity-header');
+        if (headerEl) headerEl.style.display = 'none';
+
         // Hide default padding for full canvas
         area.style.padding = '0';
         area.innerHTML = `
