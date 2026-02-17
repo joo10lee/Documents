@@ -670,9 +670,14 @@ const Activities = {
 
     startBodyScan() {
         const area = document.getElementById('inAppActionArea');
+        // 💡 Hide duplicated title header for this immersive activity
+        const headerEl = document.querySelector('.activity-header');
+        if (headerEl) headerEl.style.display = 'none';
+
         area.innerHTML = `
             <div style="text-align:center; padding:20px;">
-                <div style="width:200px; height:300px; margin:0 auto; background:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 200"><path d="M50 20 C50 10 60 10 60 20 C60 30 50 30 50 20 M50 30 L50 80 M20 40 L50 40 L80 40 M20 40 L20 70 M80 40 L80 70 M50 80 L30 140 M50 80 L70 140 M30 140 L30 180 M70 140 L70 180" stroke="%23cbd5e1" stroke-width="4" fill="none" stroke-linecap="round"/></svg>') no-repeat center/contain; position:relative;">
+                <!-- Fixed SVG string quoting -->
+                <div style="width:200px; height:300px; margin:0 auto; background-image: url('data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' viewBox=\\'0 0 100 200\\'><path d=\\'M50 20 C50 10 60 10 60 20 C60 30 50 30 50 20 M50 30 L50 80 M20 40 L50 40 L80 40 M20 40 L20 70 M80 40 L80 70 M50 80 L30 140 M50 80 L70 140 M30 140 L30 180 M70 140 L70 180\\' stroke=\\'%23cbd5e1\\' stroke-width=\\'4\\' fill=\\'none\\' stroke-linecap=\\'round\\' /></svg>'); background-repeat: no-repeat; background-position: center; background-size: contain; position:relative;">
                     <div class="body-node" id="node-head" style="top:10%; left:50%; width:20px; height:20px; background:#cbd5e1; border-radius:50%; position:absolute; transform:translate(-50%,-50%); transition:0.3s;"></div>
                     <div class="body-node" id="node-shoulders" style="top:25%; left:50%; width:20px; height:20px; background:#cbd5e1; border-radius:50%; position:absolute; transform:translate(-50%,-50%); transition:0.3s;"></div>
                     <div class="body-node" id="node-hands" style="top:45%; left:20%; width:20px; height:20px; background:#cbd5e1; border-radius:50%; position:absolute; transform:translate(-50%,-50%); transition:0.3s;"></div>
