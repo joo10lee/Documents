@@ -223,6 +223,9 @@ const Activities = {
             else if (type === 'Angry Drawing') {
                 this.startAngryDrawing();
             }
+            else if (type === 'Calm Catalog') {
+                this.startCalmCatalog();
+            }
 
             // 💡 Phase 10: PRD New Strategies (Detailed Implementation)
 
@@ -812,6 +815,10 @@ const Activities = {
 
     startCalmCatalog() {
         const area = document.getElementById('inAppActionArea');
+        // 💡 Hide duplicated title header for this immersive activity
+        const headerEl = document.querySelector('.activity-header');
+        if (headerEl) headerEl.style.display = 'none';
+
         area.style.padding = '0'; // Full width for scroll
         area.innerHTML = `
             <div style="padding:20px 24px 0;">
