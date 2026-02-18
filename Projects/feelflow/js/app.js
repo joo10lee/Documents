@@ -137,13 +137,48 @@ window.userInteracted = false;
 const FeelFlow = {
     xp: parseInt(localStorage.getItem('feelflow_xp')) || 0,
     xpHistory: safeJSONParse('feelflow_xp_history', []) || [],
-    goal: parseInt(localStorage.getItem('feelflow_xp_goal')) || 1000,
+
+    // 💡 Goal Lifecycle Data
+    goals: safeJSONParse('feelflow_goals', {
+        active: null,
+        queue: [],
+        completed: []
+    }),
+
+    initGoals() {
+        // Migration of old data
+        if (!this.goals.active) {
+            const oldGoal = parseInt(localStorage.getItem('feelflow_xp_goal')) || 1000;
+            const oldReward = localStorage.getItem('feelflow_reward_text') || 'Special Reward';
+
+            // Create initial goal from old data or default
+            this.goals.active = {
+                id: 'g_' + Date.now(),
+                name: 'Current Goal',
+                targetXP: oldGoal,
+                earnedXP: this.xp, // Carry over current XP
+                reward: oldReward,
+                emoji: '🏆',
+                status: 'active',
+                createdAt: new Date().toISOString()
+            };
+            this.saveGoals();
+        }
+    },
 
     addXP(amount, reason) {
         if (!amount) return;
         this.xp += amount;
         this.xpHistory.push({ date: new Date().toISOString(), amount, reason });
+
+        // 💡 Distribute to Active Goal
+        if (this.goals.active) {
+            this.goals.active.earnedXP += amount;
+            this.checkGoalCompletion();
+        }
+
         this.save();
+        this.saveGoals();
 
         // 💡 Visual Feedback
         if (window.UI && window.UI.showXPToast) {
@@ -153,23 +188,122 @@ const FeelFlow = {
         }
     },
 
+    checkGoalCompletion() {
+        if (this.goals.active && this.goals.active.earnedXP >= this.goals.active.targetXP) {
+            this.triggerCelebration();
+        }
+    },
+
+    triggerCelebration() {
+        const goal = this.goals.active;
+        console.log("🎉 GOAL COMPLETED!", goal);
+
+        // Move to Completed
+        goal.completedAt = new Date().toISOString();
+        this.goals.completed.unshift(goal);
+
+        // Show Overlay
+        this.showCelebrationOverlay(goal);
+
+        // Activate Next Goal or Set Empty
+        if (this.goals.queue.length > 0) {
+            const next = this.goals.queue.shift();
+            next.status = 'active';
+            next.earnedXP = 0; // Reset progress for new goal
+            next.startedAt = new Date().toISOString();
+            this.goals.active = next;
+        } else {
+            // Create a placeholder "Waiting for Guardian" goal
+            this.goals.active = {
+                id: 'g_placeholder',
+                name: 'Waiting for Mission...',
+                targetXP: 1000,
+                earnedXP: 0,
+                reward: 'Ask Guardian to set a new goal!',
+                emoji: '⏳',
+                status: 'waiting'
+            };
+        }
+
+        this.saveGoals();
+        if (typeof renderTrophies === 'function') renderTrophies();
+    },
+
+    showCelebrationOverlay(goal) {
+        // Create Overlay Elements dynamically if not exist
+        let overlay = document.getElementById('celebrationOverlay');
+        if (!overlay) {
+            overlay = document.createElement('div');
+            overlay.id = 'celebrationOverlay';
+            overlay.className = 'celebration-overlay';
+            document.body.appendChild(overlay);
+        }
+
+        overlay.innerHTML = `
+            <div style="font-size:5rem; animation: float 3s infinite;">🎉</div>
+            <h1 style="font-size:2.5rem; color:#d946ef; margin:20px 0;">Goal Achieved!</h1>
+            <div style="font-size:4rem; margin-bottom:10px;">${goal.emoji}</div>
+            <h2 style="color:#1e293b; margin-bottom:10px;">${goal.name}</h2>
+            <div style="font-size:1.5rem; color:#475569; margin-bottom:30px;">
+                You earned: <span style="color:#e11d48; font-weight:800;">"${goal.reward}"</span>!
+            </div>
+            <button class="btn-primary" onclick="FeelFlow.dismissCelebration()" style="font-size:1.2rem; padding:15px 40px; background:#d946ef;">Awesome! 🥳</button>
+            <div id="confettiContainer"></div>
+        `;
+
+        // Add Confetti Styling
+        for (let i = 0; i < 50; i++) {
+            const conf = document.createElement('div');
+            conf.className = 'confetti';
+            conf.style.left = Math.random() * 100 + 'vw';
+            conf.style.background = ['#f00', '#0f0', '#00f', '#ff0', '#f0f', '#0ff'][Math.floor(Math.random() * 6)];
+            conf.style.animation = `confetti-fall ${2 + Math.random() * 3}s linear infinite`;
+            overlay.appendChild(conf);
+        }
+
+        overlay.style.display = 'flex';
+        playSound('success');
+        safeVibrate([100, 50, 100, 50, 200]);
+    },
+
+    dismissCelebration() {
+        const overlay = document.getElementById('celebrationOverlay');
+        if (overlay) overlay.style.display = 'none';
+        if (typeof renderTrophies === 'function') renderTrophies();
+    },
+
     removeXP(amount) {
         this.xp = Math.max(0, this.xp - amount);
+        // Also deduct from Active Goal if possible
+        if (this.goals.active && this.goals.active.earnedXP > 0) {
+            this.goals.active.earnedXP = Math.max(0, this.goals.active.earnedXP - amount);
+        }
         this.save();
+        this.saveGoals();
     },
 
     setGoal(amount) {
-        this.goal = amount;
-        localStorage.setItem('feelflow_xp_goal', amount);
+        // Legacy support - update active goal target
+        if (this.goals.active) {
+            this.goals.active.targetXP = amount;
+            this.saveGoals();
+        }
     },
 
     save() {
         localStorage.setItem('feelflow_xp', this.xp);
         localStorage.setItem('feelflow_xp_history', JSON.stringify(this.xpHistory));
         // Update UI if present
-        if (typeof updateXPDisplay === 'function') updateXPDisplay();
+        // if (typeof updateXPDisplay === 'function') updateXPDisplay(); // Deprecated
+    },
+
+    saveGoals() {
+        localStorage.setItem('feelflow_goals', JSON.stringify(this.goals));
     }
 };
+
+// Initialize Goals on Load
+FeelFlow.initGoals();
 
 // 💡 Phase 2: Guardian Logic (Parent Mode)
 // 💡 Phase 3: Guardian Authentication & Logic
@@ -231,7 +365,9 @@ const Guardian = {
             this.loadSettings();
             this.generateAIInsight();
             this.renderRecentHistory();
+            this.renderRecentHistory();
             this.checkAlerts(); // 🆕 Check for Emergency Alerts
+            this.renderGoalManager(); // 💡 Goal Manager Init
         } catch (e) {
             console.error("Guardian Init Error:", e);
             document.getElementById('guardianRecentHistory').innerHTML = `<div style="color:red; padding:20px;">Error loading dashboard: ${e.message}</div>`;
@@ -264,6 +400,97 @@ const Guardian = {
         if (s) s.classList.add('active');
 
         this.init();
+    },
+
+    // 💡 Goal Management Helpers
+    renderGoalManager() {
+        const activeContainer = document.getElementById('guardianActiveGoal');
+        const queueContainer = document.getElementById('guardianGoalQueue');
+        const active = FeelFlow.goals.active;
+        const queue = FeelFlow.goals.queue;
+
+        // Active Goal
+        if (active && activeContainer) {
+            document.getElementById('guardianActiveGoalName').textContent = `${active.emoji} ${active.name}`;
+            document.getElementById('guardianActiveGoalProgress').textContent = `${active.earnedXP} / ${active.targetXP} XP`;
+        }
+
+        // Queue
+        if (queueContainer) {
+            if (queue.length === 0) {
+                queueContainer.innerHTML = `<div style="font-size:0.8rem; color:#94a3b8; font-style:italic;">Queue is empty. Add more goals!</div>`;
+            } else {
+                queueContainer.innerHTML = queue.map((q, index) => `
+                    <div style="background:white; border:1px solid #e2e8f0; border-radius:8px; padding:10px; display:flex; align-items:center;">
+                        <div style="font-size:1.2rem; margin-right:10px;">${q.emoji}</div>
+                        <div style="flex-grow:1;">
+                            <div style="font-size:0.85rem; font-weight:700; color:#1e293b;">${q.name}</div>
+                            <div style="font-size:0.75rem; color:#64748b;">Target: ${q.targetXP} XP</div>
+                        </div>
+                        <button onclick="Guardian.moveGoalUp(${index})" style="background:none; border:none; color:#cbd5e1; cursor:pointer; font-size:1.2rem; padding:0 5px;">▲</button>
+                        <button onclick="Guardian.deleteGoal(${index})" style="background:none; border:none; color:#ef4444; cursor:pointer; font-size:1.2rem; padding:0 5px;">×</button>
+                    </div>
+                `).join('');
+            }
+        }
+    },
+
+    addNewGoal() {
+        const name = document.getElementById('newGoalName').value;
+        const target = parseInt(document.getElementById('newGoalTarget').value);
+        const reward = document.getElementById('newGoalReward').value;
+        const emoji = document.getElementById('newGoalEmoji').value;
+
+        if (!name || isNaN(target) || !reward) {
+            alert("Please fill all fields!");
+            return;
+        }
+
+        const newGoal = {
+            id: 'g_' + Date.now(),
+            name, targetXP: target, reward, emoji,
+            earnedXP: 0,
+            status: 'queued',
+            createdAt: new Date().toISOString()
+        };
+
+        // If no active goal (e.g. placeholder), make this active immediately
+        if (FeelFlow.goals.active && FeelFlow.goals.active.id === 'g_placeholder') {
+            newGoal.status = 'active';
+            newGoal.startedAt = new Date().toISOString();
+            FeelFlow.goals.active = newGoal;
+        } else {
+            FeelFlow.goals.queue.push(newGoal);
+        }
+
+        FeelFlow.saveGoals();
+
+        // Reset Form
+        document.getElementById('newGoalName').value = '';
+        document.getElementById('newGoalTarget').value = '';
+        document.getElementById('newGoalReward').value = '';
+        document.getElementById('addGoalForm').style.display = 'none';
+
+        this.renderGoalManager();
+        alert("Goal Added!");
+    },
+
+    deleteGoal(index) {
+        if (confirm("Delete this queued goal?")) {
+            FeelFlow.goals.queue.splice(index, 1);
+            FeelFlow.saveGoals();
+            this.renderGoalManager();
+        }
+    },
+
+    moveGoalUp(index) {
+        if (index > 0) {
+            const temp = FeelFlow.goals.queue[index];
+            FeelFlow.goals.queue[index] = FeelFlow.goals.queue[index - 1];
+            FeelFlow.goals.queue[index - 1] = temp;
+            FeelFlow.saveGoals();
+            this.renderGoalManager();
+        }
     },
 
     renderLegend() {
@@ -1286,81 +1513,73 @@ function editGoalMessage() {
 }
 window.editGoalMessage = editGoalMessage;
 
-// 5. 트로피 시스템 복구
+// 5. 트로피 시스템 (Goal Lifecycle Redesign)
 function renderTrophies() {
-    const container = document.getElementById('trophyContent');
-    if (!container) return;
+    const active = FeelFlow.goals.active;
+    const queue = FeelFlow.goals.queue;
+    const history = FeelFlow.goals.completed;
 
-    const xp = FeelFlow.xp || 0;
-    const goal = FeelFlow.goal || 1000;
-    const percent = Math.min(100, Math.round((xp / goal) * 100));
-    const rewardText = localStorage.getItem('feelflow_reward_text') || 'a Special Reward';
+    // --- Active Goal ---
+    const activeContainer = document.getElementById('activeGoalContainer');
+    if (active && activeContainer) {
+        const earned = active.earnedXP || 0;
+        const target = active.targetXP || 1000;
+        const percent = Math.min(100, Math.round((earned / target) * 100));
 
-    container.innerHTML = `
-        <div class="trophy-card" style="text-align:center; padding:30px;">
-            <div style="font-size:5rem; margin-bottom:10px;">🏆</div>
-            <h2 style="font-size:1.5rem; font-weight:800; color:#1e293b;">My XP Status</h2>
-            <div style="font-size:2.5rem; font-weight:900; color:#3b82f6; margin:10px 0;">${xp} <span style="font-size:1rem; color:#94a3b8;">/ ${goal} XP</span></div>
-            
-            <!-- Progress Bar -->
-            <div style="width:100%; height:20px; background:#e2e8f0; border-radius:10px; margin:20px 0; overflow:hidden;">
-                <div style="width:${percent}%; height:100%; background:linear-gradient(90deg, #3b82f6, #60a5fa); border-radius:10px; transition:width 0.5s;"></div>
-            </div>
-            
-            <!-- 💡 Reward Goal Text -->
-            <div style="background:#fff7ed; border:2px dashed #fb923c; border-radius:12px; padding:15px; margin-top:20px;">
-                <div style="font-size:0.9rem; font-weight:700; color:#ea580c; text-transform:uppercase;">Next Reward Goal</div>
-                <div style="font-size:1.1rem; font-weight:800; color:#9a3412; margin-top:5px;">
-                    Reach ${goal} XP for...<br>
-                    <span style="font-size:1.3rem; color:#ea580c;">"${rewardText}"</span> 🎁
+        document.getElementById('activeGoalEmoji').textContent = active.emoji;
+        document.getElementById('activeGoalName').textContent = active.name;
+        document.getElementById('activeGoalReward').textContent = active.reward;
+
+        document.getElementById('activeGoalBar').style.width = percent + '%';
+        document.getElementById('activeGoalCurrentXP').textContent = earned + ' XP';
+        document.getElementById('activeGoalTargetXP').textContent = target + ' XP';
+    }
+
+    // --- Queue ---
+    const queueContainer = document.getElementById('goalQueueContainer');
+    if (queueContainer) {
+        if (queue.length === 0) {
+            queueContainer.innerHTML = `
+                <div class="queue-card" style="opacity:0.5;">
+                    <div style="font-size:1.5rem;">🔒</div>
+                    <div style="font-size:0.8rem;">Empty Queue</div>
+                </div>`;
+        } else {
+            queueContainer.innerHTML = queue.map(q => `
+                <div class="queue-card">
+                    <div class="queue-card-emoji">${q.emoji}</div>
+                    <div style="font-size:0.8rem; font-weight:700; color:#475569; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${q.name}</div>
+                    <div style="font-size:0.7rem; color:#94a3b8;">${q.targetXP} XP</div>
                 </div>
-            </div>
-        </div>
-    `;
-    UI.updateNavActive('navTrophies'); // Assuming there's a nav item
+            `).join('');
+        }
+    }
+
+    // --- History ---
+    const historyContainer = document.getElementById('goalHistoryContainer');
+    if (historyContainer) {
+        if (history.length === 0) {
+            historyContainer.innerHTML = `<div style="text-align:center; color:#94a3b8; font-size:0.9rem; padding:20px;">No trophies yet. Keep checking in!</div>`;
+        } else {
+            historyContainer.innerHTML = history.slice(0, 5).map(h => `
+                <div class="completed-card">
+                    <div class="completed-icon">🏆</div>
+                    <div style="flex-grow:1;">
+                        <div style="font-weight:700; color:#1e293b;">${h.name}</div>
+                        <div style="font-size:0.8rem; color:#64748b;">${new Date(h.completedAt).toLocaleDateString()}</div>
+                    </div>
+                    <div style="font-weight:700; color:#8b5cf6;">${h.targetXP} XP</div>
+                </div>
+            `).join('');
+        }
+    }
+
+    UI.updateNavActive('navTrophies');
 }
 
-function renderTrophyStats() {
-    const container = document.getElementById('trophyContent');
-    if (!container) return;
-
-    const percent = Math.min(100, Math.round((FeelFlow.xp / FeelFlow.goal) * 100));
-
-    container.innerHTML = `
-        <div class="trophy-header" style="text-align:center; padding:30px 0;">
-            <div style="font-size:3rem; margin-bottom:10px;">🏆</div>
-            <h2 style="margin:0; font-size:2rem; color:#1e293b;">${FeelFlow.xp} XP</h2>
-            <p style="color:#64748b;">Goal: ${FeelFlow.goal} XP</p>
-            <button onclick="editGoalMessage()" style="margin-top:10px; background:none; border:1px solid #cbd5e1; padding:5px 10px; border-radius:20px; font-size:0.8rem; color:#64748b;">Edit Goal</button>
-        </div>
-
-        <div class="xp-progress-container" style="padding:0 20px; margin-bottom:30px;">
-            <div style="display:flex; justify-content:space-between; margin-bottom:8px; font-weight:700; color:#475569;">
-                <span>Level Progress</span>
-                <span>${percent}%</span>
-            </div>
-            <div style="width:100%; height:20px; background:#e2e8f0; border-radius:10px; overflow:hidden;">
-                <div style="width:${percent}%; height:100%; background:linear-gradient(90deg, #3b82f6, #8b5cf6); transition:width 0.5s ease;"></div>
-            </div>
-        </div>
-
-        <div class="history-container">
-            <h3 style="padding:0 20px; margin-bottom:15px; font-size:1.2rem; color:#334155;">Recent Gains</h3>
-            ${FeelFlow.xpHistory.slice().reverse().slice(0, 20).map(h => `
-                <div class="history-card" style="padding:15px; align-items:center;">
-                    <div style="background:#f1f5f9; padding:8px; border-radius:8px; font-size:1.5rem; margin-right:15px;">🌟</div>
-                    <div>
-                        <div style="font-weight:700; color:#1e293b;">+${h.amount} XP</div>
-                        <div style="font-size:0.85rem; color:#64748b;">${h.reason}</div>
-                    </div>
-                    <div style="margin-left:auto; font-size:0.8rem; color:#94a3b8;">
-                        ${new Date(h.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </div>
-                </div>
-            `).join('')}
-        </div>
-    `;
-}
+// Replaces renderTrophyStats as main render function
+window.renderTrophies = renderTrophies;
+function renderTrophyStats() { renderTrophies(); } // Backwards compatibility
 
 // 💡 Fix: Robust Audio Check (Prevents crash if Audio API is missing)
 const AudioContextVal = window.AudioContext || window.webkitAudioContext;
@@ -1901,3 +2120,5 @@ async function initApp() {
 
 // 💡 Fix: Do not auto-run. Let window.onload handle it.
 window.initApp = initApp;
+window.FeelFlow = FeelFlow;
+window.Guardian = Guardian;

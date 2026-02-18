@@ -43,7 +43,7 @@
         <div class="header-status">
             <span id="weatherIcon">🌤️</span>
             <!-- 💡 Phase 2.5: Version Format (Date-Time) -->
-            <span class="build-tag">Ver.0218-0015</span>
+            <span class="build-tag">Ver.0218-1037</span>
         </div>
         <div class="header-main">
 
@@ -79,6 +79,71 @@
 
         </nav>
     </div>
+
+    <!-- Screen 3: Trophies (Goal Lifecycle) -->
+    <main id="screenTrophies" class="screen">
+        <div class="app-header">
+            <h1>My Goals & Rewards</h1>
+        </div>
+        <div class="content-container">
+
+            <!-- Active Goal -->
+            <div id="activeGoalContainer">
+                <div class="goal-card-active">
+                    <div
+                        style="font-size:0.9rem; color:#64748b; font-weight:700; letter-spacing:1px; margin-bottom:10px;">
+                        CURRENT MISSION</div>
+                    <div id="activeGoalEmoji" class="goal-emoji-large">🏆</div>
+                    <h2 id="activeGoalName" style="color:#1e293b; margin-bottom:5px;">Loading Goal...</h2>
+                    <div id="activeGoalReward" style="color:#64748b; font-size:0.95rem;">Keep going!</div>
+
+                    <div class="goal-progress-container">
+                        <div id="activeGoalBar" class="goal-progress-bar" style="width: 0%;"></div>
+                    </div>
+                    <div
+                        style="display:flex; justify-content:space-between; font-size:0.9rem; font-weight:700; color:#475569;">
+                        <span id="activeGoalCurrentXP">0 XP</span>
+                        <span id="activeGoalTargetXP">1000 XP</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Up Next Queue -->
+            <h3 style="font-size:1.1rem; color:#334155; margin:0 0 10px 5px;">🚀 Coming Up Next</h3>
+            <div id="goalQueueContainer" class="queue-list">
+                <!-- Queue Items Injected Here -->
+                <div class="queue-card" style="opacity:0.5;">
+                    <div style="font-size:1.5rem;">🔒</div>
+                    <div style="font-size:0.8rem;">Empty Queue</div>
+                </div>
+            </div>
+
+            <!-- Completed History -->
+            <h3 style="font-size:1.1rem; color:#334155; margin:25px 0 10px 5px;">🏆 Trophy Case</h3>
+            <div id="goalHistoryContainer" class="completed-list">
+                <!-- Completed Items Injected Here -->
+            </div>
+
+        </div>
+        <div class="bottom-nav">
+            <button class="nav-btn" onclick="UI.goToScreen('1')">
+                <span>🏠</span>
+                <span>Home</span>
+            </button>
+            <button class="nav-btn" onclick="UI.goToScreen('screenTracker')">
+                <span>✅</span>
+                <span>Routine</span>
+            </button>
+            <button class="nav-btn active">
+                <span>🏆</span>
+                <span>Trophies</span>
+            </button>
+            <button class="nav-btn" onclick="UI.goToScreen('screenJourney')">
+                <span>📅</span>
+                <span>Journey</span>
+            </button>
+        </div>
+    </main>
 
     <main class="screen active" id="screenLanding">
         <div class="auth-container"
@@ -396,6 +461,69 @@
         <div class="settings-container" style="padding:24px;">
             <h2 class="section-title">Guardian Settings</h2>
 
+            <!-- 💡 Goal Management Section -->
+            <div class="strategy-card" style="border: 2px solid #8b5cf6;">
+                <h3 style="color:#6d28d9; margin-bottom:15px; display:flex; align-items:center;">
+                    🎯 Goal Management
+                    <button onclick="UI.showAddGoalForm()"
+                        style="margin-left:auto; font-size:0.8rem; background:#8b5cf6; color:white; border:none; padding:5px 10px; border-radius:20px;">+
+                        Add New</button>
+                </h3>
+
+                <!-- Active Goal Editor -->
+                <div id="guardianActiveGoal"
+                    style="background:#f5f3ff; padding:15px; border-radius:12px; margin-bottom:15px;">
+                    <div style="font-size:0.75rem; font-weight:700; color:#7c3aed; text-transform:uppercase;">Active
+                        Goal</div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:5px;">
+                        <span id="guardianActiveGoalName" style="font-weight:700; color:#1e293b;">None</span>
+                        <span id="guardianActiveGoalProgress" style="font-size:0.9rem; color:#64748b;">0/0 XP</span>
+                    </div>
+                </div>
+
+                <!-- Queued Goals -->
+                <div style="font-size:0.85rem; font-weight:700; color:#64748b; margin-bottom:10px;">Queue (Up Next)
+                </div>
+                <div id="guardianGoalQueue" style="display:flex; flex-direction:column; gap:8px;">
+                    <!-- Injected by JS -->
+                </div>
+            </div>
+
+            <!-- Add Goal Modal (Simple overlay or toggle form) -->
+            <div id="addGoalForm"
+                style="display:none; background:#f8fafc; padding:15px; border-radius:12px; border:1px solid #cbd5e1; margin-top:10px;">
+                <h4 style="margin-bottom:10px;">New Goal</h4>
+                <input type="text" id="newGoalName" placeholder="Goal Name (e.g. Lego Set)"
+                    style="width:100%; margin-bottom:8px; padding:8px; border:1px solid #cbd5e1; border-radius:6px;">
+                <input type="number" id="newGoalTarget" placeholder="Target XP (e.g. 500)"
+                    style="width:100%; margin-bottom:8px; padding:8px; border:1px solid #cbd5e1; border-radius:6px;">
+                <input type="text" id="newGoalReward" placeholder="Reward Text (e.g. Buy the Lego!)"
+                    style="width:100%; margin-bottom:8px; padding:8px; border:1px solid #cbd5e1; border-radius:6px;">
+
+                <div style="margin-bottom:10px;">
+                    <label style="font-size:0.8rem; font-weight:700; color:#64748b;">Pick Emoji:</label>
+                    <div style="display:flex; gap:10px; overflow-x:auto; padding:5px 0;">
+                        <span class="emoji-option" onclick="selectGoalEmoji('🧱')">🧱</span>
+                        <span class="emoji-option" onclick="selectGoalEmoji('🍕')">🍕</span>
+                        <span class="emoji-option" onclick="selectGoalEmoji('🎮')">🎮</span>
+                        <span class="emoji-option" onclick="selectGoalEmoji('🎬')">🎬</span>
+                        <span class="emoji-option" onclick="selectGoalEmoji('🍦')">🍦</span>
+                        <span class="emoji-option" onclick="selectGoalEmoji('🎁')">🎁</span>
+                        <span class="emoji-option" onclick="selectGoalEmoji('🏆')">🏆</span>
+                        <span class="emoji-option" onclick="selectGoalEmoji('⭐')">⭐</span>
+                        <span class="emoji-option" onclick="selectGoalEmoji('🎨')">🎨</span>
+                    </div>
+                    <input type="hidden" id="newGoalEmoji" value="🏆">
+                    <div id="selectedEmojiDisplay" style="margin-top:5px; font-size:1.5rem;">Selected: 🏆</div>
+                </div>
+
+                <div style="display:flex; gap:10px;">
+                    <button class="btn-primary" onclick="Guardian.addNewGoal()">Save</button>
+                    <button class="btn-secondary"
+                        onclick="document.getElementById('addGoalForm').style.display='none'">Cancel</button>
+                </div>
+            </div>
+
             <div class="strategy-card">
                 <h3>Child's Preferences</h3>
                 <label>Favorite Keywords (for AI)</label>
@@ -499,7 +627,7 @@
                 <div id="guardianRecentHistory">
                     <!-- 🆕 Visual Build Tag -->
                     <div style="text-align:center; padding:20px; color:#cbd5e1; font-size:0.7rem; margin-top:40px;">
-                        FeelFlow Kids • Ver.0218-0015
+                        FeelFlow Kids • Ver.0218-1037
                     </div>
                 </div>
             </div>
