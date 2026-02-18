@@ -700,6 +700,41 @@ textarea {
     background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 200"><path d="M50 20 C50 10 60 10 60 20 C60 30 50 30 50 20 M50 30 L50 80 M20 40 L50 40 L80 40 M20 40 L20 70 M80 40 L80 70 M50 80 L30 140 M50 80 L70 140 M30 140 L30 180 M70 140 L70 180" stroke="%23cbd5e1" stroke-width="4" fill="none" stroke-linecap="round"/></svg>') no-repeat center/contain;
 }
 
+/* 🚶 Walking Animation */
+@keyframes walkBob {
+
+    0%,
+    100% {
+        transform: translateY(0) rotate(-2deg);
+    }
+
+    50% {
+        transform: translateY(-10px) rotate(2deg);
+    }
+}
+
+.walking-active {
+    animation: walkBob 0.6s infinite ease-in-out;
+}
+
+/* Background parallax effect for walking */
+.walking-bg {
+    background: linear-gradient(90deg, #f8fafc 0%, #e2e8f0 50%, #f8fafc 100%);
+    background-size: 200% 100%;
+    animation: bgScroll 3s linear infinite;
+}
+
+@keyframes bgScroll {
+    0% {
+        background-position: 100% 0;
+    }
+
+    100% {
+        background-position: -100% 0;
+    }
+}
+}
+
 .body-node {
     position: absolute;
     width: 24px;

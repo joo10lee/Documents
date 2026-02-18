@@ -214,7 +214,30 @@ const UI = {
                         <span>${entry.emotion}</span>
                         <span style="font-size:0.8rem; color:#7c3aed; margin-left:auto; background:#f3e8ff; padding:2px 8px; border-radius:10px;">Lv.${entry.intensity}</span>
                     </div>
+                    </div>
                     ${noteHtml}
+                    ${(() => {
+                    if (entry.activityData) {
+                        const act = entry.activityData;
+                        let icon = '✨';
+                        if (act.category === 'Music') icon = '🎵';
+                        else if (act.category === 'Gratitude') icon = '🌻';
+                        else if (act.category === 'Breathing') icon = '🫁';
+                        else if (act.category === 'Meditation') icon = '🧘';
+                        else if (act.category === 'Drawing') icon = '🖍️';
+
+                        return `
+                                <div style="background:#f8fafc; padding:10px; border-radius:10px; margin-top:10px; border:1px solid #e2e8f0; font-size:0.9rem; color:#475569;">
+                                    <div style="font-weight:700; display:flex; align-items:center; gap:5px;">
+                                        <span>${icon}</span> ${act.detail}
+                                    </div>
+                                    ${act.volume ? `<div style="font-size:0.8rem; margin-top:2px;">Volume: ${Math.round(act.volume * 100)}%</div>` : ''}
+                                    ${act.garden ? `<div style="font-size:1.2rem; margin-top:5px; letter-spacing:2px;">${act.garden}</div>` : ''}
+                                </div>
+                            `;
+                    }
+                    return '';
+                })()}
                     ${photoHtml}
                 </div>`;
         }).join('');

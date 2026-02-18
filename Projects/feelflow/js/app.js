@@ -786,8 +786,12 @@ window.finishCheckIn = async function () {
         intensity: currentEmotion.intensity,
         note: document.getElementById('actionNote')?.value || "",
         photo: window.lastCapturedPhoto || null,
+        activityData: window.lastActivityData || null, // 💡 Capture Activity Details
         timestamp: new Date().toISOString()
     };
+
+    // Reset global activity data
+    window.lastActivityData = null;
 
     try {
         if (typeof EmotionAPI !== 'undefined') await EmotionAPI.saveCheckIn(entry);
