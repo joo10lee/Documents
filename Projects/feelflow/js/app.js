@@ -307,6 +307,18 @@ const FeelFlow = {
         }
     },
 
+    resetActiveGoal() {
+        if (this.goals.active) {
+            if (confirm(`Reset all progress for "${this.goals.active.name}"? This cannot be undone.`)) {
+                this.goals.active.earnedXP = 0;
+                this.saveGoals();
+                if (typeof renderTrophies === 'function') renderTrophies();
+                if (typeof Guardian !== 'undefined' && Guardian.renderGoalManager) Guardian.renderGoalManager();
+                alert("Progress reset to 0 XP.");
+            }
+        }
+    },
+
     showCelebrationOverlay(goal) {
         // Create Overlay Elements dynamically if not exist
         let overlay = document.getElementById('celebrationOverlay');
@@ -537,7 +549,8 @@ const Guardian = {
                         </div>
                     </div>
                     <div style="display:flex; gap:8px;">
-                        <button onclick="Guardian.editGoalPrompt('active')" class="btn-secondary" style="font-size:0.7rem; padding:5px 10px;">Edit Reward</button>
+                        <button onclick="Guardian.editGoalPrompt('active')" class="btn-secondary" style="font-size:0.7rem; padding:8px 12px; border-radius:8px;">Edit Reward</button>
+                        <button onclick="FeelFlow.resetActiveGoal()" class="btn-secondary" style="font-size:0.7rem; padding:8px 12px; border-radius:8px; color:#e11d48; border-color:#fecdd3;">Reset Progress</button>
                     </div>
                 </div>
             `;
@@ -545,10 +558,10 @@ const Guardian = {
 
         // Queue
         if (queueContainer) {
-            if (queue.length === 0) {
+            if (!queue || queue.length === 0) {
                 queueContainer.innerHTML = `
-                    <div style="font-size:0.8rem; color:#94a3b8; font-style:italic; padding:10px; background:#f8fafc; border-radius:8px; border:1px dashed #e2e8f0;">
-                        Queue is empty. Add more goals below!
+                    <div style="font-size:0.8rem; color:#94a3b8; font-style:italic; padding:15px; background:#f8fafc; border-radius:12px; border:1px dashed #e2e8f0; text-align:center;">
+                        No upcoming missions. <br>Add one to keep the momentum!
                     </div>`;
             } else {
                 queueContainer.innerHTML = queue.map((q, index) => `
@@ -603,10 +616,15 @@ const Guardian = {
     },
 
     addNewGoal() {
-        const name = document.getElementById('newGoalName').value;
-        const target = parseInt(document.getElementById('newGoalTarget').value);
-        const reward = document.getElementById('newGoalReward').value;
-        const emoji = document.getElementById('newGoalEmoji').value;
+        const nameEl = document.getElementById('newGoalName');
+        const targetEl = document.getElementById('newGoalTarget');
+        const rewardEl = document.getElementById('newGoalReward');
+        const emojiEl = document.getElementById('newGoalEmoji');
+
+        const name = nameEl.value;
+        const target = parseInt(targetEl.value);
+        const reward = rewardEl.value;
+        const emoji = emojiEl.value;
 
         if (!name || isNaN(target) || !reward) {
             alert("Please fill all fields!");
@@ -622,7 +640,7 @@ const Guardian = {
         };
 
         // If no active goal (e.g. placeholder), make this active immediately
-        if (FeelFlow.goals.active && FeelFlow.goals.active.id === 'g_placeholder') {
+        if (!FeelFlow.goals.active || FeelFlow.goals.active.id === 'g_placeholder') {
             newGoal.status = 'active';
             newGoal.createdAt = new Date().toISOString();
             FeelFlow.goals.active = newGoal;
@@ -633,17 +651,21 @@ const Guardian = {
         FeelFlow.saveGoals();
 
         // Reset Form
-        document.getElementById('newGoalName').value = '';
-        document.getElementById('newGoalTarget').value = '';
-        document.getElementById('newGoalReward').value = '';
+        nameEl.value = '';
+        targetEl.value = '';
+        rewardEl.value = '';
         document.getElementById('addGoalForm').style.display = 'none';
 
         this.renderGoalManager();
         if (typeof renderTrophies === 'function') renderTrophies();
-        alert("Goal Added!");
+
+        // 🚀 Go back to Dashboard to see the new mission
+        UI.goToScreen('Guardian');
+        alert("Mission Saved!");
     },
 
     setTemplateGoal(type) {
+        console.log("🛠️ Loading Template:", type);
         const templates = {
             'first': { name: 'First Steps', target: 100, emoji: '⭐' },
             'detective': { name: 'Feeling Detective', target: 200, emoji: '🔍' },
@@ -651,12 +673,18 @@ const Guardian = {
         };
         const t = templates[type];
         if (t) {
-            document.getElementById('newGoalName').value = t.name;
-            document.getElementById('newGoalTarget').value = t.target;
-            document.getElementById('newGoalEmoji').value = t.emoji;
-            document.getElementById('selectedEmojiDisplay').textContent = `Selected: ${t.emoji}`;
-            document.getElementById('newGoalReward').focus();
-            alert(`Template "${t.name}" loaded! Now set a reward.`);
+            const nameEl = document.getElementById('newGoalName');
+            const targetEl = document.getElementById('newGoalTarget');
+            const emojiEl = document.getElementById('newGoalEmoji');
+            const displayEl = document.getElementById('selectedEmojiDisplay');
+
+            if (nameEl) nameEl.value = t.name;
+            if (targetEl) targetEl.value = t.target;
+            if (emojiEl) emojiEl.value = t.emoji;
+            if (displayEl) displayEl.textContent = `Selected: ${t.emoji}`;
+
+            document.getElementById('newGoalReward')?.focus();
+            console.log("✅ Template Applied:", t.name);
         }
     },
 

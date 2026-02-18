@@ -43,7 +43,7 @@
         <div class="header-status">
             <span id="weatherIcon">🌤️</span>
             <!-- 💡 Phase 2.5: Version Format (Date-Time) -->
-            <span class="build-tag">Ver.0218-1140</span>
+            <span class="build-tag">Ver.0218-1157</span>
         </div>
         <div class="header-main">
 
@@ -554,15 +554,6 @@
                 </div>
             </div>
 
-            <div class="strategy-card">
-                <h3>Child's Preferences</h3>
-                <label>Favorite Keywords (for AI)</label>
-                <input type="text" id="childKeywords" placeholder="Lego, Soccer, Drawing..."
-                    style="width:100%; padding:10px; border:1px solid #e2e8f0; border-radius:8px;">
-                <button onclick="Guardian.saveSettings()" class="btn-secondary"
-                    style="margin-top:10px; width:auto;">Save</button>
-            </div>
-
             <button class="btn-secondary" onclick="GuardianAuth.logout()"
                 style="width:100%; border:1px solid #ef4444; color:#ef4444;">Log Out</button>
             <br><br>
@@ -622,33 +613,28 @@
                 </div>
             </div>
 
-            <!-- Compact Goal Manager -->
-            <div class="guardian-card compact goal-card">
+            <!-- 🆕 Updated Goal Manager (Replaces old tracker) -->
+            <div id="guardianPendingReward"></div>
+
+            <div class="guardian-card">
                 <div class="guardian-card-header">
                     <div>
-                        <h3 class="guardian-section-title">🏆 Goal Tracker</h3>
-                        <div style="font-size:0.8rem; color:#64748b; font-weight:500;">Consistency is key!</div>
+                        <h3 class="guardian-section-title">🏆 Goal Management</h3>
+                        <div style="font-size:0.8rem; color:#64748b; font-weight:500;">Set rewards for achievements
+                        </div>
                     </div>
-                    <div id="goalScoreBadge" class="goal-score-badge">Score: 0</div>
                 </div>
 
-                <!-- Action Banner -->
-                <div id="goalActionBanner"
-                    style="display:none; margin-bottom:12px; padding:10px; border-radius:10px; font-size:0.9rem; text-align:center; font-weight:600;">
-                </div>
+                <div id="guardianActiveGoal" style="margin-top:10px;"></div>
 
-                <div style="display:flex; gap:8px;">
-                    <input type="text" id="guardianGoalInput" placeholder="Set a new goal..."
-                        style="flex:1; padding:10px; border:1px solid #e2e8f0; border-radius:12px; font-size:0.95rem;">
-                    <button onclick="Guardian.saveGoal()"
-                        style="padding:10px 16px; font-size:0.95rem; background:#3b82f6; color:white; border:none; border-radius:12px; font-weight:600;">Set</button>
-                    <button id="btnBookNext" onclick="alert('Reservation System: Coming Soon!')"
-                        style="display:none; padding:10px 16px; font-size:0.95rem; background:#10b981; color:white; border:none; border-radius:12px; font-weight:600;">Book</button>
+                <div style="margin:15px 0 10px; font-size:0.85rem; font-weight:700; color:#64748b;">Upcoming Missions
                 </div>
-                <div id="suggestedGoal"
-                    style="display:none; margin-top:10px; font-size:0.85rem; color:#64748b; cursor:pointer;">
-                    <span></span>
-                </div>
+                <div id="guardianGoalQueue"></div>
+
+                <button onclick="UI.showAddGoalForm()" class="btn-primary"
+                    style="width:100%; margin-top:20px; background:#8b5cf6;">
+                    + Add New Mission
+                </button>
             </div>
 
             <!-- Recent Activity -->
@@ -657,7 +643,7 @@
                 <div id="guardianRecentHistory">
                     <!-- 🆕 Visual Build Tag -->
                     <div style="text-align:center; padding:20px; color:#cbd5e1; font-size:0.7rem; margin-top:40px;">
-                        FeelFlow Kids • Ver.0218-1140
+                        FeelFlow Kids • Ver.0218-1157
                     </div>
                 </div>
             </div>
