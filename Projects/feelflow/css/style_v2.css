@@ -2186,3 +2186,92 @@ label {
         transform: scale(1);
     }
 }
+
+/* 🧘‍♀️ Emergency Activity Animations */
+@keyframes breathIndication {
+
+    0%,
+    100% {
+        transform: scale(1);
+        opacity: 0.8;
+    }
+
+    50% {
+        transform: scale(1.5);
+        opacity: 1;
+    }
+}
+
+.anim-breathe {
+    animation: breathIndication 4s infinite ease-in-out;
+}
+
+@keyframes scanLook {
+    0% {
+        transform: translateX(0);
+    }
+
+    25% {
+        transform: translateX(-20px);
+    }
+
+    50% {
+        transform: translateX(20px);
+    }
+
+    75% {
+        transform: translateX(0);
+    }
+
+    100% {
+        transform: translateX(0);
+    }
+}
+
+.anim-scan {
+    animation: scanLook 6s infinite ease-in-out;
+}
+
+@keyframes squeezeTension {
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(0.8);
+    }
+
+    55% {
+        transform: scale(0.8) rotate(5deg);
+    }
+
+    60% {
+        transform: scale(0.8) rotate(-5deg);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+.anim-squeeze {
+    animation: squeezeTension 4s infinite;
+}
+
+@keyframes floatCalm {
+    0% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-15px);
+    }
+
+    100% {
+        transform: translateY(0);
+    }
+}
+
+.anim-float {
+    animation: floatCalm 5s infinite ease-in-out;
+}

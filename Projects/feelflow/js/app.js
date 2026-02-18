@@ -252,6 +252,12 @@ const Guardian = {
     },
 
     renderDashboard() {
+        console.log("🛡️ Rendering Guardian Dashboard...");
+        // Ensure Screen Visibility
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        const s = document.getElementById('screenGuardian');
+        if (s) s.classList.add('active');
+
         this.init();
     },
 
@@ -1578,7 +1584,7 @@ function renderEmergencyStrategy() {
 function renderEmergencyActivityUI(type, container) {
     if (type === 'Deep Breathing') {
         container.innerHTML = `
-            <div style="width:200px; height:200px; background:rgba(16,185,129,0.2); border-radius:50%; display:flex; justify-content:center; align-items:center; animation: breathPulse 4s infinite ease-in-out;">
+            <div class="anim-breathe" style="width:200px; height:200px; background:rgba(16,185,129,0.2); border-radius:50%; display:flex; justify-content:center; align-items:center;">
                 <div style="font-size:6rem;">🫁</div>
             </div>
             <h2 style="margin-top:40px; font-weight:850; font-size:2rem; color:#fff;">Breathe In...</h2>
@@ -1594,21 +1600,28 @@ function renderEmergencyActivityUI(type, container) {
     }
     else if (type === '5-4-3-2-1 Grounding') {
         container.innerHTML = `
-            <div style="font-size:6rem; margin-bottom:20px;">🖐️</div>
+            <div class="anim-scan" style="font-size:6rem; margin-bottom:20px;">👀</div>
             <h2 style="font-size:1.8rem; margin-bottom:10px;">Look around you.</h2>
             <p style="font-size:1.2rem; opacity:0.8;">Find 5 blue things.</p>
          `;
     }
     else if (type === 'Squeeze & Release') {
         container.innerHTML = `
-            <div style="font-size:6rem; margin-bottom:20px; animation: pulse 2s infinite;">✊</div>
+            <div class="anim-squeeze" style="font-size:6rem; margin-bottom:20px;">✊</div>
             <h2 style="font-size:1.8rem;">Squeeze your fists tight!</h2>
+         `;
+    }
+    else if (type === 'Hold Something Cold') {
+        container.innerHTML = `
+            <div class="anim-float" style="font-size:6rem; margin-bottom:20px;">🧊</div>
+            <h2 style="font-size:1.8rem;">Find something cold.</h2>
+            <p style="font-size:1.2rem; opacity:0.8;">Hold it and feel the temp.</p>
          `;
     }
     else {
         // Fallback generic
         container.innerHTML = `
-            <div style="font-size:6rem; margin-bottom:20px;">😌</div>
+            <div class="anim-float" style="font-size:6rem; margin-bottom:20px;">😌</div>
             <h2 style="font-size:1.8rem;">You are safe here.</h2>
             <p style="font-size:1.2rem; opacity:0.8;">Take a moment.</p>
         `;
@@ -1734,6 +1747,18 @@ window.shareWithFamily = function () {
 const originalGoToScreen = UI.goToScreen.bind(UI);
 UI.goToScreen = async function (id, title) {
     originalGoToScreen(id, title);
+
+    // 💡 Fix: Hide FAB on Home Screen to avoid redundancy
+    const fab = document.getElementById('btnEmergencyFAB');
+    if (fab) {
+        if (id === '1' || id === 'screen1') {
+            fab.style.display = 'none';
+        } else if (id === 'Landing' || id === 'Login' || id === 'Signup') {
+            fab.style.display = 'none';
+        } else {
+            fab.style.display = 'flex';
+        }
+    }
 
     // 💡 Dynamic Data Loading based on Screen ID
     if (id === '5' || id === 'screen5') {
