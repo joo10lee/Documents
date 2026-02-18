@@ -1665,12 +1665,18 @@ const Activities = {
             let currentRound = 1;
 
             area.innerHTML = `
-                <div style="padding:20px; text-align:center; position:relative; min-height:400px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
-                    <div id="bCircle" style="width:150px; height:150px; background:#ddd6fe; border-radius:50%; display:flex; align-items:center; justify-content:center; transition: all 1s ease-in-out; position:relative;">
-                        <span id="bTimer" style="font-size:3rem; font-weight:800; color:#7c3aed;">4</span>
+                <div style="padding:20px; text-align:center; position:relative; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; overflow:hidden;">
+                    <!-- Lungs Container -->
+                    <div id="bCircle" style="font-size:8rem; transition: transform 1s ease-in-out; display:flex; align-items:center; justify-content:center; position:relative; width:auto; height:auto; background:transparent;">
+                        🫁
+                        <!-- Timer centered in lungs -->
+                        <span id="bTimer" style="position:absolute; font-size:2rem; font-weight:800; color:#fff; text-shadow:0 2px 4px rgba(0,0,0,0.3);">4</span>
                     </div>
-                    <h2 id="bText" style="margin-top:40px; font-weight:800; color:#4b5563; min-height:40px;">Get Ready...</h2>
-                    <div id="bDots" style="margin-top:30px; display:flex; gap:8px;">
+                    
+                    <!-- Text below, with margin to avoid overlap when scaled -->
+                    <h2 id="bText" style="margin-top:60px; font-weight:800; color:#4b5563; min-height:40px; z-index:10; position:relative;">Get Ready...</h2>
+                    
+                    <div id="bDots" style="margin-top:20px; display:flex; gap:8px;">
                         ${Array(rounds).fill(0).map((_, i) => `<div class="b-dot" id="dot-${i}" style="width:12px; height:12px; background:#e2e8f0; border-radius:50%;"></div>`).join('')}
                     </div>
                 </div>
@@ -1683,7 +1689,8 @@ const Activities = {
             const tick = (sec, label, scale, color, next) => {
                 text.innerText = label;
                 circle.style.transform = `scale(${scale})`;
-                circle.style.backgroundColor = color;
+                // Remove background color change since we use emoji
+                // circle.style.backgroundColor = color; 
 
                 let t = sec;
                 timer.innerText = t;
@@ -1710,14 +1717,14 @@ const Activities = {
                 document.querySelectorAll('.b-dot').forEach((d, i) => d.style.background = i < currentRound ? '#7c3aed' : '#e2e8f0');
 
                 if (pattern === 'box') {
-                    // Inhale 4 (Scale 1 -> 2, Purple)
-                    tick(4, "Inhale...", 1.8, "#c4b5fd", () => {
-                        // Hold 4 (Scale 2, Blue)
-                        tick(4, "Hold...", 1.8, "#a5b4fc", () => {
-                            // Exhale 4 (Scale 2 -> 1, Gray)
-                            tick(4, "Exhale...", 1.0, "#e2e8f0", () => {
-                                // Hold 4 (Scale 1, Gray)
-                                tick(4, "Hold...", 1.0, "#e2e8f0", () => {
+                    // Inhale 4 (Scale 1 -> 1.5) - Reduced scale for emoji to fit
+                    tick(4, "Inhale...", 1.5, null, () => {
+                        // Hold 4
+                        tick(4, "Hold...", 1.5, null, () => {
+                            // Exhale 4
+                            tick(4, "Exhale...", 1.0, null, () => {
+                                // Hold 4
+                                tick(4, "Hold...", 1.0, null, () => {
                                     currentRound++;
                                     runRound();
                                 });
@@ -1727,11 +1734,11 @@ const Activities = {
                 } else {
                     // 4-7-8 Pattern
                     // Inhale 4
-                    tick(4, "Inhale...", 1.8, "#f9a8d4", () => {
+                    tick(4, "Inhale...", 1.5, null, () => {
                         // Hold 7
-                        tick(7, "Hold...", 1.8, "#fbcfe8", () => {
+                        tick(7, "Hold...", 1.5, null, () => {
                             // Exhale 8
-                            tick(8, "Exhale...", 1.0, "#e2e8f0", () => {
+                            tick(8, "Exhale...", 1.0, null, () => {
                                 currentRound++;
                                 runRound();
                             });
