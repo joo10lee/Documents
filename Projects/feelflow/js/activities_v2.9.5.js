@@ -208,9 +208,12 @@ const Activities = {
                 area.innerHTML = `<div style="font-size:4rem;">🛌</div><p>Close your eyes for 10 minutes.</p>`;
                 if (btn) { btn.textContent = "I'm awake! (+60 XP)"; btn.onclick = () => this.completeAction('gold', 60); }
             }
-            else if (type === 'Meditation' || type === 'Listen to music' || type.includes('music')) {
+            else if (type === 'Listen to music' || type.includes('music')) {
                 area.innerHTML = `<div style="font-size:4rem;">🎵</div><p>Listen to your favorite song.</p>`;
                 if (btn) { btn.textContent = "Done! (+30 XP)"; btn.onclick = () => this.completeAction('silver', 30); }
+            }
+            else if (type === 'Meditation') {
+                this.startMeditation();
             }
             else if (type === 'Hold Something Cold') {
                 area.innerHTML = `<div style="font-size:4rem;">❄️</div><p>Hold an ice cube or cold pack.</p>`;
@@ -823,6 +826,89 @@ const Activities = {
 
         const btn = document.getElementById('activityBtn');
         if (btn) btn.style.display = 'none';
+    },
+
+    startMeditation() {
+        const area = document.getElementById('inAppActionArea');
+        const headerEl = document.querySelector('.activity-header');
+        if (headerEl) headerEl.style.display = 'none';
+
+        area.style.padding = '0';
+        area.innerHTML = `
+            <div style="padding:40px 24px; text-align:center;">
+                <h2 style="font-weight:850; margin-bottom:10px;">Meditation Moment</h2>
+                <div style="font-size:6rem; margin:30px 0; animation: float 3s ease-in-out infinite;">🧘‍♂️</div>
+                <p id="meditationText" style="font-size:1.2rem; color:#475569; margin-bottom:40px; min-height:60px;">
+                    Find a comfortable seat.<br>Close your eyes.
+                </p>
+                
+                <div id="meditationTimer" style="font-size:2.5rem; font-weight:800; color:#3b82f6; margin-bottom:30px;">03:00</div>
+                
+                <button id="btnMeditation" class="btn-primary" onclick="Activities.runMeditationSession()">
+                    Start Session
+                </button>
+            </div>
+            <style>
+                @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-10px); } 100% { transform: translateY(0px); } }
+            </style>
+        `;
+
+        const btn = document.getElementById('activityBtn');
+        if (btn) btn.style.display = 'none';
+
+        this.runMeditationSession = () => {
+            const timerEl = document.getElementById('meditationTimer');
+            const textEl = document.getElementById('meditationText');
+            const btnStart = document.getElementById('btnMeditation');
+
+            if (btnStart) btnStart.style.display = 'none';
+
+            // Audio (Drone)
+            this.initAudio();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.value = 150; // Low drone
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+
+            // Binaural beat effect (L/R slightly off)
+            const osc2 = audioCtx.createOscillator();
+            const gain2 = audioCtx.createGain();
+            osc2.type = 'sine';
+            osc2.frequency.value = 155; // 5Hz Theta wave difference
+            gain2.gain.setValueAtTime(0.1, audioCtx.currentTime);
+
+            osc.connect(gain).connect(audioCtx.destination);
+            osc2.connect(gain2).connect(audioCtx.destination);
+
+            osc.start();
+            osc2.start();
+
+            this.currentAudioSource = { stop: () => { osc.stop(); osc2.stop(); }, disconnect: () => { gain.disconnect(); gain2.disconnect(); } };
+
+            // Timer Logic
+            let timeLeft = 180; // 3 Minutes
+            textEl.innerText = "Focus on your breath...\nInhale... Exhale...";
+
+            this.currentInterval = setInterval(() => {
+                timeLeft--;
+                const m = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+                const s = (timeLeft % 60).toString().padStart(2, '0');
+                timerEl.innerText = `${m}:${s}`;
+
+                // Guidance Text Updates
+                if (timeLeft === 160) textEl.innerText = "Let go of any tension in your shoulders.";
+                if (timeLeft === 120) textEl.innerText = "If your mind wanders, gently bring it back to your breath.";
+                if (timeLeft === 60) textEl.innerText = "You are doing great. Just be present.";
+                if (timeLeft === 10) textEl.innerText = "Slowly bring your awareness back.";
+
+                if (timeLeft <= 0) {
+                    clearInterval(this.currentInterval);
+                    this.stopAll();
+                    this.completeAction('gold', 60);
+                }
+            }, 1000);
+        };
     },
 
     startCalmCatalog() {
