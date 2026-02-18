@@ -49,6 +49,7 @@ const Activities = {
     },
 
     // 2. 활동 정리 및 리소스 해제
+    // 2. 활동 정리 및 리소스 해제
     stopAll() {
         if (this.currentInterval) clearInterval(this.currentInterval);
         this.activeTimeouts.forEach(clearTimeout);
@@ -58,6 +59,20 @@ const Activities = {
             this.currentStream.getTracks().forEach(track => track.stop());
             this.currentStream = null;
         }
+
+        // 💡 Audio Cleanup
+        if (this.currentAudioSource) {
+            try { this.currentAudioSource.stop(); } catch (e) { }
+            try { this.currentAudioSource.disconnect(); } catch (e) { }
+            this.currentAudioSource = null;
+        }
+        if (this.currentGainNode) {
+            try { this.currentGainNode.disconnect(); } catch (e) { }
+            this.currentGainNode = null;
+        }
+        // Reset state
+        this.isPlaying = false;
+
         if (navigator.vibrate && window.userInteracted) {
             try { navigator.vibrate(0); } catch (e) { }
         }
