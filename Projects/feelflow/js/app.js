@@ -283,10 +283,12 @@ const Guardian = {
         }
 
         // 💡 Recent: Show last 15, include photos
-        const recent = history.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)).slice(0, 15);
+        // Fix: Ensure we are sorting correctly even if timestamps are strings
+        const recent = history.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()).slice(0, 15);
 
         container.innerHTML = recent.map(h => {
-            const dateStr = new Date(h.timestamp).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+            const dateObj = new Date(h.timestamp);
+            const dateStr = isNaN(dateObj.getTime()) ? "Unknown Date" : dateObj.toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
             // Photo handling
             const photoHtml = h.photo ? `<div style="width:40px; height:40px; border-radius:8px; background:url('${h.photo}') center/cover; margin-right:10px; border:1px solid #e2e8f0;"></div>` : '';
 
@@ -1748,10 +1750,12 @@ const originalGoToScreen = UI.goToScreen.bind(UI);
 UI.goToScreen = async function (id, title) {
     originalGoToScreen(id, title);
 
-    // 💡 Fix: Hide FAB on Home Screen to avoid redundancy
+    // 💡 Fix: Hide FAB on Home Screen & Guardian Mode
     const fab = document.getElementById('btnEmergencyFAB');
     if (fab) {
-        if (id === '1' || id === 'screen1') {
+        if (window.currentUser === 'guardian' || id === 'screenGuardian' || id === 'screenGuardianSettings') {
+            fab.style.display = 'none';
+        } else if (id === '1' || id === 'screen1') {
             fab.style.display = 'none';
         } else if (id === 'Landing' || id === 'Login' || id === 'Signup') {
             fab.style.display = 'none';
