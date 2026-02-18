@@ -816,6 +816,11 @@ const Activities = {
         const headerEl = document.querySelector('.activity-header');
         if (headerEl) headerEl.style.display = 'none';
 
+        // Initialize State
+        this.volume = 0.5;
+        this.isPlaying = false;
+        this.currentGainNode = null;
+
         area.style.padding = '0'; // Full width for scroll
         area.innerHTML = `
             <div style="padding:20px 24px 0;">
@@ -839,6 +844,21 @@ const Activities = {
                     <p style="color:#64748b;">Deep Drone</p>
                 </div>
             </div>
+
+            <!-- 💡 New Controls -->
+            <div id="calmControls" style="display:none; padding:20px; background:#f8fafc; border-top:1px solid #e2e8f0; text-align:center;">
+                <div style="display:flex; justify-content:center; align-items:center; gap:20px; margin-bottom:15px;">
+                     <button class="btn-control" onclick="Activities.adjustVolume(-0.1)" style="font-size:1.5rem;">🔉</button>
+                     <span id="volDisplay" style="font-weight:800; color:#475569; width:50px;">50%</span>
+                     <button class="btn-control" onclick="Activities.adjustVolume(0.1)" style="font-size:1.5rem;">🔊</button>
+                </div>
+                
+                <button id="btnPlayPause" class="btn-primary" onclick="Activities.toggleAudio()" 
+                        style="width:60px; height:60px; border-radius:50%; padding:0; display:flex; align-items:center; justify-content:center; font-size:2rem; margin:0 auto;">
+                    ⏸️
+                </button>
+            </div>
+
             <div style="padding:20px; text-align:center;">
                  <button class="btn-primary" onclick="Activities.completeAction('gold', 60)">I feel calm now (+60 XP)</button>
             </div>
@@ -846,6 +866,39 @@ const Activities = {
 
         const btn = document.getElementById('activityBtn');
         if (btn) btn.style.display = 'none';
+
+        // 💡 Control Methods
+        this.adjustVolume = (delta) => {
+            this.volume = Math.max(0, Math.min(1, this.volume + delta));
+
+            // Update UI
+            const volDisp = document.getElementById('volDisplay');
+            if (volDisp) volDisp.innerText = Math.round(this.volume * 100) + "%";
+
+            // Apply to Audio
+            if (this.currentGainNode) {
+                this.currentGainNode.gain.cancelScheduledValues(audioCtx.currentTime);
+                this.currentGainNode.gain.setValueAtTime(this.volume, audioCtx.currentTime);
+            }
+        };
+
+        this.toggleAudio = () => {
+            if (!audioCtx) return;
+            const btn = document.getElementById('btnPlayPause');
+
+            if (audioCtx.state === 'running') {
+                audioCtx.suspend().then(() => {
+                    this.isPlaying = false;
+                    if (btn) btn.innerText = "▶️";
+                    // Optional: visually dim the active card
+                });
+            } else if (audioCtx.state === 'suspended') {
+                audioCtx.resume().then(() => {
+                    this.isPlaying = true;
+                    if (btn) btn.innerText = "⏸️";
+                });
+            }
+        };
 
         // Soundscape Logic
         this.playSoundscape = (type, el) => {
@@ -857,9 +910,20 @@ const Activities = {
             document.querySelectorAll('.calm-card').forEach(c => c.classList.remove('active'));
             el.classList.add('active');
 
+            // Show Controls
+            const controls = document.getElementById('calmControls');
+            if (controls) controls.style.display = 'block';
+
+            // Reset Button to Pause (since we are starting)
+            const btn = document.getElementById('btnPlayPause');
+            if (btn) btn.innerText = "⏸️";
+
             // Generate Sound
             const gain = audioCtx.createGain();
+            gain.gain.value = this.volume; // Apply current volume
             gain.connect(audioCtx.destination);
+
+            this.currentGainNode = gain; // Store for volume control
 
             if (type === 'rain') {
                 // White Noise
@@ -935,6 +999,7 @@ const Activities = {
             this.currentAudioSource.stop = () => {
                 try { originalStop(); } catch (e) { }
                 gain.disconnect();
+                this.currentGainNode = null;
             };
         };
     },
