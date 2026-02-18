@@ -242,9 +242,13 @@ body {
     border-color: #10B981;
 }
 
-/* 하단 바 제거 */
+/* 하단 바 제거 - 자녀 트로피 화면에서는 예외로 노출 */
 .bottom-nav {
     display: none !important;
+}
+
+#screenTrophies .bottom-nav {
+    display: flex !important;
 }
 
 /* 햄버거 트리거 */
@@ -2275,13 +2279,14 @@ label {
 .anim-float {
     animation: floatCalm 5s infinite ease-in-out;
 }
+
 /* 10. Crisis Resources Screen */
 .crisis-card {
     background: white;
     border-radius: 20px;
     padding: 24px;
     margin-bottom: 20px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
     border: 1px solid #e2e8f0;
     text-align: center;
 }
@@ -2333,8 +2338,9 @@ label {
     font-weight: 750;
     text-decoration: none;
     transition: transform 0.2s;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    min-height: 56px; /* 48px min target */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    min-height: 56px;
+    /* 48px min target */
     border: none;
     cursor: pointer;
 }
@@ -2374,7 +2380,10 @@ label {
 .goal-card-active::before {
     content: '';
     position: absolute;
-    top: 0; left: 0; right: 0; height: 6px;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 6px;
     background: linear-gradient(90deg, #3b82f6, #8b5cf6);
 }
 
@@ -2382,7 +2391,7 @@ label {
     font-size: 4rem;
     margin-bottom: 10px;
     display: inline-block;
-    filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
+    filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
     animation: float 3s ease-in-out infinite;
 }
 
@@ -2407,8 +2416,11 @@ label {
 .goal-progress-bar::after {
     content: '';
     position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
     animation: shimmer 2s infinite;
 }
 
@@ -2460,8 +2472,15 @@ label {
 
 /* Confetti Animation */
 @keyframes confetti-fall {
-    0% { transform: translateY(-100%) rotate(0deg); opacity: 1; }
-    100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+    0% {
+        transform: translateY(-100%) rotate(0deg);
+        opacity: 1;
+    }
+
+    100% {
+        transform: translateY(100vh) rotate(720deg);
+        opacity: 0;
+    }
 }
 
 .confetti {
@@ -2476,8 +2495,11 @@ label {
 
 .celebration-overlay {
     position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(255,255,255,0.95);
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.95);
     z-index: 10000;
     display: flex;
     flex-direction: column;
@@ -2486,4 +2508,48 @@ label {
     text-align: center;
     padding: 20px;
     animation: fadeIn 0.5s;
+}
+
+@keyframes float {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+@keyframes shimmer {
+    0% {
+        transform: translateX(-100%);
+    }
+
+    100% {
+        transform: translateX(100%);
+    }
+}
+
+/* 🆕 New: Highlight for selected emoji */
+.emoji-option {
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.emoji-option:hover {
+    transform: scale(1.2);
+}
+
+/* 🆕 New: Form Spacing */
+#addGoalForm {
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    margin-top: 15px;
+    z-index: 10;
+}
+
+#addGoalForm input {
+    font-family: inherit;
+    font-size: 0.95rem;
 }

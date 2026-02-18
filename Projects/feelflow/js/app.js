@@ -365,7 +365,6 @@ const Guardian = {
             this.loadSettings();
             this.generateAIInsight();
             this.renderRecentHistory();
-            this.renderRecentHistory();
             this.checkAlerts(); // 🆕 Check for Emergency Alerts
             this.renderGoalManager(); // 💡 Goal Manager Init
         } catch (e) {
@@ -1763,6 +1762,30 @@ window.startOver = startOver;
 window.startQuest = startQuest;
 window.renderTrophies = renderTrophies;
 
+window.selectGoalEmoji = function (emoji) {
+    const el = document.getElementById('newGoalEmoji');
+    const display = document.getElementById('selectedEmojiDisplay');
+    if (el) el.value = emoji;
+    if (display) display.textContent = `Selected: ${emoji}`;
+
+    // Visually highlight
+    document.querySelectorAll('.emoji-option').forEach(opt => opt.style.background = 'none');
+    if (event && event.target) {
+        event.target.style.background = '#ddd6fe';
+        event.target.style.borderRadius = '8px';
+    }
+};
+
+if (window.UI) {
+    window.UI.showAddGoalForm = function () {
+        const form = document.getElementById('addGoalForm');
+        if (form) {
+            form.style.display = (form.style.display === 'none' || form.style.display === '') ? 'block' : 'none';
+            form.scrollIntoView({ behavior: 'smooth' });
+        }
+    };
+}
+
 /* 🚨 EMERGENCY MODE LOGIC 🚨 */
 
 let emergencyStrategies = [];
@@ -2097,6 +2120,9 @@ window.addEventListener('click', () => {
 // 💡 Phase 7: App Initialization & Persistence
 async function initApp() {
     console.log("🚀 FeelFlow App Initializing...");
+
+    // 0. Initialize Goal System
+    if (FeelFlow.initGoals) FeelFlow.initGoals();
 
     // 1. Fetch History from Server (Background Sync)
     try {
