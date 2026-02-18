@@ -1027,6 +1027,21 @@ window.finishCheckIn = async function () {
             setTimeout(() => alert("📱 [Parent's Phone] \n\nFeelFlow Alert:\nJason is feeling very " + entry.emotion + " (Lv." + entry.intensity + ").\nCheck the app now!"), 1000);
         }
 
+        // 💡 Crisis Auto-Prompt Logic
+        if (['Sad', 'Anxious'].includes(entry.emotion) && entry.intensity >= 9) {
+            const lastPrompt = localStorage.getItem('feelflow_crisis_prompt_date');
+            const today = new Date().toDateString();
+
+            if (lastPrompt !== today) {
+                setTimeout(() => {
+                    if (confirm("If you're going through a really hard time, there are people who can help. 💙\n\nSee resources?")) {
+                        UI.goToScreen('screenCrisis');
+                    }
+                    localStorage.setItem('feelflow_crisis_prompt_date', today);
+                }, 1500);
+            }
+        }
+
     } catch (error) {
         console.error("Save failed:", error);
         UI.goToScreen('5');
@@ -1736,10 +1751,44 @@ window.toggleMenu = function () {
                     <button class="menu-item" onclick="menuNavigate('Trophies', event)">🏆 Trophies</button>
                     <button class="menu-item" onclick="menuNavigate('History', event)">📅 My Journey</button>
                     <div style="width:100%; height:1px; background:#e2e8f0; margin:10px 0;"></div>
+                    <button class="menu-item" onclick="menuNavigate('Crisis', event)" style="color:#ef4444; font-weight:700;">🆘 Get Help</button>
+                    <div style="width:100%; height:1px; background:#e2e8f0; margin:10px 0;"></div>
                     <button class="menu-item" onclick="logout()" style="color:#64748b;">🔄 Switch User</button>
                 `;
             }
         }
+    }
+};
+
+window.sendCrisisMessage = function () {
+    // 1. Get Guardian Name/Number (Mock)
+    const guardian = { name: "Mom", phone: "555-555-5555" }; // In real app, fetch from settings
+
+    // 2. Construct Message
+    // "Jason is having a hard time and could use your support right now."
+    const msg = `[FeelFlow] Jason is having a hard time and could use your support right now.`;
+
+    // 3. Simulate Send
+    alert(`📨 Message sent to ${guardian.name}:\n\n"${msg}"`);
+
+    // 4. Log Alert internally for Guardian Dashboard
+    addGuardianAlert(`Crisis Message Sent`, 'High');
+
+    // 5. Feedback
+    const btn = document.querySelector('.btn-guardian');
+    if (btn) {
+        btn.innerHTML = "✅ Message Sent";
+        btn.disabled = true;
+        btn.style.background = "#9ca3af";
+    }
+};
+
+UI.renderCrisisScreen = function () {
+    // Populate Guardian Name
+    const lbl = document.getElementById('lblCrisisGuardianName');
+    if (lbl) {
+        // Mock fetch
+        lbl.innerText = "Mom";
     }
 };
 
@@ -1807,6 +1856,11 @@ UI.goToScreen = async function (id, title) {
     // 💡 Trophies Screen
     if (id === 'screenTrophies') {
         if (typeof renderTrophies === 'function') renderTrophies();
+    }
+
+    // 💡 Crisis Screen
+    if (id === 'screenCrisis') {
+        if (typeof UI.renderCrisisScreen === 'function') UI.renderCrisisScreen();
     }
 };
 

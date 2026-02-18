@@ -2275,3 +2275,85 @@ label {
 .anim-float {
     animation: floatCalm 5s infinite ease-in-out;
 }
+/* 10. Crisis Resources Screen */
+.crisis-card {
+    background: white;
+    border-radius: 20px;
+    padding: 24px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+    border: 1px solid #e2e8f0;
+    text-align: center;
+}
+
+.crisis-icon {
+    font-size: 3rem;
+    margin-bottom: 10px;
+}
+
+.crisis-card-title {
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: #1e293b;
+    margin-bottom: 8px;
+}
+
+.crisis-card-desc {
+    font-size: 1rem;
+    color: #64748b;
+    margin-bottom: 16px;
+    line-height: 1.5;
+}
+
+.crisis-details {
+    margin-bottom: 20px;
+    text-align: left;
+    background: #f8fafc;
+    border-radius: 12px;
+    padding: 12px;
+    font-size: 0.9rem;
+    color: #475569;
+}
+
+.crisis-details summary {
+    font-weight: 700;
+    cursor: pointer;
+    color: #3b82f6;
+    margin-bottom: 4px;
+}
+
+.btn-crisis-action {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    padding: 16px;
+    border-radius: 16px;
+    font-size: 1.2rem;
+    font-weight: 750;
+    text-decoration: none;
+    transition: transform 0.2s;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    min-height: 56px; /* 48px min target */
+    border: none;
+    cursor: pointer;
+}
+
+.btn-crisis-action:active {
+    transform: scale(0.98);
+}
+
+.btn-call {
+    background: #3b82f6;
+    color: white;
+}
+
+.btn-text {
+    background: #10b981;
+    color: white;
+}
+
+.btn-guardian {
+    background: #7c3aed;
+    color: white;
+}

@@ -43,7 +43,7 @@
         <div class="header-status">
             <span id="weatherIcon">🌤️</span>
             <!-- 💡 Phase 2.5: Version Format (Date-Time) -->
-            <span class="build-tag">Ver.0217-2344</span>
+            <span class="build-tag">Ver.0218-0006</span>
         </div>
         <div class="header-main">
 
@@ -145,6 +145,76 @@
                 <button class="btn-emergency-secondary" onclick="retryEmergencyStrategy()">↻ Try Another</button>
                 <button class="btn-emergency-primary" onclick="exitEmergencyMode()">✓ Done</button>
             </div>
+            <!-- Link to Crisis Resources -->
+            <div style="margin-top:20px; text-align:center;">
+                <p style="color:rgba(255,255,255,0.7); font-size:0.9rem; margin-bottom:10px;">Still feeling unsafe?</p>
+                <button onclick="UI.goToScreen('screenCrisis')"
+                    style="background:transparent; border:1px solid rgba(255,255,255,0.3); color:white; padding:8px 16px; border-radius:20px; font-size:0.9rem;">🆘
+                    Get More Help</button>
+            </div>
+        </div>
+    </main>
+
+    <!-- 🆘 SCREEN CRISIS RESOURCES -->
+    <main class="screen" id="screenCrisis" style="background: #f0f9ff; color: #334155;">
+        <div class="header-bar"
+            style="background:white; border-bottom:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center; padding:15px 24px;">
+            <button class="nav-btn" onclick="UI.goToScreen('1')"
+                style="background:none; border:none; font-size:1.5rem; cursor:pointer;">✕</button>
+            <h2 class="header-title" style="color:#ef4444; font-size:1.2rem; font-weight:800; margin:0;">Crisis
+                Resources</h2>
+            <div style="width:24px;"></div>
+        </div>
+
+        <div class="content-area" style="padding:24px; overflow-y:auto; height:calc(100vh - 70px);">
+            <p style="text-align:center; margin-bottom:30px; font-size:1.1rem; color:#64748b; line-height:1.6;">
+                You are not alone. There are people who want to help you right now. 💙
+            </p>
+
+            <!-- Card 1: 988 -->
+            <div class="crisis-card">
+                <div class="crisis-icon">📞</div>
+                <h3 class="crisis-card-title">988 Lifeline</h3>
+                <p class="crisis-card-desc">Free, confidential, 24/7.<br>Someone will listen.</p>
+
+                <details class="crisis-details">
+                    <summary>What happens when I call?</summary>
+                    <p>A real person answers. You tell them how you feel. They help you figure out what to do. You can
+                        hang up anytime.</p>
+                </details>
+
+                <a href="tel:988" class="btn-crisis-action btn-call">Call 988</a>
+            </div>
+
+            <!-- Card 2: 741741 -->
+            <div class="crisis-card">
+                <div class="crisis-icon">💬</div>
+                <h3 class="crisis-card-title">Crisis Text Line</h3>
+                <p class="crisis-card-desc">Text HOME to 741741.<br>If you'd rather text than talk.</p>
+
+                <details class="crisis-details">
+                    <summary>What happens when I text?</summary>
+                    <p>You'll text with a real person. Type as much or as little as you want. They are trained to help.
+                    </p>
+                </details>
+
+                <a href="sms:741741&body=HOME" class="btn-crisis-action btn-text">Text 741741</a>
+            </div>
+
+            <!-- Card 3: Guardian -->
+            <div class="crisis-card" id="cardGuardianContact">
+                <div class="crisis-icon">🏠</div>
+                <h3 class="crisis-card-title">Talk to <span id="lblCrisisGuardianName">Guardian</span></h3>
+                <p class="crisis-card-desc">Let them know you're having a hard time.</p>
+
+                <button onclick="window.sendCrisisMessage()" class="btn-crisis-action btn-guardian">
+                    Message Now
+                </button>
+                <p style="font-size:0.8rem; color:#94a3b8; margin-top:10px; text-align:center;">
+                    This will send a message.
+                </p>
+            </div>
+            <div style="height:50px;"></div>
         </div>
     </main>
 
@@ -429,7 +499,7 @@
                 <div id="guardianRecentHistory">
                     <!-- 🆕 Visual Build Tag -->
                     <div style="text-align:center; padding:20px; color:#cbd5e1; font-size:0.7rem; margin-top:40px;">
-                        FeelFlow Kids • Ver.0217-2344
+                        FeelFlow Kids • Ver.0218-0006
                     </div>
                 </div>
             </div>
