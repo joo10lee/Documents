@@ -211,8 +211,7 @@ const Activities = {
                 if (btn) { btn.textContent = "I'm awake! (+60 XP)"; btn.onclick = () => this.completeAction('gold', 60); }
             }
             else if (type === 'Listen to music' || type.includes('music')) {
-                area.innerHTML = `<div style="font-size:4rem;">🎵</div><p>Listen to your favorite song.</p>`;
-                if (btn) { btn.textContent = "Done! (+30 XP)"; btn.onclick = () => this.completeAction('silver', 30); }
+                this.startListenToMusic();
             }
             else if (type === 'Meditation') {
                 this.startMeditation();
