@@ -41,7 +41,7 @@
         <div class="header-status">
             <span id="weatherIcon">🌤️</span>
             <!-- 💡 Phase 2.5: Version Format (Date-Time) -->
-            <span class="build-tag">Ver.0217-2011</span>
+            <span class="build-tag">Ver.0217-2213</span>
         </div>
         <div class="header-main">
 
@@ -125,6 +125,29 @@
         </div>
     </main>
 
+    <main class="screen" id="screenTrigger">
+        <div class="intensity-screen">
+            <h2 id="triggerHeader"
+                style="font-size: 1.8rem; font-weight: 850; margin-bottom: 20px; text-align: center;">What caused this
+                feeling?<br><span id="triggerEmojiDisplay" style="font-size:3rem;"></span></h2>
+
+            <div id="triggerChipsContainer" class="trigger-chips-container">
+                <!-- Chips injected by JS -->
+            </div>
+
+            <div class="other-trigger-input" id="otherTriggerInputDiv"
+                style="display:none; width:100%; margin-top:10px;">
+                <input type="text" id="otherTriggerText" maxlength="30" placeholder="Type what happened..."
+                    style="width:calc(100% - 48px); padding:15px; border-radius:12px; border:1px solid #cbd5e1; font-size:1rem;">
+            </div>
+
+            <div style="margin-top:auto; width:100%; display:flex; gap:10px; padding:20px;">
+                <button class="btn-secondary" onclick="skipTriggers()" style="flex:1;">Skip</button>
+                <button class="btn-primary" onclick="submitTriggers()" style="flex:1; margin:0;">Next →</button>
+            </div>
+        </div>
+    </main>
+
     <main class="screen" id="screen2">
         <div class="intensity-screen">
             <div class="intensity-card">
@@ -152,6 +175,29 @@
         <div id="strategiesContainer"></div>
         <div class="strategies-footer">
             <button class="btn btn-secondary" onclick="UI.back()">← Back</button>
+        </div>
+    </main>
+
+    <main class="screen" id="screenRemeasure">
+        <div class="intensity-screen">
+            <div class="intensity-card">
+                <div id="remeasureEmoji" style="font-size: 4rem;">😊</div>
+                <h2 style="font-size: 1.5rem; font-weight: 850; margin-bottom: 20px;">How do you feel now?</h2>
+
+                <div
+                    style="background:#f1f5f9; padding:10px 20px; border-radius:12px; margin-bottom:20px; color:#64748b; font-weight:600;">
+                    Before: <span id="remeasureBeforeVal">5</span>
+                </div>
+
+                <div class="intensity-display" id="remeasureDisplay">5</div>
+                <input type="range" min="1" max="10" value="5" class="intensity-slider" id="remeasureSlider"
+                    oninput="updateRemeasure(this.value)">
+                <div class="slider-labels">
+                    <span>Mild</span>
+                    <span>Strong</span>
+                </div>
+            </div>
+            <button class="btn-primary" onclick="submitRemeasure()">Done!</button>
         </div>
     </main>
 
@@ -360,7 +406,7 @@
                 <div id="guardianRecentHistory">
                     <!-- 🆕 Visual Build Tag -->
                     <div style="text-align:center; padding:20px; color:#cbd5e1; font-size:0.7rem; margin-top:40px;">
-                        FeelFlow Kids • Ver.0217-2011
+                        FeelFlow Kids • Ver.0217-2213
                     </div>
                 </div>
             </div>

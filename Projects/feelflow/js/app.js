@@ -724,21 +724,124 @@ function startOver() {
     goHome();
 }
 
+// 💡 New Trigger Flow
 function selectEmotion(name, emoji, color) {
     if (window.Activities) window.Activities.initAudio();
-    currentEmotion = { name, emoji, color, intensity: 5 };
+    currentEmotion = { name, emoji, color, intensity: 5, triggers: [] };
 
-    // 💡 [Fix] Update Screen 2 DOM
+    // Redirect to Trigger Screen first
+    renderTriggerScreen();
+}
+
+function renderTriggerScreen() {
+    // 1. DOM Elements
+    const header = document.getElementById('triggerHeader');
+    const container = document.getElementById('triggerChipsContainer');
+    if (header) {
+        header.innerHTML = `What caused this feeling?<br><span style="font-size:3rem;">${currentEmotion.emoji}</span>`;
+    }
+
+    // 2. Define Triggers
+    const triggers = [
+        { id: 'school', text: '🏫 School' },
+        { id: 'friends', text: '👫 Friends' },
+        { id: 'family', text: '👨‍👩‍👦 Family' },
+        { id: 'noise', text: '🔊 Noise' },
+        { id: 'routine', text: '🔄 Change in Routine' },
+        { id: 'tired', text: '😴 Tired' },
+        { id: 'hungry', text: '🍽️ Hungry' },
+        { id: 'sensory', text: '⚡ Sensory Overload' },
+        { id: 'unknown', text: '❓ Don\'t Know' },
+        { id: 'other', text: '✏️ Other' }
+    ];
+
+    // 3. Render Chips
+    if (container) {
+        container.innerHTML = triggers.map(t => `
+            <div id="trig-${t.id}" class="trigger-chip" onclick="toggleTrigger('${t.id}', '${t.text.replace("'", "\\'")}')">
+                ${t.text}
+            </div>
+        `).join('');
+    }
+
+    // 4. Reset Other Input
+    const otherDiv = document.getElementById('otherTriggerInputDiv');
+    const otherInput = document.getElementById('otherTriggerText');
+    if (otherDiv) otherDiv.style.display = 'none';
+    if (otherInput) otherInput.value = '';
+
+    UI.goToScreen('Trigger');
+}
+
+function toggleTrigger(id, text) {
+    const el = document.getElementById(`trig-${id}`);
+    if (!el) return;
+
+    // Toggle Style
+    el.classList.toggle('active');
+
+    // Handle "Other" Visibility
+    if (id === 'other') {
+        const otherDiv = document.getElementById('otherTriggerInputDiv');
+        if (otherDiv) otherDiv.style.display = el.classList.contains('active') ? 'block' : 'none';
+    }
+
+    // Update Array (simple toggle logic)
+    if (!currentEmotion.triggers) currentEmotion.triggers = [];
+
+    const idx = currentEmotion.triggers.indexOf(text);
+    if (idx > -1) {
+        currentEmotion.triggers.splice(idx, 1);
+    } else {
+        currentEmotion.triggers.push(text);
+    }
+
+    safeVibrate(10);
+}
+
+function submitTriggers() {
+    // Handle "Other" Text
+    const otherInput = document.getElementById('otherTriggerText');
+    const otherChip = document.getElementById('trig-other');
+
+    if (otherChip && otherChip.classList.contains('active') && otherInput && otherInput.value.trim() !== '') {
+        // Remove "✏️ Other" placeholder if present and add real text
+        const idx = currentEmotion.triggers.indexOf('✏️ Other');
+        if (idx > -1) currentEmotion.triggers.splice(idx, 1);
+        currentEmotion.triggers.push(`Other: ${otherInput.value.trim()}`);
+    }
+
+    // Go to Next Screen (Intensity)
     const emojiEl = document.getElementById('selectedEmoji');
     const nameEl = document.getElementById('selectedName');
-    if (emojiEl) emojiEl.textContent = emoji;
-    if (nameEl) nameEl.textContent = name;
+    if (emojiEl) emojiEl.textContent = currentEmotion.emoji;
+    if (nameEl) nameEl.textContent = currentEmotion.name;
+
+    // Reset Slider
     const slider = document.getElementById('intensitySlider');
-    if (slider) slider.value = 5;
     const display = document.getElementById('intensityDisplay');
+    if (slider) slider.value = 5;
     if (display) display.textContent = '5';
+    currentEmotion.intensity = 5;
 
     UI.goToScreen('2', "How strong is it?");
+}
+
+function skipTriggers() {
+    currentEmotion.triggers = [];
+    submitTriggers();
+}
+
+// 💡 Remeasure Logic
+function updateRemeasure(val) {
+    const display = document.getElementById('remeasureDisplay');
+    if (display) display.innerText = val;
+}
+
+function submitRemeasure() {
+    const val = document.getElementById('remeasureSlider').value;
+    currentEmotion.afterIntensity = parseInt(val);
+    window.finishCheckIn(); // Re-call finish to save
 }
 
 function startQuest(taskId, title) {
@@ -779,11 +882,34 @@ function goToResult() {
 
 // 6. 데이터 저장 및 보상 지급 파이프라인
 window.finishCheckIn = async function () {
+    // 💡 [New] Intercept: Logic - If we haven't done re-measurement yet
+    if (currentEmotion.afterIntensity === undefined) {
+        console.log("⏳ Intercepting Finish: Go to Re-measure");
+
+        const remeasureBefore = document.getElementById('remeasureBeforeVal');
+        const remeasureSlider = document.getElementById('remeasureSlider');
+        const remeasureDisplay = document.getElementById('remeasureDisplay');
+        const remeasureEmoji = document.getElementById('remeasureEmoji');
+
+        // Setup Re-measure Screen
+        if (remeasureBefore) remeasureBefore.innerText = currentEmotion.intensity;
+        if (remeasureEmoji) remeasureEmoji.innerText = currentEmotion.emoji;
+
+        // Default slider to current intensity for easier comparison
+        if (remeasureSlider) remeasureSlider.value = currentEmotion.intensity;
+        if (remeasureDisplay) remeasureDisplay.innerText = currentEmotion.intensity;
+
+        UI.goToScreen('Remeasure');
+        return; // Stop here, wait for submitRemeasure
+    }
+
     console.log("🏁 시퀀스 종료: 서버 전송 및 보상 확정");
 
     const entry = {
         emotion: currentEmotion.name,
         intensity: currentEmotion.intensity,
+        afterIntensity: currentEmotion.afterIntensity, // Included
+        triggers: currentEmotion.triggers || [],       // Included
         note: document.getElementById('actionNote')?.value || "",
         photo: window.lastCapturedPhoto || null,
         activityData: window.lastActivityData || null, // 💡 Capture Activity Details
@@ -807,6 +933,8 @@ window.finishCheckIn = async function () {
             reasons.push("Journaling/Photo Bonus 📸");
         }
 
+        // Trigger Bonus? Maybe later.
+
         // Add XP
         FeelFlow.addXP(earnedXP, reasons.join(' + '));
 
@@ -818,6 +946,17 @@ window.finishCheckIn = async function () {
         if (screen5) {
             screen5.dataset.earnedXp = earnedXP;
             screen5.dataset.emotion = entry.emotion;
+
+            // 💡 Update Final Message with Delta
+            const finalP = document.getElementById('finalMessage');
+            if (finalP) {
+                const diff = entry.intensity - entry.afterIntensity;
+                let msg = `Emotion Recorded.`;
+                if (diff > 0) msg = `Before: ${entry.intensity} → After: ${entry.afterIntensity} (↓${diff} Improved!)`;
+                else if (diff < 0) msg = `Before: ${entry.intensity} → After: ${entry.afterIntensity} (↑ Intensified)`;
+                else msg = `Before: ${entry.intensity} → After: ${entry.afterIntensity} (No Change)`;
+                finalP.innerText = msg;
+            }
         }
 
         UI.goToScreen('5');
@@ -1333,6 +1472,15 @@ window.goHome = goHome;
 window.startOver = startOver;
 window.startQuest = startQuest;
 window.renderTrophies = renderTrophies;
+
+// 💡 New Trigger & Remeasure Exports
+window.renderTriggerScreen = renderTriggerScreen;
+window.toggleTrigger = toggleTrigger;
+window.submitTriggers = submitTriggers;
+window.skipTriggers = skipTriggers;
+window.updateRemeasure = updateRemeasure;
+window.submitRemeasure = submitRemeasure;
+
 window.toggleMenu = function () {
     const overlay = document.getElementById('menuOverlay');
     // 💡 Fix: Select specific content container

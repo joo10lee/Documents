@@ -733,7 +733,7 @@ textarea {
         background-position: -100% 0;
     }
 }
-}
+
 
 .body-node {
     position: absolute;
@@ -2025,4 +2025,53 @@ label {
 
 .recent-history-item:last-child {
     border-bottom: none;
+}
+
+/* 9. Trigger & Re-measurement Styles */
+.trigger-chips-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 10px 24px;
+    justify-content: center;
+}
+
+.trigger-chip {
+    padding: 12px 20px;
+    border-radius: 20px;
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #475569;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.trigger-chip.active {
+    background: #3b82f6;
+    color: white;
+    border-color: #3b82f6;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    transform: scale(1.05);
+}
+
+.trigger-chip:active {
+    transform: scale(0.95);
+}
+
+.other-trigger-input {
+    padding: 0 24px;
+    text-align: center;
+    animation: fadeIn 0.3s forwards;
+}
+
+/* Re-measurement Enhancements */
+#remeasureBeforeVal {
+    font-size: 1.2rem;
+    font-weight: 850;
+    color: #64748b;
 }
