@@ -1756,6 +1756,251 @@ const Activities = {
         };
     },
 
+    // Sad: Listen to Music (Full Audio Engine)
+    startListenToMusic() {
+        const area = document.getElementById('inAppActionArea');
+        const headerEl = document.querySelector('.activity-header');
+        if (headerEl) headerEl.style.display = 'none'; // Hide generic header
+
+        // Default State
+        this.musicState = {
+            type: null,
+            volume: 0.5,
+            timer: null,
+            timerDuration: 0,
+            isFavorite: false
+        };
+
+        // Load Favorites
+        const fav = localStorage.getItem('musicFavorite');
+        if (fav) {
+            try {
+                const parsed = JSON.parse(fav);
+                this.musicState.type = parsed.type;
+                this.musicState.volume = parsed.volume || 0.5;
+                this.musicState.isFavorite = true;
+            } catch (e) { }
+        }
+
+        area.style.padding = '0';
+        area.innerHTML = `
+            <div style="padding:20px; text-align:center; background:#f8fafc; height:100%; display:flex; flex-direction:column;">
+                <h2 style="font-weight:850; margin-bottom:10px; color:#334155;">Sound Library</h2>
+                
+                <!-- 4 Categories -->
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-bottom:20px;">
+                    <button id="btnNature" class="music-card" onclick="Activities.playMusicTrack('Nature')">
+                        <div style="font-size:2.5rem;">🌿</div>
+                        <div style="font-weight:700;">Nature</div>
+                    </button>
+                    <button id="btnLofi" class="music-card" onclick="Activities.playMusicTrack('Lo-fi')">
+                        <div style="font-size:2.5rem;">☕</div>
+                        <div style="font-weight:700;">Lo-fi Beats</div>
+                    </button>
+                    <button id="btnWhite" class="music-card" onclick="Activities.playMusicTrack('White Noise')">
+                        <div style="font-size:2.5rem;">📻</div>
+                        <div style="font-weight:700;">White Noise</div>
+                    </button>
+                    <button id="btnClassic" class="music-card" onclick="Activities.playMusicTrack('Classical')">
+                        <div style="font-size:2.5rem;">🎻</div>
+                        <div style="font-weight:700;">Classical</div>
+                    </button>
+                </div>
+
+                <!-- Controls -->
+                <div style="background:#fff; padding:20px; border-radius:20px; box-shadow:0 4px 15px rgba(0,0,0,0.05);">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                         <span style="font-weight:700; color:#64748b;">Volume</span>
+                         <input type="range" min="0" max="1" step="0.1" value="${this.musicState.volume}" 
+                                oninput="Activities.setMusicVolume(this.value)" style="width:60%;">
+                    </div>
+                    
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                        <span style="font-weight:700; color:#64748b;">Timer</span>
+                        <div style="display:flex; gap:10px;">
+                            <button class="timer-btn" onclick="Activities.setMusicTimer(3)">3m</button>
+                            <button class="timer-btn" onclick="Activities.setMusicTimer(5)">5m</button>
+                            <button class="timer-btn" onclick="Activities.setMusicTimer(10)">10m</button>
+                        </div>
+                    </div>
+
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <button id="btnFav" onclick="Activities.toggleMusicFavorite()" style="border:none; background:none; font-size:1.5rem; cursor:pointer; color:#ccc;">
+                            ${this.musicState.isFavorite ? '❤️' : '🤍'}
+                        </button>
+                        <span style="font-size:0.9rem; color:#94a3b8;">Add to My Calm Playlist</span>
+                    </div>
+                </div>
+                
+                <button class="btn-primary" onclick="Activities.completeAction('silver', 30)" style="margin-top:auto;">Done (+30 XP)</button>
+            </div>
+            
+            <style>
+                .music-card { background:#fff; border:2px solid #e2e8f0; border-radius:15px; padding:15px; cursor:pointer; transition:all 0.2s; }
+                .music-card.active { border-color:#3b82f6; background:#eff6ff; transform:scale(1.05); }
+                .timer-btn { padding:5px 12px; border-radius:15px; border:1px solid #cbd5e1; background:#fff; cursor:pointer; font-weight:600; font-size:0.9rem; }
+                .timer-btn.active { background:#3b82f6; color:white; border-color:#3b82f6; }
+            </style>
+        `;
+
+        const btn = document.getElementById('activityBtn');
+        if (btn) btn.style.display = 'none';
+
+        // Helper Methods attached to Activities instance
+        this.playMusicTrack = (type) => {
+            if (this.musicState.type === type && this.isPlaying) {
+                // Already playing
+            }
+
+            this.stopAll();
+            this.initAudio();
+            this.musicState.type = type;
+            this.isPlaying = true;
+
+            // Update UI
+            document.querySelectorAll('.music-card').forEach(b => b.classList.remove('active'));
+            const btnId = type === 'Nature' ? 'btnNature' : type === 'Lo-fi' ? 'btnLofi' : type === 'White Noise' ? 'btnWhite' : 'btnClassic';
+            document.getElementById(btnId).classList.add('active');
+
+            // Audio Generation
+            const gain = audioCtx.createGain();
+            gain.gain.value = this.musicState.volume;
+            gain.connect(audioCtx.destination);
+            this.currentGainNode = gain;
+
+            if (type === 'Nature') {
+                // Rain logic (reused)
+                const bufSize = audioCtx.sampleRate * 2;
+                const buffer = audioCtx.createBuffer(1, bufSize, audioCtx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufSize; i++) data[i] = Math.random() * 2 - 1;
+
+                const noise = audioCtx.createBufferSource();
+                noise.buffer = buffer;
+                noise.loop = true;
+
+                const filter = audioCtx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.value = 600;
+                noise.connect(filter).connect(gain);
+                noise.start();
+                this.currentAudioSource = noise;
+            }
+            else if (type === 'White Noise') {
+                // Pure White Noise
+                const bufSize = audioCtx.sampleRate * 2;
+                const buffer = audioCtx.createBuffer(1, bufSize, audioCtx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufSize; i++) data[i] = Math.random() * 2 - 1;
+
+                const noise = audioCtx.createBufferSource();
+                noise.buffer = buffer;
+                noise.loop = true;
+                noise.connect(gain);
+                noise.start();
+                this.currentAudioSource = noise;
+            }
+            else if (type === 'Lo-fi') {
+                // Simple Beat (Kick + Snare) + Drone
+                // 1. Drone Chord
+                const osc1 = audioCtx.createOscillator();
+                osc1.type = 'triangle';
+                osc1.frequency.value = 261.63; // C4
+                const osc2 = audioCtx.createOscillator();
+                osc2.type = 'sine';
+                osc2.frequency.value = 329.63; // E4
+
+                const chordGain = audioCtx.createGain();
+                chordGain.gain.value = 0.3;
+                osc1.connect(chordGain);
+                osc2.connect(chordGain);
+                chordGain.connect(gain);
+                osc1.start(); osc2.start();
+
+                // 2. Beat (Low thud)
+                const beatInt = setInterval(() => {
+                    const k = audioCtx.createOscillator();
+                    const kG = audioCtx.createGain();
+                    k.frequency.setValueAtTime(150, audioCtx.currentTime);
+                    k.frequency.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+                    kG.gain.setValueAtTime(0.5, audioCtx.currentTime);
+                    kG.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+                    k.connect(kG).connect(gain);
+                    k.start(); k.stop(audioCtx.currentTime + 0.5);
+                }, 2000); // 30 BPM chill
+
+                this.currentInterval = beatInt;
+                // Store sources for cleanup
+                this.currentAudioSource = { stop: () => { osc1.stop(); osc2.stop(); clearInterval(beatInt); } };
+            }
+            else if (type === 'Classical') {
+                // Arpeggio
+                const notes = [261.63, 329.63, 392.00, 523.25]; // C Major
+                let nIdx = 0;
+                const arpInt = setInterval(() => {
+                    const osc = audioCtx.createOscillator();
+                    const g = audioCtx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.value = notes[nIdx];
+                    g.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                    g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 1.5);
+                    osc.connect(g).connect(gain);
+                    osc.start(); osc.stop(audioCtx.currentTime + 1.5);
+                    nIdx = (nIdx + 1) % notes.length;
+                }, 1000); // Slow
+
+                this.currentInterval = arpInt;
+                this.currentAudioSource = { stop: () => clearInterval(arpInt) };
+            }
+        };
+
+        this.setMusicVolume = (val) => {
+            this.musicState.volume = parseFloat(val);
+            if (this.currentGainNode) {
+                this.currentGainNode.gain.cancelScheduledValues(audioCtx.currentTime);
+                this.currentGainNode.gain.setValueAtTime(this.musicState.volume, audioCtx.currentTime);
+            }
+        };
+
+        this.setMusicTimer = (min) => {
+            // Clear existing
+            this.activeTimeouts.forEach(clearTimeout);
+            document.querySelectorAll('.timer-btn').forEach(b => b.classList.remove('active'));
+
+            // Initial select logic
+            const btns = document.querySelectorAll('.timer-btn');
+            if (min === 3) btns[0].classList.add('active');
+            if (min === 5) btns[1].classList.add('active');
+            if (min === 10) btns[2].classList.add('active');
+
+            // Set timeout
+            this.activeTimeouts.push(setTimeout(() => {
+                this.stopAll();
+                alert("Music session ended.");
+            }, min * 60 * 1000));
+        };
+
+        this.toggleMusicFavorite = () => {
+            this.musicState.isFavorite = !this.musicState.isFavorite;
+            const btn = document.getElementById('btnFav');
+            if (btn) btn.innerText = this.musicState.isFavorite ? '❤️' : '🤍';
+
+            if (this.musicState.isFavorite) {
+                localStorage.setItem('musicFavorite', JSON.stringify({
+                    type: this.musicState.type,
+                    volume: this.musicState.volume
+                }));
+            } else {
+                localStorage.removeItem('musicFavorite');
+            }
+        };
+
+        // Auto-play if Favorite exists
+        if (this.musicState.type) {
+            this.playMusicTrack(this.musicState.type);
+        }
+    },
+
     safeVibrate(pattern) {
         if (!navigator.vibrate) return;
         try { navigator.vibrate(pattern); } catch (e) { }
