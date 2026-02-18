@@ -41,7 +41,7 @@
         <div class="header-status">
             <span id="weatherIcon">🌤️</span>
             <!-- 💡 Phase 2.5: Version Format (Date-Time) -->
-            <span class="build-tag">Ver.0217-2213</span>
+            <span class="build-tag">Ver.0217-2240</span>
         </div>
         <div class="header-main">
 
@@ -53,6 +53,9 @@
 
     <!-- 💡 Phase 2.5: Floating Home Button (Next to Hamburger) -->
     <button id="navHomeBtn" class="nav-home-btn floating-home" onclick="goHome()" style="display:none;">🏠</button>
+
+    <!-- 🚨 Emergency FAB (Visible everywhere except specific screens) -->
+    <button id="btnEmergencyFAB" class="fab-emergency" onclick="startEmergencyMode()">🆘</button>
 
     <button class="hamburger-trigger" onclick="toggleMenu()">
         <div class="bar"></div>
@@ -121,6 +124,24 @@
             <h3 class="section-title">Daily Quest ⚔️</h3>
             <div id="quickTaskListContainer" style="overflow-y: auto; max-height: calc(100vh - 450px);">
                 <div id="quickTaskList" class="quick-task-grid"></div>
+            </div>
+        </div>
+
+        <!-- 🚨 Emergency Button (Home) -->
+        <button class="btn-emergency-home" onclick="startEmergencyMode()">
+            🆘 Help Me Now
+        </button>
+    </main>
+
+    <main class="screen" id="screenEmergency">
+        <div class="emergency-container">
+            <h2 class="emergency-title">Emergency Mode</h2>
+            <div id="emergencyActivityArea" class="emergency-activity-area">
+                <!-- Activity Content Injected Here -->
+            </div>
+            <div class="emergency-footer">
+                <button class="btn-emergency-secondary" onclick="retryEmergencyStrategy()">↻ Try Another</button>
+                <button class="btn-emergency-primary" onclick="exitEmergencyMode()">✓ Done</button>
             </div>
         </div>
     </main>
@@ -406,7 +427,7 @@
                 <div id="guardianRecentHistory">
                     <!-- 🆕 Visual Build Tag -->
                     <div style="text-align:center; padding:20px; color:#cbd5e1; font-size:0.7rem; margin-top:40px;">
-                        FeelFlow Kids • Ver.0217-2213
+                        FeelFlow Kids • Ver.0217-2240
                     </div>
                 </div>
             </div>

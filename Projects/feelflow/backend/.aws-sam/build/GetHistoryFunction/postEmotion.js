@@ -8,7 +8,7 @@ const TABLE_NAME = "FeelFlowData";
 exports.handler = async (event) => {
     try {
         const body = JSON.parse(event.body);
-        const { userId, emotion, intensity, notes, timestamp } = body;
+        const { userId, emotion, intensity, afterIntensity, triggers, note, notes, photo, activityData, timestamp } = body;
 
         if (!userId || !emotion) {
             return { statusCode: 400, body: JSON.stringify({ error: "Missing required fields" }) };
@@ -19,7 +19,11 @@ exports.handler = async (event) => {
             SK: `ENTRY#${timestamp || new Date().toISOString()}`,
             emotion,
             intensity,
-            notes,
+            afterIntensity, // 🆕 Re-measurement
+            triggers: triggers || [], // 🆕 Trigger Tags
+            notes: note || notes, // 💡 Handle both (Frontend uses 'note')
+            photo,
+            activityData,
             timestamp: timestamp || new Date().toISOString(), // Save the client timestamp!
             createdAt: new Date().toISOString() // Keep server time for audit
         };

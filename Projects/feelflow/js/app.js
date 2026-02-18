@@ -230,6 +230,25 @@ const Guardian = {
         this.loadSettings();
         this.generateAIInsight();
         this.renderRecentHistory();
+        this.checkAlerts(); // 🆕 Check for Emergency Alerts
+    },
+
+    checkAlerts() {
+        const alerts = safeJSONParse('feelflow_alerts', []) || [];
+        const unread = alerts.filter(a => !a.read);
+        const alertBox = document.getElementById('guardianAlert');
+        const alertMsg = document.getElementById('guardianAlertMsg');
+
+        if (unread.length > 0 && alertBox && alertMsg) {
+            const latest = unread[unread.length - 1];
+            alertBox.style.display = 'block';
+            alertMsg.textContent = `${latest.message} (${new Date(latest.timestamp).toLocaleTimeString()})`;
+
+            // Mark as read when seen (or maybe add a dismiss button? For now auto-mark on view is dangerous if they miss it. 
+            // Let's leave it unread until they click "SMS" or "Cheer"? Or just leave it for now.)
+        } else if (alertBox) {
+            alertBox.style.display = 'none';
+        }
     },
 
     renderDashboard() {
@@ -267,11 +286,23 @@ const Guardian = {
 
             // 💡 Phase 7: High Intensity Alert Logic 
             const isHighIntensity = h.intensity >= 8;
+            const isEmergency = h.emotion === 'Emergency' || h.isEmergency; // 🆕 Emergency Check
+
             let borderStyle = 'border:1px solid #f1f5f9; background:#f8fafc;';
             let actionButtons = '';
 
-            if (isHighIntensity) {
-                borderStyle = 'border:2px solid #ef4444; background:#fef2f2;';
+            if (isEmergency) {
+                borderStyle = 'border:2px solid #ef4444; background:#fee2e2; box-shadow: 0 4px 12px rgba(239,68,68,0.2);';
+                actionButtons = `
+                    <div style="margin-top:10px;">
+                        <span style="font-weight:700; color:#b91c1c;">🚨 EMERGENCY CHECK-IN</span>
+                        <div style="margin-top:10px; display:flex; gap:8px;">
+                             <button onclick="Guardian.sendMessage('I saw the emergency alert. Are you okay?')" style="flex:1; background:#ef4444; color:white; border:none; border-radius:8px; padding:8px; font-weight:700;">📞 Call/Text Now</button>
+                        </div>
+                    </div>
+                `;
+            } else if (isHighIntensity) {
+                borderStyle = 'border:2px solid #f87171; background:#fef2f2;';
                 actionButtons = `
                     <div style="margin-top:10px; display:flex; gap:8px;">
                         <button onclick="Guardian.sendMessage('Doing okay? ❤️')" style="flex:1; background:#fff; border:1px solid #ef4444; color:#ef4444; border-radius:8px; padding:6px; font-size:0.8rem; font-weight:600;">❤️ Cheer</button>
@@ -910,6 +941,7 @@ window.finishCheckIn = async function () {
         intensity: currentEmotion.intensity,
         afterIntensity: currentEmotion.afterIntensity, // Included
         triggers: currentEmotion.triggers || [],       // Included
+        isEmergency: currentEmotion.isEmergency || false, // 🆕 Emergency Flag
         note: document.getElementById('actionNote')?.value || "",
         photo: window.lastCapturedPhoto || null,
         activityData: window.lastActivityData || null, // 💡 Capture Activity Details
@@ -1472,6 +1504,161 @@ window.goHome = goHome;
 window.startOver = startOver;
 window.startQuest = startQuest;
 window.renderTrophies = renderTrophies;
+
+/* 🚨 EMERGENCY MODE LOGIC 🚨 */
+
+let emergencyStrategies = [];
+let currentEmergencyIndex = 0;
+
+window.startEmergencyMode = function () {
+    console.log("🚨 Emergency Mode Activated!");
+
+    // 1. Initialize Emergency State
+    currentEmotion = { name: 'Emergency', emoji: '🆘', intensity: 10, isEmergency: true, triggers: ['Emergency Button'] };
+
+    // 2. Hide specific UI elements (Header, FAB)
+    const header = document.querySelector('.app-header');
+    const fab = document.getElementById('btnEmergencyFAB');
+    if (header) header.style.display = 'none';
+    if (fab) fab.style.display = 'none';
+
+    // 3. Algorithm: Find Best Strategies
+    emergencyStrategies = getBestEmergencyStrategies();
+    currentEmergencyIndex = 0;
+
+    // 4. Render First Strategy
+    renderEmergencyStrategy();
+
+    // 5. Navigate
+    // We manually show screenEmergency to bypass normal flow checks
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('screenEmergency').classList.add('active');
+
+    // 6. Notify Guardian (Silent Alert)
+    addGuardianAlert('Emergency Mode Activated', 'High');
+};
+
+function getBestEmergencyStrategies() {
+    const candidates = ['Deep Breathing', '5-4-3-2-1 Grounding', 'Squeeze & Release', 'Hold Something Cold', 'Mindful Moment'];
+    const history = safeJSONParse('feelflow_history', []) || [];
+
+    // Calculate effectiveness for each candidate
+    const scores = candidates.map(type => {
+        const attempts = history.filter(h => h.activityData === type && h.afterIntensity !== undefined);
+        if (attempts.length === 0) return { type, score: 0 }; // Default score
+
+        const totalDelta = attempts.reduce((sum, h) => sum + ((h.intensity || 10) - h.afterIntensity), 0);
+        return { type, score: totalDelta / attempts.length };
+    });
+
+    // Sort by score (descending) -> Best first
+    return scores.sort((a, b) => b.score - a.score).map(s => s.type);
+}
+
+function renderEmergencyStrategy() {
+    if (emergencyStrategies.length === 0) return;
+
+    const type = emergencyStrategies[currentEmergencyIndex];
+    const container = document.getElementById('emergencyActivityArea');
+    if (!container) return;
+
+    console.log(`🚨 Rendering Strategy: ${type}`);
+    container.innerHTML = ''; // Clear previous
+
+    // Reuse Activities module but redirect rendering
+    // We hijack 'inAppActionArea' temporarily or pass a container? 
+    // Activities module hardcodes 'inAppActionArea'. 
+    // Hack: We change the ID of our emergency container to 'inAppActionArea' temporarily?
+    // Better: We temporarily reparent the content or modify Activities.setupActivity to accept container.
+    // Given the constraints, let's replicate the simple render logic here for robust isolation.
+
+    renderEmergencyActivityUI(type, container);
+}
+
+function renderEmergencyActivityUI(type, container) {
+    if (type === 'Deep Breathing') {
+        container.innerHTML = `
+            <div style="width:200px; height:200px; background:rgba(16,185,129,0.2); border-radius:50%; display:flex; justify-content:center; align-items:center; animation: breathPulse 4s infinite ease-in-out;">
+                <div style="font-size:6rem;">🫁</div>
+            </div>
+            <h2 style="margin-top:40px; font-weight:850; font-size:2rem; color:#fff;">Breathe In...</h2>
+        `;
+        // Simple animation loop
+        let phase = 0;
+        const textEl = container.querySelector('h2');
+        window.emergencyInterval = setInterval(() => {
+            phase = (phase + 1) % 2;
+            textEl.innerText = phase === 0 ? "Breathe In..." : "Breathe Out...";
+            safeVibrate(50);
+        }, 4000);
+    }
+    else if (type === '5-4-3-2-1 Grounding') {
+        container.innerHTML = `
+            <div style="font-size:6rem; margin-bottom:20px;">🖐️</div>
+            <h2 style="font-size:1.8rem; margin-bottom:10px;">Look around you.</h2>
+            <p style="font-size:1.2rem; opacity:0.8;">Find 5 blue things.</p>
+         `;
+    }
+    else if (type === 'Squeeze & Release') {
+        container.innerHTML = `
+            <div style="font-size:6rem; margin-bottom:20px; animation: pulse 2s infinite;">✊</div>
+            <h2 style="font-size:1.8rem;">Squeeze your fists tight!</h2>
+         `;
+    }
+    else {
+        // Fallback generic
+        container.innerHTML = `
+            <div style="font-size:6rem; margin-bottom:20px;">😌</div>
+            <h2 style="font-size:1.8rem;">You are safe here.</h2>
+            <p style="font-size:1.2rem; opacity:0.8;">Take a moment.</p>
+        `;
+    }
+}
+
+window.retryEmergencyStrategy = function () {
+    // Stop any running intervals
+    if (window.emergencyInterval) clearInterval(window.emergencyInterval);
+
+    currentEmergencyIndex = (currentEmergencyIndex + 1) % emergencyStrategies.length;
+    renderEmergencyStrategy();
+};
+
+window.exitEmergencyMode = function () {
+    // Stop intervals
+    if (window.emergencyInterval) clearInterval(window.emergencyInterval);
+
+    // Restore Header
+    const header = document.querySelector('.app-header');
+    if (header) header.style.display = 'flex';
+
+    // Go to Re-measure
+    // We inject specific state to CurrentEmotion so finishCheckIn handles it correctly
+    currentEmotion.name = 'Emergency';
+    currentEmotion.intensity = 10; // Assume max start
+    // currentEmotion.afterIntensity will be set by Remeasure screen
+
+    // Show simplified Remeasure
+    const screen = document.getElementById('screenRemeasure');
+    if (screen) {
+        document.getElementById('remeasureEmoji').innerText = '😌';
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        screen.classList.add('active');
+    }
+};
+
+function addGuardianAlert(msg, level) {
+    const alerts = safeJSONParse('feelflow_alerts', []) || [];
+    alerts.push({
+        timestamp: new Date().toISOString(),
+        message: msg,
+        level: level,
+        read: false
+    });
+    localStorage.setItem('feelflow_alerts', JSON.stringify(alerts));
+}
+
+// Ensure global access
+window.emergencyStrategies = emergencyStrategies;
 
 // 💡 New Trigger & Remeasure Exports
 window.renderTriggerScreen = renderTriggerScreen;
