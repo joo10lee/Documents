@@ -225,12 +225,17 @@ const Guardian = {
     emotionColors: { 'Happy': '#FFD93D', 'Sad': '#6CB4EE', 'Anxious': '#A084E8', 'Angry': '#FF6B6B', 'Calm': '#6BCB77', 'Tired': '#95A5A6' },
 
     init() {
-        this.renderLegend();
-        this.renderWeather('today');
-        this.loadSettings();
-        this.generateAIInsight();
-        this.renderRecentHistory();
-        this.checkAlerts(); // 🆕 Check for Emergency Alerts
+        try {
+            this.renderLegend();
+            this.renderWeather('today');
+            this.loadSettings();
+            this.generateAIInsight();
+            this.renderRecentHistory();
+            this.checkAlerts(); // 🆕 Check for Emergency Alerts
+        } catch (e) {
+            console.error("Guardian Init Error:", e);
+            document.getElementById('guardianRecentHistory').innerHTML = `<div style="color:red; padding:20px;">Error loading dashboard: ${e.message}</div>`;
+        }
     },
 
     checkAlerts() {
@@ -283,12 +288,22 @@ const Guardian = {
         }
 
         // 💡 Recent: Show last 15, include photos
-        // Fix: Ensure we are sorting correctly even if timestamps are strings
-        const recent = history.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()).slice(0, 15);
+        // Fix: Robust sort handling NaN dates
+        const recent = history.sort((a, b) => {
+            const tA = new Date(a.timestamp).getTime();
+            const tB = new Date(b.timestamp).getTime();
+            return (isNaN(tB) ? 0 : tB) - (isNaN(tA) ? 0 : tA);
+        }).slice(0, 15);
+
+        console.log(`Rendering ${recent.length} recent items.`);
 
         container.innerHTML = recent.map(h => {
             const dateObj = new Date(h.timestamp);
-            const dateStr = isNaN(dateObj.getTime()) ? "Unknown Date" : dateObj.toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+            let dateStr = "Unknown Date";
+            if (!isNaN(dateObj.getTime())) {
+                dateStr = dateObj.toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+            }
+
             // Photo handling
             const photoHtml = h.photo ? `<div style="width:40px; height:40px; border-radius:8px; background:url('${h.photo}') center/cover; margin-right:10px; border:1px solid #e2e8f0;"></div>` : '';
 
