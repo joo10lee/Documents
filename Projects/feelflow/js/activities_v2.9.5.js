@@ -129,14 +129,16 @@ const Activities = {
         }
         else if (name.includes('calm') || name.includes('😌')) {
             quests = [
-                { title: 'Calm Catalog', icon: '🌌', tier: 'gold', xp: 60, color: '#1e293b', tag: 'ZEN' },
-                { title: 'Meditation', icon: '🧘', tier: 'silver', xp: 30, color: '#fff' }
+                { title: 'Mindful Moment', icon: '🧘', tier: 'gold', xp: 60, color: '#1e293b', tag: 'MEDITATE' },
+                { title: 'Gratitude', icon: '🙏', tier: 'silver', xp: 50, color: '#fff' },
+                { title: 'Calm Catalog', icon: '📸', tier: 'silver', xp: 30, color: '#fff', tag: 'PHOTO' } // Photo version
             ];
         }
         else if (name.includes('tired') || name.includes('😫')) {
             quests = [
-                { title: 'Body Scan', icon: '🧘', tier: 'gold', xp: 60, color: '#1e293b', tag: 'REST' },
-                { title: 'Drink Water', icon: '💧', tier: 'silver', xp: 30, color: '#fff' }
+                { title: 'Drink Water', icon: '💧', tier: 'gold', xp: 60, color: '#1e293b', tag: 'HYDRATE' },
+                { title: 'Fresh Air', icon: '🍃', tier: 'silver', xp: 40, color: '#fff' },
+                { title: 'Energy Shake', icon: '⚡', tier: 'silver', xp: 40, color: '#fff' }
             ];
         }
         else {
@@ -239,7 +241,22 @@ const Activities = {
                 this.startAngryDrawing();
             }
             else if (type === 'Calm Catalog') {
-                this.startCalmCatalog();
+                this.startCalmCatalog(); // Will trigger photo mode
+            }
+            else if (type === 'Drink Water') {
+                this.startDrinkWater();
+            }
+            else if (type === 'Fresh Air') {
+                this.startFreshAir();
+            }
+            else if (type === 'Energy Shake') {
+                this.startEnergyShake();
+            }
+            else if (type === 'Mindful Moment') {
+                this.startMindfulMoment();
+            }
+            else if (type === 'Gratitude') {
+                this.startGratitude();
             }
 
             // 💡 Phase 10: PRD New Strategies (Detailed Implementation)
@@ -1129,6 +1146,428 @@ const Activities = {
     },
 
     // 5. Activity Animations (Phase 5)
+
+    // Calm: Mindful Moment
+    startMindfulMoment() {
+        const area = document.getElementById('inAppActionArea');
+        const headerEl = document.querySelector('.activity-header');
+        if (headerEl) headerEl.style.display = 'none';
+
+        area.style.background = "#1e293b"; // Dark mode
+        area.style.color = "#fff";
+        area.style.height = "100%";
+        area.style.display = "flex";
+        area.style.alignItems = "center";
+        area.style.justifyContent = "center";
+
+        const btn = document.getElementById('activityBtn');
+        if (btn) btn.style.display = 'none';
+
+        const cards = [
+            "Close your eyes...",
+            "Notice your body...",
+            "Feel the calm in your chest...",
+            "Smile gently...",
+            "Enjoy this moment."
+        ];
+
+        let idx = 0;
+
+        const showCard = () => {
+            if (idx >= cards.length) {
+                // Done
+                this.initAudio(); // Just for chime if avail
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = "sine";
+                osc.frequency.value = 880;
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1);
+                osc.connect(gain).connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 1);
+
+                this.completeAction('gold', 60);
+                return;
+            }
+
+            area.innerHTML = `<div style="font-size:1.8rem; font-weight:300; text-align:center; animation:fadeIn 2s;">${cards[idx]}</div>`;
+            idx++;
+            this.activeTimeouts.push(setTimeout(showCard, 12000));
+        };
+
+        showCard();
+    },
+
+    // Calm: Gratitude
+    startGratitude() {
+        const area = document.getElementById('inAppActionArea');
+        area.innerHTML = `
+            <div style="padding:20px;">
+                <h2 style="font-weight:850; margin-bottom:20px; text-align:center; color:#db2777;">Gratitude Garden</h2>
+                <div id="garden" style="font-size:2rem; text-align:center; margin-bottom:20px; min-height:40px;">
+                    ${localStorage.getItem('gratitudeGarden') || '🌱'}
+                </div>
+                
+                <div style="display:flex; flex-direction:column; gap:15px;">
+                    <input id="gPerson" type="text" placeholder="A person I'm grateful for..." style="padding:15px; border-radius:12px; border:1px solid #e2e8f0; font-size:1rem;">
+                    <input id="gThing" type="text" placeholder="A thing I'm grateful for..." style="padding:15px; border-radius:12px; border:1px solid #e2e8f0; font-size:1rem;">
+                    <input id="gPlace" type="text" placeholder="A place I'm grateful for..." style="padding:15px; border-radius:12px; border:1px solid #e2e8f0; font-size:1rem;">
+                </div>
+                
+                <button class="btn-primary" onclick="Activities.saveGratitude()" style="margin-top:20px; background:#db2777;">Plant Seeds (+50 XP)</button>
+            </div>
+        `;
+        const btn = document.getElementById('activityBtn');
+        if (btn) btn.style.display = 'none';
+
+        this.saveGratitude = () => {
+            const p = document.getElementById('gPerson').value;
+            const t = document.getElementById('gThing').value;
+            const pl = document.getElementById('gPlace').value;
+
+            if (!p && !t && !pl) return alert("Write at least one!");
+
+            // Add flower
+            const flowers = ['🌸', '🌼', '🌻', '🌷', '🌹', '🪷'];
+            const f = flowers[Math.floor(Math.random() * flowers.length)];
+
+            let currentGarden = localStorage.getItem('gratitudeGarden') || '';
+            currentGarden += f;
+            localStorage.setItem('gratitudeGarden', currentGarden);
+
+            document.getElementById('garden').innerText = currentGarden;
+            this.showCelebration('Garden Grown!', 50, 'silver');
+            setTimeout(() => this.completeAction('silver', 50), 1500);
+        };
+    },
+
+    // Calm: Calm Catalog (Photo Version)
+    startCalmCatalog() {
+        const area = document.getElementById('inAppActionArea');
+        area.innerHTML = `
+            <div style="padding:20px; text-align:center;">
+                <h2 style="font-weight:850; margin-bottom:10px;">Calm Collection</h2>
+                <p style="color:#64748b; margin-bottom:30px;">Capture a peaceful moment.</p>
+                
+                <div style="width:200px; height:200px; background:#f1f5f9; border-radius:20px; margin:0 auto; display:flex; align-items:center; justify-content:center; border:2px dashed #cbd5e1; position:relative; overflow:hidden;">
+                    <img id="previewImg" style="width:100%; height:100%; object-fit:cover; display:none;">
+                    <div id="camIcon" style="font-size:3rem; color:#94a3b8;">📸</div>
+                </div>
+                
+                <input type="file" accept="image/*" capture="environment" id="camInput" style="display:none;" onchange="Activities.handlePhoto(this)">
+                
+                <button class="btn-primary" onclick="document.getElementById('camInput').click()" style="margin-top:30px;">Open Camera</button>
+            </div>
+         `;
+        const btn = document.getElementById('activityBtn');
+        if (btn) btn.style.display = 'none';
+
+        this.handlePhoto = (input) => {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    document.getElementById('previewImg').src = e.target.result;
+                    document.getElementById('previewImg').style.display = 'block';
+                    document.getElementById('camIcon').style.display = 'none';
+
+                    // Simulate Saving
+                    setTimeout(() => {
+                        this.showCelebration('Added to Collection!', 30, 'silver');
+                        setTimeout(() => this.completeAction('silver', 30), 1000);
+                    }, 1500);
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        };
+    },
+
+    startDrinkWater() {
+        const area = document.getElementById('inAppActionArea');
+        const headerEl = document.querySelector('.activity-header');
+        if (headerEl) headerEl.style.display = 'none';
+
+        area.style.padding = '20px';
+        area.innerHTML = `
+            <div style="text-align:center; padding-top:20px;">
+                <h2 style="font-weight:850; color:#3b82f6; margin-bottom:10px;">Hydrate</h2>
+                <p style="color:#64748b; margin-bottom:30px;">Tap to fill the glass</p>
+                
+                <div id="waterContainer" style="width:120px; height:200px; border:4px solid #cbd5e1; border-top:none; border-radius:0 0 20px 20px; margin:0 auto; position:relative; overflow:hidden; background:#f8fafc; cursor:pointer;">
+                    <div id="waterLevel" style="width:100%; height:0%; background:#60a5fa; position:absolute; bottom:0; transition:height 0.3s ease-out;"></div>
+                    <div style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); font-size:2rem; opacity:0.8; pointer-events:none;">💧</div>
+                </div>
+                
+                <h3 id="waterText" style="margin-top:20px; font-weight:700;">0 / 4 Cups</h3>
+            </div>
+        `;
+
+        const btn = document.getElementById('activityBtn');
+        if (btn) btn.style.display = 'none';
+
+        let taps = 0;
+        const maxTaps = 4;
+        const container = document.getElementById('waterContainer');
+        const level = document.getElementById('waterLevel');
+        const text = document.getElementById('waterText');
+
+        container.onclick = () => {
+            if (taps >= maxTaps) return;
+            taps++;
+            level.style.height = (taps * 25) + "%";
+            text.innerText = `${taps} / 4 Cups`;
+            if (window.navigator.vibrate) window.navigator.vibrate(50);
+
+            // Celebration
+            if (taps === maxTaps) {
+                text.innerText = "Refreshed!";
+                text.style.color = "#3b82f6";
+                setTimeout(() => {
+                    this.showCelebration('Hydrated!', 60, 'gold');
+                    setTimeout(() => this.completeAction('gold', 60), 2000);
+                }, 500);
+            }
+        };
+    },
+
+    // Tired: Fresh Air
+    startFreshAir() {
+        const area = document.getElementById('inAppActionArea');
+        area.innerHTML = `
+            <div style="padding:20px; text-align:center;">
+                <h2 style="font-weight:850; color:#10b981; margin-bottom:20px;">Fresh Air Break</h2>
+                <div id="faIcon" style="font-size:5rem; margin:20px 0;">💨</div>
+                <h3 id="faText" style="font-size:1.5rem; font-weight:700; color:#334155; min-height:60px;">Open a window or step outside.</h3>
+                <div id="faTimer" style="font-size:2rem; font-weight:800; color:#10b981; margin-top:20px;">2:00</div>
+            </div>
+        `;
+        const btn = document.getElementById('activityBtn');
+        if (btn) btn.style.display = 'none';
+
+        const steps = [
+            { t: 0, text: "Open a window or step outside.", icon: "🚪" },
+            { t: 15, text: "Take a deep breath of fresh air.", icon: "😤" },
+            { t: 45, text: "Feel the temperature on your skin.", icon: "🌡️" },
+            { t: 75, text: "Listen to the sounds of nature.", icon: "👂" },
+            { t: 105, text: "Slowly return inside, feeling energized.", icon: "🏠" }
+        ];
+
+        let timeLeft = 120;
+        const timerEl = document.getElementById('faTimer');
+        const textEl = document.getElementById('faText');
+        const iconEl = document.getElementById('faIcon');
+
+        this.currentInterval = setInterval(() => {
+            timeLeft--;
+            const m = Math.floor(timeLeft / 60);
+            const s = (timeLeft % 60).toString().padStart(2, '0');
+            timerEl.innerText = `${m}:${s}`;
+
+            // Update Step
+            const elapsed = 120 - timeLeft;
+            const currentStep = steps.find(s => s.t === elapsed); // Simplified logic
+            if (currentStep) {
+                textEl.innerText = currentStep.text;
+                iconEl.innerText = currentStep.icon;
+                if (window.navigator.vibrate) window.navigator.vibrate(100);
+            }
+
+            if (timeLeft <= 0) {
+                clearInterval(this.currentInterval);
+                this.completeAction('gold', 60);
+            }
+        }, 1000);
+    },
+
+    // Tired: Energy Shake
+    startEnergyShake() {
+        const area = document.getElementById('inAppActionArea');
+        area.innerHTML = `
+            <div style="padding:20px; text-align:center;">
+                <h2 style="font-weight:850; color:#f59e0b; margin-bottom:10px;">Energy Shake</h2>
+                <div id="esIcon" style="font-size:6rem; margin:20px 0; animation:shake 0.5s infinite;">👐</div>
+                <h3 id="esText" style="font-size:1.8rem; font-weight:900; color:#334155;">Shake your arms!</h3>
+                <div style="width:100%; height:10px; background:#e2e8f0; border-radius:5px; margin-top:20px;">
+                    <div id="esBar" style="width:100%; height:100%; background:#f59e0b; transition:width 1s linear;"></div>
+                </div>
+            </div>
+            <style>@keyframes shake { 0% { transform: rotate(0deg); } 25% { transform: rotate(10deg); } 75% { transform: rotate(-10deg); } 100% { transform: rotate(0deg); } }</style>
+        `;
+        const btn = document.getElementById('activityBtn');
+        if (btn) btn.style.display = 'none';
+
+        const rounds = [
+            { text: "Shake your arms!", icon: "👐", color: "#f59e0b" },
+            { text: "Jump in place!", icon: "🏃", color: "#ef4444" },
+            { text: "Twist your body!", icon: "🌪️", color: "#8b5cf6" },
+            { text: "Deep breath... relax.", icon: "🌬️", color: "#10b981", noAnim: true }
+        ];
+
+        let rIdx = 0;
+        let timeLeft = 15;
+
+        const runRound = () => {
+            const round = rounds[rIdx];
+            document.getElementById('esText').innerText = round.text;
+            document.getElementById('esIcon').innerText = round.icon;
+            document.getElementById('esIcon').style.animation = round.noAnim ? "none" : "shake 0.5s infinite";
+            document.getElementById('esBar').style.background = round.color;
+
+            timeLeft = 15;
+            const int = setInterval(() => {
+                timeLeft--;
+                const pct = (timeLeft / 15) * 100;
+                document.getElementById('esBar').style.width = pct + "%";
+
+                if (timeLeft <= 0) {
+                    clearInterval(int);
+                    rIdx++;
+                    if (rIdx < rounds.length) {
+                        runRound();
+                    } else {
+                        this.completeAction('gold', 60);
+                    }
+                }
+            }, 1000);
+            this.currentInterval = int;
+        };
+
+        runRound();
+    },
+
+    // Calm: Mindful Moment
+    startMindfulMoment() {
+        const area = document.getElementById('inAppActionArea');
+        const headerEl = document.querySelector('.activity-header');
+        if (headerEl) headerEl.style.display = 'none';
+
+        area.style.background = "#1e293b"; // Dark mode
+        area.style.color = "#fff";
+        area.style.height = "100%";
+        area.style.display = "flex";
+        area.style.alignItems = "center";
+        area.style.justifyContent = "center";
+
+        const btn = document.getElementById('activityBtn');
+        if (btn) btn.style.display = 'none';
+
+        const cards = [
+            "Close your eyes...",
+            "Notice your body...",
+            "Feel the calm in your chest...",
+            "Smile gently...",
+            "Enjoy this moment."
+        ];
+
+        let idx = 0;
+
+        const showCard = () => {
+            if (idx >= cards.length) {
+                // Done
+                this.initAudio(); // Just for chime if avail
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = "sine";
+                osc.frequency.value = 880;
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1);
+                osc.connect(gain).connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 1);
+
+                this.completeAction('gold', 60);
+                return;
+            }
+
+            area.innerHTML = `<div style="font-size:1.8rem; font-weight:300; text-align:center; animation:fadeIn 2s;">${cards[idx]}</div>`;
+            idx++;
+            this.activeTimeouts.push(setTimeout(showCard, 12000));
+        };
+
+        showCard();
+    },
+
+    // Calm: Gratitude
+    startGratitude() {
+        const area = document.getElementById('inAppActionArea');
+        area.innerHTML = `
+            <div style="padding:20px;">
+                <h2 style="font-weight:850; margin-bottom:20px; text-align:center; color:#db2777;">Gratitude Garden</h2>
+                <div id="garden" style="font-size:2rem; text-align:center; margin-bottom:20px; min-height:40px;">
+                    ${localStorage.getItem('gratitudeGarden') || '🌱'}
+                </div>
+                
+                <div style="display:flex; flex-direction:column; gap:15px;">
+                    <input id="gPerson" type="text" placeholder="A person I'm grateful for..." style="padding:15px; border-radius:12px; border:1px solid #e2e8f0; font-size:1rem;">
+                    <input id="gThing" type="text" placeholder="A thing I'm grateful for..." style="padding:15px; border-radius:12px; border:1px solid #e2e8f0; font-size:1rem;">
+                    <input id="gPlace" type="text" placeholder="A place I'm grateful for..." style="padding:15px; border-radius:12px; border:1px solid #e2e8f0; font-size:1rem;">
+                </div>
+                
+                <button class="btn-primary" onclick="Activities.saveGratitude()" style="margin-top:20px; background:#db2777;">Plant Seeds (+50 XP)</button>
+            </div>
+        `;
+        const btn = document.getElementById('activityBtn');
+        if (btn) btn.style.display = 'none';
+
+        this.saveGratitude = () => {
+            const p = document.getElementById('gPerson').value;
+            const t = document.getElementById('gThing').value;
+            const pl = document.getElementById('gPlace').value;
+
+            if (!p && !t && !pl) return alert("Write at least one!");
+
+            // Add flower
+            const flowers = ['🌸', '🌼', '🌻', '🌷', '🌹', '🪷'];
+            const f = flowers[Math.floor(Math.random() * flowers.length)];
+
+            let currentGarden = localStorage.getItem('gratitudeGarden') || '';
+            currentGarden += f;
+            localStorage.setItem('gratitudeGarden', currentGarden);
+
+            document.getElementById('garden').innerText = currentGarden;
+            this.showCelebration('Garden Grown!', 50, 'silver');
+            setTimeout(() => this.completeAction('silver', 50), 1500);
+        };
+    },
+
+    // Calm: Calm Catalog (Photo Version)
+    startCalmCatalog() {
+        const area = document.getElementById('inAppActionArea');
+        area.innerHTML = `
+            <div style="padding:20px; text-align:center;">
+                <h2 style="font-weight:850; margin-bottom:10px;">Calm Collection</h2>
+                <p style="color:#64748b; margin-bottom:30px;">Capture a peaceful moment.</p>
+                
+                <div style="width:200px; height:200px; background:#f1f5f9; border-radius:20px; margin:0 auto; display:flex; align-items:center; justify-content:center; border:2px dashed #cbd5e1; position:relative; overflow:hidden;">
+                    <img id="previewImg" style="width:100%; height:100%; object-fit:cover; display:none;">
+                    <div id="camIcon" style="font-size:3rem; color:#94a3b8;">📸</div>
+                </div>
+                
+                <input type="file" accept="image/*" capture="environment" id="camInput" style="display:none;" onchange="Activities.handlePhoto(this)">
+                
+                <button class="btn-primary" onclick="document.getElementById('camInput').click()" style="margin-top:30px;">Open Camera</button>
+            </div>
+         `;
+        const btn = document.getElementById('activityBtn');
+        if (btn) btn.style.display = 'none';
+
+        this.handlePhoto = (input) => {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    document.getElementById('previewImg').src = e.target.result;
+                    document.getElementById('previewImg').style.display = 'block';
+                    document.getElementById('camIcon').style.display = 'none';
+
+                    // Simulate Saving
+                    setTimeout(() => {
+                        this.showCelebration('Added to Collection!', 30, 'silver');
+                        setTimeout(() => this.completeAction('silver', 30), 1000);
+                    }, 1500);
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        };
+    },
+
     startSqueezeRelease() {
         const area = document.getElementById('inAppActionArea');
         let round = 1;
