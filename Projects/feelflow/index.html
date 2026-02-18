@@ -43,7 +43,7 @@
         <div class="header-status">
             <span id="weatherIcon">🌤️</span>
             <!-- 💡 Phase 2.5: Version Format (Date-Time) -->
-            <span class="build-tag">Ver.0218-1059</span>
+            <span class="build-tag">Ver.0218-1140</span>
         </div>
         <div class="header-main">
 
@@ -106,28 +106,31 @@
                     <div
                         style="display:flex; justify-content:space-between; font-size:0.9rem; font-weight:700; color:#475569;">
                         <span id="activeGoalCurrentXP">0 XP</span>
+                        <span id="activeGoalDays" style="font-weight:400; font-size:0.75rem; color:#94a3b8;">Day
+                            1</span>
                         <span id="activeGoalTargetXP">1000 XP</span>
                     </div>
                 </div>
             </div>
+        </div>
 
-            <!-- Up Next Queue -->
-            <h3 style="font-size:1.1rem; color:#334155; margin:0 0 10px 5px;">🚀 Coming Up Next</h3>
-            <div id="goalQueueContainer" class="queue-list">
-                <!-- Queue Items Injected Here -->
-                <div class="queue-card" style="opacity:0.5;">
-                    <div style="font-size:1.5rem;">🔒</div>
-                    <div style="font-size:0.8rem;">Empty Queue</div>
-                </div>
+        <!-- Up Next Queue -->
+        <h3 style="font-size:1.1rem; color:#334155; margin:0 0 10px 5px;">🚀 Coming Up Next</h3>
+        <div id="goalQueueContainer" class="queue-list">
+            <!-- Queue Items Injected Here -->
+            <div class="queue-card" style="opacity:0.5;">
+                <div style="font-size:1.5rem;">🔒</div>
+                <div style="font-size:0.8rem;">Empty Queue</div>
             </div>
+        </div>
 
-            <!-- Completed History -->
-            <h3 style="font-size:1.1rem; color:#334155; margin:25px 0 10px 5px;">🏆 Trophy Case</h3>
-            <div id="goalHistoryContainer" class="completed-list">
-                <!-- Completed Items Injected Here -->
-            </div>
+        <!-- Completed History -->
+        <h3 style="font-size:1.1rem; color:#334155; margin:25px 0 10px 5px;">🏆 Trophy Case</h3>
+        <div id="goalHistoryContainer" class="completed-list">
+            <!-- Completed Items Injected Here -->
+        </div>
 
-            <div style="height: 100px;"></div> <!-- Spacer -->
+        <div style="height: 100px;"></div> <!-- Spacer -->
         </div>
 
         <div class="bottom-nav">
@@ -499,18 +502,32 @@
             <!-- Add Goal Modal (Simple overlay or toggle form) -->
             <div id="addGoalForm"
                 style="display:none; background:#f8fafc; padding:15px; border-radius:12px; border:1px solid #cbd5e1; margin-top:10px;">
-                <h4 style="margin-bottom:10px;">New Goal</h4>
-                <input type="text" id="newGoalName" placeholder="Goal Name (e.g. Lego Set)"
+                <h4 style="margin-bottom:10px;">New Advenutre</h4>
+
+                <!-- Template Suggestions -->
+                <div style="display:flex; gap:5px; margin-bottom:12px; flex-wrap:wrap;">
+                    <button onclick="Guardian.setTemplateGoal('first')"
+                        style="flex:1; font-size:0.75rem; padding:6px; background:#f0f9ff; border:1px solid #bae6fd; border-radius:8px; color:#0369a1; cursor:pointer;">⭐
+                        First Steps</button>
+                    <button onclick="Guardian.setTemplateGoal('detective')"
+                        style="flex:1; font-size:0.75rem; padding:6px; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px; color:#15803d; cursor:pointer;">🔍
+                        Detective</button>
+                    <button onclick="Guardian.setTemplateGoal('streak')"
+                        style="flex:1; font-size:0.75rem; padding:6px; background:#fff1f2; border:1px solid #fecdd3; border-radius:8px; color:#be123c; cursor:pointer;">🔥
+                        Streak</button>
+                </div>
+
+                <input type="text" id="newGoalName" placeholder="Goal Name (e.g. Clean Room)"
                     style="width:100%; margin-bottom:8px; padding:8px; border:1px solid #cbd5e1; border-radius:6px;">
-                <input type="number" id="newGoalTarget" placeholder="Target XP (e.g. 500)"
+                <input type="number" id="newGoalTarget" placeholder="Target XP (50 - 1000)"
                     style="width:100%; margin-bottom:8px; padding:8px; border:1px solid #cbd5e1; border-radius:6px;">
                 <input type="text" id="newGoalReward" placeholder="Reward Text (e.g. Buy the Lego!)"
                     style="width:100%; margin-bottom:8px; padding:8px; border:1px solid #cbd5e1; border-radius:6px;">
 
                 <div style="margin-bottom:10px;">
                     <label style="font-size:0.8rem; font-weight:700; color:#64748b;">Pick Emoji:</label>
-                    <div style="display:flex; gap:10px; overflow-x:auto; padding:5px 0;">
-                        <span class="emoji-option" onclick="selectGoalEmoji('🧱')">🧱</span>
+                    <div
+                        style="display:flex; gap:8px; flex-wrap:wrap; background:#fff; padding:10px; border-radius:8px; border:1px solid #e2e8f0; margin-top:5px;">
                         <span class="emoji-option" onclick="selectGoalEmoji('🍕')">🍕</span>
                         <span class="emoji-option" onclick="selectGoalEmoji('🎮')">🎮</span>
                         <span class="emoji-option" onclick="selectGoalEmoji('🎬')">🎬</span>
@@ -518,10 +535,15 @@
                         <span class="emoji-option" onclick="selectGoalEmoji('🎁')">🎁</span>
                         <span class="emoji-option" onclick="selectGoalEmoji('🏆')">🏆</span>
                         <span class="emoji-option" onclick="selectGoalEmoji('⭐')">⭐</span>
-                        <span class="emoji-option" onclick="selectGoalEmoji('🎨')">🎨</span>
+                        <span class="emoji-option" onclick="selectGoalEmoji('🎵')">🎵</span>
+                        <span class="emoji-option" onclick="selectGoalEmoji('📱')">📱</span>
+                        <span class="emoji-option" onclick="selectGoalEmoji('🛍️')">🛍️</span>
+                        <span class="emoji-option" onclick="selectGoalEmoji('🎪')">🎪</span>
+                        <span class="emoji-option" onclick="selectGoalEmoji('🌟')">🌟</span>
                     </div>
                     <input type="hidden" id="newGoalEmoji" value="🏆">
-                    <div id="selectedEmojiDisplay" style="margin-top:5px; font-size:1.5rem;">Selected: 🏆</div>
+                    <div id="selectedEmojiDisplay"
+                        style="margin-top:5px; font-size:0.85rem; font-weight:700; color:#64748b;">Selected: 🏆</div>
                 </div>
 
                 <div style="display:flex; gap:10px; margin-top:20px;">
@@ -635,7 +657,7 @@
                 <div id="guardianRecentHistory">
                     <!-- 🆕 Visual Build Tag -->
                     <div style="text-align:center; padding:20px; color:#cbd5e1; font-size:0.7rem; margin-top:40px;">
-                        FeelFlow Kids • Ver.0218-1059
+                        FeelFlow Kids • Ver.0218-1140
                     </div>
                 </div>
             </div>

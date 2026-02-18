@@ -147,24 +147,34 @@ const FeelFlow = {
     }),
 
     initGoals() {
-        // Migration of old data
+        // Migration and Initialization
         if (!this.goals.active) {
             const oldGoal = parseInt(localStorage.getItem('feelflow_xp_goal')) || 1000;
             const oldReward = localStorage.getItem('feelflow_reward_text') || 'Special Reward';
 
-            // Create initial goal from old data or default
             this.goals.active = {
                 id: 'g_' + Date.now(),
-                name: 'Current Goal',
+                name: 'Ongoing Mission',
                 targetXP: oldGoal,
-                earnedXP: this.xp, // Carry over current XP
+                earnedXP: this.xp || 0,
                 reward: oldReward,
                 emoji: '🏆',
                 status: 'active',
                 createdAt: new Date().toISOString()
             };
             this.saveGoals();
+        } else if (!this.goals.active.createdAt) {
+            this.goals.active.createdAt = new Date().toISOString();
+            this.saveGoals();
         }
+
+        // Tiered Trophy Mapping logic for later use
+        this.getTrophyIcon = (index) => {
+            if (index === 0) return '🥉';
+            if (index === 1) return '🥈';
+            if (index === 2) return '🥇';
+            return '🏆';
+        };
     },
 
     addXP(amount, reason) {
@@ -201,18 +211,25 @@ const FeelFlow = {
 
         console.log("🎉 GOAL COMPLETED!", goal);
 
+        // 💡 Calculate Stats
+        const now = new Date();
+        const start = new Date(goal.createdAt || goal.startedAt || now);
+        const days = Math.max(1, Math.ceil((now - start) / (1000 * 60 * 60 * 24)));
+
+        goal.status = 'achieved';
+        goal.completedAt = now.toISOString();
+        goal.daysToComplete = days;
+
         // 💡 Calculate Surplus XP
         const surplus = Math.max(0, goal.earnedXP - goal.targetXP);
 
-        // 💡 Move to Pending Reward (Highlight until Guardian acknowledges)
-        goal.status = 'achieved';
-        goal.completedAt = new Date().toISOString();
+        // 💡 Move to Pending Reward
         this.goals.pendingReward = goal;
 
         // 💡 Visuals (Confetti, Overlay)
         this.showCelebrationOverlay(goal);
 
-        // 💡 Activate Next Goal with Surplus
+        // 💡 Activate Next Goal (Conditional Carry-over)
         this.activateNextGoal(surplus);
 
         this.saveGoals();
@@ -223,22 +240,50 @@ const FeelFlow = {
     activateNextGoal(surplus = 0) {
         if (this.goals.queue && this.goals.queue.length > 0) {
             const next = this.goals.queue.shift();
+
+            // 💡 Refined Logic: surplus < targetXP carry over
+            let carryOver = 0;
+            if (surplus < next.targetXP) {
+                carryOver = surplus;
+                console.log(`⚡ Carry-over ${surplus} XP to next goal.`);
+            } else {
+                console.warn("⚠️ Surplus XP too large, starting next goal at 0 to prevent skipping.");
+            }
+
             next.status = 'active';
-            next.earnedXP = surplus; // ⚡ Carry-over XP
-            next.startedAt = new Date().toISOString();
+            next.earnedXP = carryOver;
+            next.createdAt = new Date().toISOString();
             this.goals.active = next;
-            console.log("🚀 Next Goal Activated with surplus:", surplus);
+            console.log(`🚀 Activated "${next.name}".`);
         } else {
-            // No more goals in queue - set a placeholder "New Adventure"
             this.goals.active = {
                 id: 'g_placeholder',
                 name: 'New Adventure Awaits!',
                 targetXP: 1000,
-                earnedXP: surplus,
+                earnedXP: 0,
                 reward: 'Ask Guardian for next goal',
                 emoji: '✨',
-                status: 'active'
+                status: 'active',
+                createdAt: new Date().toISOString()
             };
+        }
+    },
+
+    triggerExtraConfetti() {
+        console.log("🎉 Extra Celebration!");
+        this.triggerCelebrationEffect();
+    },
+
+    triggerCelebrationEffect() {
+        for (let i = 0; i < 50; i++) {
+            const c = document.createElement('div');
+            c.className = 'confetti';
+            c.style.left = Math.random() * 100 + 'vw';
+            c.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 50%)`;
+            c.style.animationDuration = (Math.random() * 2 + 1) + 's';
+            c.style.width = c.style.height = (Math.random() * 10 + 5) + 'px';
+            document.body.appendChild(c);
+            setTimeout(() => c.remove(), 3000);
         }
     },
 
@@ -274,14 +319,20 @@ const FeelFlow = {
 
         overlay.innerHTML = `
             <div style="font-size:5rem; animation: float 3s infinite;">🎉</div>
-            <h1 style="font-size:2.5rem; color:#d946ef; margin:20px 0;">Goal Achieved!</h1>
+            <h1 style="font-size:3rem; color:#d946ef; margin:10px 0; text-shadow: 0 4px 10px rgba(0,0,0,0.1);">🏆 GOAL ACHIEVED!</h1>
             <div style="font-size:4rem; margin-bottom:10px;">${goal.emoji}</div>
             <h2 style="color:#1e293b; margin-bottom:10px;">${goal.name}</h2>
-            <div style="font-size:1.5rem; color:#475569; margin-bottom:30px;">
-                You earned: <span style="color:#e11d48; font-weight:800;">"${goal.reward}"</span>!
+            <div style="font-size:1.8rem; color:#475569; margin-bottom:30px; font-weight:700;">
+                ${goal.emoji} ${goal.reward}!
             </div>
-            <button class="btn-primary" onclick="FeelFlow.dismissCelebration()" style="font-size:1.2rem; padding:15px 40px; background:#d946ef;">Awesome! 🥳</button>
-            <div id="confettiContainer"></div>
+            <div style="display:flex; gap:15px; justify-content:center; width:100%; max-width:400px;">
+                <button onclick="FeelFlow.triggerExtraConfetti()" class="btn-primary" style="flex:1; background:#f97316; padding:15px; border-radius:18px; font-size:1.1rem; box-shadow:0 8px 20px rgba(249, 115, 22, 0.3);">
+                    🎉 Celebrate!
+                </button>
+                <button onclick="document.getElementById('celebrationOverlay').classList.remove('active')" class="btn-secondary" style="flex:1; padding:15px; border-radius:18px; font-size:1.1rem;">
+                    Dismiss
+                </button>
+            </div>
         `;
 
         // Add Confetti Styling
@@ -469,27 +520,85 @@ const Guardian = {
 
         // Active Goal
         if (active && activeContainer) {
-            document.getElementById('guardianActiveGoalName').textContent = `${active.emoji} ${active.name}`;
-            document.getElementById('guardianActiveGoalProgress').textContent = `${active.earnedXP} / ${active.targetXP} XP`;
+            const isStarted = active.earnedXP > 0;
+            const rewardLabel = isStarted ? 'Edit Reward (Goal Locked)' : 'Goal & Reward';
+
+            activeContainer.innerHTML = `
+                <div style="background:#f5f3ff; padding:15px; border-radius:12px; border:1px solid #ddd6fe; margin-bottom:15px;">
+                    <div style="font-size:0.7rem; font-weight:800; color:#7c3aed; text-transform:uppercase; margin-bottom:5px;">Current Mission</div>
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px;">
+                        <div>
+                            <div style="font-size:1.1rem; font-weight:700; color:#1e293b;">${active.emoji} ${active.name}</div>
+                            <div style="font-size:0.85rem; color:#64748b;">Target: ${active.targetXP} XP</div>
+                        </div>
+                        <div style="text-align:right;">
+                            <div style="font-size:0.9rem; font-weight:800; color:#8b5cf6;">${active.earnedXP} / ${active.targetXP} XP</div>
+                            <div style="font-size:0.75rem; color:#94a3b8;">Reward: ${active.reward}</div>
+                        </div>
+                    </div>
+                    <div style="display:flex; gap:8px;">
+                        <button onclick="Guardian.editGoalPrompt('active')" class="btn-secondary" style="font-size:0.7rem; padding:5px 10px;">Edit Reward</button>
+                    </div>
+                </div>
+            `;
         }
 
         // Queue
         if (queueContainer) {
             if (queue.length === 0) {
-                queueContainer.innerHTML = `<div style="font-size:0.8rem; color:#94a3b8; font-style:italic;">Queue is empty. Add more goals!</div>`;
+                queueContainer.innerHTML = `
+                    <div style="font-size:0.8rem; color:#94a3b8; font-style:italic; padding:10px; background:#f8fafc; border-radius:8px; border:1px dashed #e2e8f0;">
+                        Queue is empty. Add more goals below!
+                    </div>`;
             } else {
                 queueContainer.innerHTML = queue.map((q, index) => `
-                    <div style="background:white; border:1px solid #e2e8f0; border-radius:8px; padding:10px; display:flex; align-items:center;">
-                        <div style="font-size:1.2rem; margin-right:10px;">${q.emoji}</div>
-                        <div style="flex-grow:1;">
-                            <div style="font-size:0.85rem; font-weight:700; color:#1e293b;">${q.name}</div>
-                            <div style="font-size:0.75rem; color:#64748b;">Target: ${q.targetXP} XP</div>
+                    <div style="background:white; border:1px solid #e2e8f0; border-radius:12px; padding:10px 15px; display:flex; align-items:center; margin-bottom:8px; box-shadow:0 2px 4px rgba(0,0,0,0.02);">
+                        <div style="font-size:1.5rem; margin-right:12px;">${q.emoji}</div>
+                        <div style="flex-grow:1;" onclick="Guardian.editGoalPrompt(${index})">
+                            <div style="font-size:0.9rem; font-weight:700; color:#1e293b;">${q.name}</div>
+                            <div style="font-size:0.75rem; color:#64748b;">${q.targetXP} XP • ${q.reward}</div>
                         </div>
-                        <button onclick="Guardian.moveGoalUp(${index})" style="background:none; border:none; color:#cbd5e1; cursor:pointer; font-size:1.2rem; padding:0 5px;">▲</button>
-                        <button onclick="Guardian.deleteGoal(${index})" style="background:none; border:none; color:#ef4444; cursor:pointer; font-size:1.2rem; padding:0 5px;">×</button>
+                        <div style="display:flex; gap:5px;">
+                            <button onclick="Guardian.moveGoalUp(${index})" style="background:#f1f5f9; border:none; color:#64748b; cursor:pointer; font-size:1rem; padding:5px 8px; border-radius:6px;">↑</button>
+                            <button onclick="Guardian.deleteGoal(${index})" style="background:#fff1f2; border:none; color:#e11d48; cursor:pointer; font-size:1rem; padding:5px 8px; border-radius:6px;">×</button>
+                        </div>
                     </div>
                 `).join('');
             }
+        }
+    },
+
+    editGoalPrompt(index) {
+        const isAppActive = (index === 'active');
+        const goal = isAppActive ? FeelFlow.goals.active : FeelFlow.goals.queue[index];
+        if (!goal) return;
+
+        const isStarted = isAppActive && goal.earnedXP > 0;
+
+        if (isStarted) {
+            const newReward = prompt("Edit Reward Text:", goal.reward);
+            if (newReward) {
+                goal.reward = newReward;
+                FeelFlow.saveGoals();
+                this.renderGoalManager();
+                if (typeof renderTrophies === 'function') renderTrophies();
+            }
+        } else {
+            // Full edit for non-started goals
+            const newName = prompt("Goal Name:", goal.name);
+            if (!newName) return;
+            const newTarget = parseInt(prompt("XP Target (50-1000):", goal.targetXP));
+            if (isNaN(newTarget)) return;
+            const newReward = prompt("Reward Text:", goal.reward);
+            if (!newReward) return;
+
+            goal.name = newName;
+            goal.targetXP = newTarget;
+            goal.reward = newReward;
+
+            FeelFlow.saveGoals();
+            this.renderGoalManager();
+            if (typeof renderTrophies === 'function') renderTrophies();
         }
     },
 
@@ -515,7 +624,7 @@ const Guardian = {
         // If no active goal (e.g. placeholder), make this active immediately
         if (FeelFlow.goals.active && FeelFlow.goals.active.id === 'g_placeholder') {
             newGoal.status = 'active';
-            newGoal.startedAt = new Date().toISOString();
+            newGoal.createdAt = new Date().toISOString();
             FeelFlow.goals.active = newGoal;
         } else {
             FeelFlow.goals.queue.push(newGoal);
@@ -530,7 +639,25 @@ const Guardian = {
         document.getElementById('addGoalForm').style.display = 'none';
 
         this.renderGoalManager();
+        if (typeof renderTrophies === 'function') renderTrophies();
         alert("Goal Added!");
+    },
+
+    setTemplateGoal(type) {
+        const templates = {
+            'first': { name: 'First Steps', target: 100, emoji: '⭐' },
+            'detective': { name: 'Feeling Detective', target: 200, emoji: '🔍' },
+            'streak': { name: 'Streak Builder', target: 300, emoji: '🔥' }
+        };
+        const t = templates[type];
+        if (t) {
+            document.getElementById('newGoalName').value = t.name;
+            document.getElementById('newGoalTarget').value = t.target;
+            document.getElementById('newGoalEmoji').value = t.emoji;
+            document.getElementById('selectedEmojiDisplay').textContent = `Selected: ${t.emoji}`;
+            document.getElementById('newGoalReward').focus();
+            alert(`Template "${t.name}" loaded! Now set a reward.`);
+        }
     },
 
     deleteGoal(index) {
@@ -1603,51 +1730,72 @@ function renderTrophies() {
         const target = active.targetXP || 1000;
         const percent = Math.min(100, Math.round((earned / target) * 100));
 
+        // Calculate Days Active
+        const now = new Date();
+        const start = new Date(active.createdAt || active.startedAt || now);
+        const days = Math.max(1, Math.ceil((now - start) / (1000 * 60 * 60 * 24)));
+
         document.getElementById('activeGoalEmoji').textContent = active.emoji;
         document.getElementById('activeGoalName').textContent = active.name;
         document.getElementById('activeGoalReward').textContent = active.reward;
-
         document.getElementById('activeGoalBar').style.width = percent + '%';
         document.getElementById('activeGoalCurrentXP').textContent = earned + ' XP';
         document.getElementById('activeGoalTargetXP').textContent = target + ' XP';
+
+        const daysEl = document.getElementById('activeGoalDays');
+        if (daysEl) daysEl.textContent = `Day ${days}`;
     }
 
-    // --- Queue ---
+    // --- Queue (Coming Up Next) ---
     const queueContainer = document.getElementById('goalQueueContainer');
     if (queueContainer) {
-        if (queue.length === 0) {
+        if (!queue || queue.length === 0) {
             queueContainer.innerHTML = `
                 <div class="queue-card" style="opacity:0.5;">
                     <div style="font-size:1.5rem;">🔒</div>
                     <div style="font-size:0.8rem;">Empty Queue</div>
                 </div>`;
         } else {
-            queueContainer.innerHTML = queue.map(q => `
+            // Show up to 2 queued goals as previews (name + emoji only)
+            queueContainer.innerHTML = queue.slice(0, 2).map(q => `
                 <div class="queue-card">
                     <div class="queue-card-emoji">${q.emoji}</div>
-                    <div style="font-size:0.8rem; font-weight:700; color:#475569; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${q.name}</div>
-                    <div style="font-size:0.7rem; color:#94a3b8;">${q.targetXP} XP</div>
+                    <div style="font-size:0.85rem; font-weight:700; color:#475569; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${q.name}</div>
+                    <div style="font-size:1.4rem; margin-top:5px;">🎁</div>
                 </div>
             `).join('');
         }
     }
 
-    // --- History ---
+    // --- History (Trophy Case with Tiered Icons) ---
     const historyContainer = document.getElementById('goalHistoryContainer');
     if (historyContainer) {
-        if (history.length === 0) {
+        if (!history || history.length === 0) {
             historyContainer.innerHTML = `<div style="text-align:center; color:#94a3b8; font-size:0.9rem; padding:20px;">No trophies yet. Keep checking in!</div>`;
         } else {
-            historyContainer.innerHTML = history.slice(0, 5).map(h => `
-                <div class="completed-card">
-                    <div class="completed-icon">🏆</div>
-                    <div style="flex-grow:1;">
-                        <div style="font-weight:700; color:#1e293b;">${h.name}</div>
-                        <div style="font-size:0.8rem; color:#64748b;">${new Date(h.completedAt).toLocaleDateString()}</div>
+            // History list with tiered icons based on index
+            historyContainer.innerHTML = history.slice(0, 10).map((h, idx) => {
+                let icon = '🏆';
+                if (idx === 0) icon = '🥉';
+                else if (idx === 1) icon = '🥈';
+                else if (idx === 2) icon = '🥇';
+
+                return `
+                    <div class="completed-card">
+                        <div class="completed-icon" style="font-size:1.8rem;">${icon}</div>
+                        <div style="flex-grow:1; margin-left:12px;">
+                            <div style="font-weight:700; color:#1e293b;">${h.name}</div>
+                            <div style="font-size:0.75rem; color:#64748b;">
+                                ${new Date(h.completedAt).toLocaleDateString()} • ${h.daysToComplete || 1} days 
+                            </div>
+                        </div>
+                        <div style="text-align:right;">
+                            <div style="font-weight:700; color:#8b5cf6;">${h.targetXP} XP</div>
+                            <div style="font-size:0.7rem; color:#94a3b8;">${h.emoji}</div>
+                        </div>
                     </div>
-                    <div style="font-weight:700; color:#8b5cf6;">${h.targetXP} XP</div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
         }
     }
 
