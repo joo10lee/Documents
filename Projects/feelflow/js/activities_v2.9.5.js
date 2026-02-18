@@ -210,7 +210,7 @@ const Activities = {
                 area.innerHTML = `<div style="font-size:4rem;">🛌</div><p>Close your eyes for 10 minutes.</p>`;
                 if (btn) { btn.textContent = "I'm awake! (+60 XP)"; btn.onclick = () => this.completeAction('gold', 60); }
             }
-            else if (type === 'Listen to music' || type.includes('music')) {
+            else if (type === 'Listen to Music' || type.toLowerCase().includes('music')) {
                 this.startListenToMusic();
             }
             else if (type === 'Meditation') {
