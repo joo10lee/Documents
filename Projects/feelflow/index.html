@@ -43,7 +43,7 @@
         <div class="header-status">
             <span id="weatherIcon">🌤️</span>
             <!-- 💡 Phase 2.5: Version Format (Date-Time) -->
-            <span class="build-tag">Ver.0218-1050</span>
+            <span class="build-tag">Ver.0218-1059</span>
         </div>
         <div class="header-main">
 
@@ -86,6 +86,9 @@
             <h1>My Goals & Rewards</h1>
         </div>
         <div class="content-container">
+
+            <!-- 🆕 Pending Reward Achievement -->
+            <div id="pendingGoalContainer" style="display:none;"></div>
 
             <!-- Active Goal -->
             <div id="activeGoalContainer">
@@ -468,6 +471,9 @@
                         Add New</button>
                 </h3>
 
+                <!-- 🆕 Pending Achievement (Injected via JS) -->
+                <div id="guardianPendingReward" style="display:none;"></div>
+
                 <!-- Active Goal -->
                 <div id="guardianActiveGoal"
                     style="background:#f5f3ff; padding:15px; border-radius:12px; margin-bottom:15px; border: 1px solid #ddd6fe;">
@@ -629,7 +635,7 @@
                 <div id="guardianRecentHistory">
                     <!-- 🆕 Visual Build Tag -->
                     <div style="text-align:center; padding:20px; color:#cbd5e1; font-size:0.7rem; margin-top:40px;">
-                        FeelFlow Kids • Ver.0218-1050
+                        FeelFlow Kids • Ver.0218-1059
                     </div>
                 </div>
             </div>

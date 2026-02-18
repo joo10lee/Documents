@@ -142,7 +142,8 @@ const FeelFlow = {
     goals: safeJSONParse('feelflow_goals', {
         active: null,
         queue: [],
-        completed: []
+        completed: [],
+        pendingReward: null // 🆕 To be acknowledged by Guardian
     }),
 
     initGoals() {
@@ -196,37 +197,69 @@ const FeelFlow = {
 
     triggerCelebration() {
         const goal = this.goals.active;
+        if (!goal) return;
+
         console.log("🎉 GOAL COMPLETED!", goal);
 
-        // Move to Completed
-        goal.completedAt = new Date().toISOString();
-        this.goals.completed.unshift(goal);
+        // 💡 Calculate Surplus XP
+        const surplus = Math.max(0, goal.earnedXP - goal.targetXP);
 
-        // Show Overlay
+        // 💡 Move to Pending Reward (Highlight until Guardian acknowledges)
+        goal.status = 'achieved';
+        goal.completedAt = new Date().toISOString();
+        this.goals.pendingReward = goal;
+
+        // 💡 Visuals (Confetti, Overlay)
         this.showCelebrationOverlay(goal);
 
-        // Activate Next Goal or Set Empty
-        if (this.goals.queue.length > 0) {
-            const next = this.goals.queue.shift();
-            next.status = 'active';
-            next.earnedXP = 0; // Reset progress for new goal
-            next.startedAt = new Date().toISOString();
-            this.goals.active = next;
-        } else {
-            // Create a placeholder "Waiting for Guardian" goal
-            this.goals.active = {
-                id: 'g_placeholder',
-                name: 'Waiting for Mission...',
-                targetXP: 1000,
-                earnedXP: 0,
-                reward: 'Ask Guardian to set a new goal!',
-                emoji: '⏳',
-                status: 'waiting'
-            };
-        }
+        // 💡 Activate Next Goal with Surplus
+        this.activateNextGoal(surplus);
 
         this.saveGoals();
         if (typeof renderTrophies === 'function') renderTrophies();
+        if (typeof Guardian !== 'undefined' && Guardian.renderGoalManager) Guardian.renderGoalManager();
+    },
+
+    activateNextGoal(surplus = 0) {
+        if (this.goals.queue && this.goals.queue.length > 0) {
+            const next = this.goals.queue.shift();
+            next.status = 'active';
+            next.earnedXP = surplus; // ⚡ Carry-over XP
+            next.startedAt = new Date().toISOString();
+            this.goals.active = next;
+            console.log("🚀 Next Goal Activated with surplus:", surplus);
+        } else {
+            // No more goals in queue - set a placeholder "New Adventure"
+            this.goals.active = {
+                id: 'g_placeholder',
+                name: 'New Adventure Awaits!',
+                targetXP: 1000,
+                earnedXP: surplus,
+                reward: 'Ask Guardian for next goal',
+                emoji: '✨',
+                status: 'active'
+            };
+        }
+    },
+
+    acknowledgeReward() {
+        if (this.goals.pendingReward) {
+            const reward = this.goals.pendingReward;
+            reward.status = 'completed';
+            reward.acknowledgedAt = new Date().toISOString();
+
+            // Move to formal history
+            this.goals.completed.unshift(reward);
+            this.goals.pendingReward = null;
+
+            this.saveGoals();
+
+            if (typeof renderTrophies === 'function') renderTrophies();
+            if (typeof Guardian !== 'undefined' && Guardian.renderGoalManager) Guardian.renderGoalManager();
+
+            // Optional: small celebration sound or toast
+            if (window.UI && UI.showXPToast) UI.showXPToast("Reward archived!", "Ready for next mission.");
+        }
     },
 
     showCelebrationOverlay(goal) {
@@ -407,6 +440,32 @@ const Guardian = {
         const queueContainer = document.getElementById('guardianGoalQueue');
         const active = FeelFlow.goals.active;
         const queue = FeelFlow.goals.queue;
+        const pending = FeelFlow.goals.pendingReward;
+
+        // 🆕 Pending Achievement (Awaiting Guardian Action)
+        const pendingSlot = document.getElementById('guardianPendingReward');
+        if (pendingSlot) {
+            if (pending) {
+                pendingSlot.style.display = 'block';
+                pendingSlot.innerHTML = `
+                    <div style="background:#fff7ed; padding:15px; border-radius:12px; border:2px dashed #fb923c; margin-bottom:15px; animation: pulse 2s infinite;">
+                        <div style="font-size:0.7rem; font-weight:800; color:#c2410c; text-transform:uppercase; margin-bottom:5px;">🎉 Mission Complete! (Reward Ready)</div>
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <div>
+                                <div style="font-weight:700; color:#1e293b; font-size:1.1rem;">${pending.emoji} ${pending.name}</div>
+                                <div style="font-size:0.85rem; color:#9a3412; font-weight:600;">Reward: ${pending.reward}</div>
+                            </div>
+                            <button onclick="FeelFlow.acknowledgeReward()" 
+                                style="background:#f97316; color:white; border:none; padding:8px 15px; border-radius:12px; font-weight:700; font-size:0.8rem; box-shadow:0 4px 10px rgba(249, 115, 22, 0.3);">
+                                Done!
+                            </button>
+                        </div>
+                    </div>
+                `;
+            } else {
+                pendingSlot.style.display = 'none';
+            }
+        }
 
         // Active Goal
         if (active && activeContainer) {
@@ -1515,8 +1574,27 @@ window.editGoalMessage = editGoalMessage;
 // 5. 트로피 시스템 (Goal Lifecycle Redesign)
 function renderTrophies() {
     const active = FeelFlow.goals.active;
+    const pending = FeelFlow.goals.pendingReward;
     const queue = FeelFlow.goals.queue;
     const history = FeelFlow.goals.completed;
+
+    // --- Pending Reward (Achievement!) ---
+    const pendingContainer = document.getElementById('pendingGoalContainer');
+    if (pendingContainer) {
+        if (pending) {
+            pendingContainer.style.display = 'block';
+            pendingContainer.innerHTML = `
+                <div class="achievement-card">
+                    <div class="achievement-badge">MISSION ACCOMPLISHED!</div>
+                    <div style="font-size:3.5rem; margin:10px 0;">${pending.emoji}</div>
+                    <h3 style="margin-bottom:5px;">${pending.name}</h3>
+                    <div style="color:#64748b; font-size:0.9rem;">Wait for your Guardian <br>to deliver the reward! 🎁</div>
+                </div>
+            `;
+        } else {
+            pendingContainer.style.display = 'none';
+        }
+    }
 
     // --- Active Goal ---
     const activeContainer = document.getElementById('activeGoalContainer');
