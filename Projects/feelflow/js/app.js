@@ -1463,7 +1463,8 @@ window.menuNavigate = (target, event) => {
         'History': 'screenJourney',   // Child History
         'Guardian': 'screenGuardian',  // Guardian Dashboard
         'GuardianSettings': 'screenGuardianSettings',
-        'ChildHistory': 'screenJourney' // Guardian viewing Child Journey
+        'ChildHistory': 'screenJourney', // Guardian viewing Child Journey
+        'Crisis': 'screenCrisis' // 💡 New Crisis Screen
     };
 
     // Guardian going to Home -> Dashboard
