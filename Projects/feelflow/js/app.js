@@ -528,11 +528,10 @@ const Guardian = {
     init() {
         try {
             this.currentWeatherType = this.currentWeatherType || 'today';
-            this.renderLegend();
             this.renderWeather(this.currentWeatherType);
             this.loadSettings();
             this.generateAIInsight();
-            this.renderRecentHistory();
+            // this.renderRecentHistory(); // Removed to avoid overwriting the filtered history from renderWeather
             this.checkAlerts();
             this.renderGoalManager();
             this.renderContextBar();
@@ -1469,7 +1468,13 @@ const Guardian = {
         const container = document.getElementById('guardianRecentHistory');
         if (!container) return;
 
-        const displayList = history.slice(0, 3);
+        // Sort descending and take top 3 (Latest first)
+        const sortedHistory = [...history].sort((a, b) => {
+            const da = new Date(a.timestamp || a.createdAt || 0);
+            const db = new Date(b.timestamp || b.createdAt || 0);
+            return db - da;
+        });
+        const displayList = sortedHistory.slice(0, 3);
         if (displayList.length === 0) {
             container.innerHTML = `<p style="font-size:0.85rem; color:#94a3b8;">No check-ins found.</p>`;
             return;
@@ -1531,7 +1536,10 @@ const Guardian = {
         let timeFiltered = filtered;
         if (type === 'today') {
             const todayStr = now.toDateString();
-            timeFiltered = filtered.filter(h => new Date(h.timestamp).toDateString() === todayStr);
+            timeFiltered = filtered.filter(h => {
+                const hDate = new Date(h.timestamp);
+                return !isNaN(hDate) && hDate.toDateString() === todayStr;
+            });
         } else if (type === 'weekly') {
             const weekAgo = new Date(); weekAgo.setDate(now.getDate() - 7);
             timeFiltered = filtered.filter(h => new Date(h.timestamp) >= weekAgo);
@@ -1549,15 +1557,15 @@ const Guardian = {
         let labels = [], datasets = [], chartType = 'line';
 
         if (type === 'today') {
-            labels = ['6AM', '8AM', '10AM', '12PM', '2PM', '4PM', '6PM', '8PM', '10PM'];
+            labels = ['12AM', '3AM', '6AM', '9AM', '12PM', '3PM', '6PM', '9PM', '12AM'];
             const beforeData = new Array(labels.length).fill(null);
             const afterData = new Array(labels.length).fill(null);
 
             timeFiltered.forEach(entry => {
-                const d = new Date(entry.timestamp);
+                const d = new Date(entry.timestamp || entry.createdAt);
+                if (isNaN(d)) return;
                 const hour = d.getHours();
-                if (hour < 6 || hour > 22) return;
-                const slotIndex = Math.floor((hour - 6) / 2);
+                const slotIndex = Math.floor(hour / 3);
                 if (slotIndex >= 0 && slotIndex < labels.length) {
                     beforeData[slotIndex] = entry.intensity;
                     afterData[slotIndex] = entry.afterIntensity || null;
