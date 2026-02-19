@@ -8,7 +8,7 @@ let currentEmotion = { name: '', emoji: '', intensity: 5, color: '' };
 let activeTaskId = null;
 let homeDisplayTab = new Date().getHours() < 12 ? 'morning' : 'evening';
 let currentRoutineTab = homeDisplayTab;
-let currentUser = 'child'; // 'child' or 'guardian'
+window.currentUser = 'child'; // 'child' or 'guardian'
 
 // 💡 New: Dynamic Greeting Logic
 function getGreeting() {
@@ -1499,7 +1499,7 @@ const Guardian = {
 
         if (history.length > 3) {
             container.innerHTML += `
-                <button onclick="UI.goToScreen('ChildHistory')" style="width:100%; border:none; background:none; color:#6366F1; font-size:0.8rem; font-weight:700; padding:12px 0; cursor:pointer;">See More History →</button>
+                <button onclick="UI.goToScreen('screenJourney', 'Child Journey')" style="width:100%; border:none; background:none; color:#6366F1; font-size:0.8rem; font-weight:700; padding:12px 0; cursor:pointer;">See More History →</button>
             `;
         }
     },
@@ -3341,7 +3341,24 @@ UI.goToScreen = async function (id, title) {
     }
 
     // 💡 My Journey / Child History
-    if (id === 'screenJourney' || id === 'ChildHistory') {
+    if (id === 'screenJourney' || id === 'ChildHistory' || id === 'Journey') {
+        const backBtn = document.getElementById('journeyBackBtn');
+        const headerTitle = document.getElementById('journeyHeaderTitle');
+        const headerIcon = document.getElementById('journeyHeaderIcon');
+        const bottomNav = document.getElementById('journeyBottomNav');
+
+        if (window.currentUser === 'guardian') {
+            if (backBtn) backBtn.style.display = 'flex';
+            if (headerTitle) headerTitle.textContent = "Child's Journey";
+            if (headerIcon) headerIcon.style.display = 'none';
+            if (bottomNav) bottomNav.style.display = 'none';
+        } else {
+            if (backBtn) backBtn.style.display = 'none';
+            if (headerTitle) headerTitle.textContent = "My Journey";
+            if (headerIcon) headerIcon.style.display = 'flex';
+            if (bottomNav) bottomNav.style.display = 'flex';
+        }
+
         // Force Fetch & Render
         console.log("📂 Loading Journey Data...");
         const history = await EmotionAPI.fetchHistory();

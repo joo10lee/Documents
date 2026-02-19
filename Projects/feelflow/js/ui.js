@@ -168,7 +168,7 @@ const UI = {
         if (!container) return;
 
         // 💡 Guardian Mode Check
-        const isGuardian = typeof currentUser !== 'undefined' && currentUser === 'guardian';
+        const isGuardian = typeof window.currentUser !== 'undefined' && window.currentUser === 'guardian';
 
         if (!history || history.length === 0) {
             container.innerHTML = '<div style="text-align:center; padding:40px; color:#9CA3AF;">No check-ins yet! 📝<br>Check in to see your journey.</div>';
