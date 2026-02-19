@@ -11,6 +11,11 @@
 
     <link rel="manifest" href="./manifest.json">
     <link rel="icon" href="./favicon.ico" type="image/x-icon">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@600;700&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="css/style_v2.css?v=2.9.0">
 
     <!-- 💡 Chart.js for Guardian Dashboard -->
@@ -39,27 +44,15 @@
 </head>
 
 <body>
-    <header class="app-header">
-        <div class="header-status">
-            <span id="weatherIcon">🌤️</span>
-            <!-- 💡 Phase 2.5: Version Format (Date-Time) -->
-            <span class="build-tag">Ver.0218-1157</span>
-        </div>
-        <div class="header-main">
-
-
-            <!-- Dynamic Title Area -->
-            <h1 id="headerTitle" class="greeting">Hey Jason, <br>how's it going?</h1>
-        </div>
-    </header>
-
-    <!-- 💡 Phase 2.5: Floating Home Button (Next to Hamburger) -->
-    <button id="navHomeBtn" class="nav-home-btn floating-home" onclick="goHome()" style="display:none;">🏠</button>
+    <!-- Dynamic Built Version in Footer or Tooltip instead of Header -->
+    <div id="versionTag" class="build-tag"
+        style="position:fixed; top:10px; right:10px; z-index:100; font-size:0.6rem; opacity:0.5; pointer-events:none;">
+        Ver.0218-1705</div>
 
     <!-- 🚨 Emergency FAB (Visible everywhere except specific screens) -->
-    <button id="btnEmergencyFAB" class="fab-emergency" onclick="startEmergencyMode()">🆘</button>
+    <button id="btnEmergencyFAB" class="fab-emergency" onclick="startEmergencyMode()">SOS</button>
 
-    <button class="hamburger-trigger" onclick="toggleMenu()">
+    <button class="hamburger-trigger" onclick="toggleMenu()" style="top: 15px; left: 15px; z-index: 101;">
         <div class="bar"></div>
         <div class="bar"></div>
         <div class="bar"></div>
@@ -81,76 +74,100 @@
     </div>
 
     <!-- Screen 3: Trophies (Goal Lifecycle) -->
-    <main id="screenTrophies" class="screen">
-        <div class="app-header">
-            <h1>My Goals & Rewards</h1>
-        </div>
-        <div class="content-container">
+    <main class="screen" id="screenTrophies" style="background: var(--ff-bg-gradient);">
+        <header class="ff-header">
+            <h1 style="font-size: 1.25rem; font-weight: 850; color: #1A1A2E; margin: 0;">Goal & Rewards</h1>
+        </header>
 
-            <!-- 🆕 Pending Reward Achievement -->
-            <div id="pendingGoalContainer" style="display:none;"></div>
+        <div class="ff-content" style="padding: 20px;">
+            <!-- Pending Reward (Achievement Pop) -->
+            <div id="pendingGoalContainer" style="display: none; margin-bottom: 24px;"></div>
 
-            <!-- Active Goal -->
+            <!-- Active Mission Card -->
             <div id="activeGoalContainer">
-                <div class="goal-card-active">
-                    <div
-                        style="font-size:0.9rem; color:#64748b; font-weight:700; letter-spacing:1px; margin-bottom:10px;">
-                        CURRENT MISSION</div>
-                    <div id="activeGoalEmoji" class="goal-emoji-large">🏆</div>
-                    <h2 id="activeGoalName" style="color:#1e293b; margin-bottom:5px;">Loading Goal...</h2>
-                    <div id="activeGoalReward" style="color:#64748b; font-size:0.95rem;">Keep going!</div>
+                <div class="ff-goal-card">
+                    <div class="ff-goal-header">
+                        <div id="activeGoalEmoji" class="ff-goal-icon-large">🏆</div>
+                        <div>
+                            <p
+                                style="font-size: 0.75rem; color: #F59E0B; font-weight: 800; text-transform: uppercase; margin: 0; letter-spacing: 0.05em;">
+                                Current Mission</p>
+                            <h2 id="activeGoalName"
+                                style="font-size: 1.25rem; font-weight: 900; color: #1A1A2E; margin: 0;">Goal Name</h2>
+                        </div>
+                    </div>
 
-                    <div class="goal-progress-container">
-                        <div id="activeGoalBar" class="goal-progress-bar" style="width: 0%;"></div>
+                    <div class="ff-goal-progress-info">
+                        <div>
+                            <span id="activeGoalCurrentXP" class="ff-goal-xp-text">0</span>
+                            <span style="font-size: 0.9rem; font-weight: 700; color: #1A1A2E;"> XP</span>
+                        </div>
+                        <span id="activeGoalTargetXP" class="ff-goal-target-text">of 1000 XP</span>
                     </div>
-                    <div
-                        style="display:flex; justify-content:space-between; font-size:0.9rem; font-weight:700; color:#475569;">
-                        <span id="activeGoalCurrentXP">0 XP</span>
-                        <span id="activeGoalDays" style="font-weight:400; font-size:0.75rem; color:#94a3b8;">Day
+
+                    <div class="ff-slider-track" style="margin-bottom: 12px; height: 12px;">
+                        <div id="activeGoalBar" class="ff-slider-fill"
+                            style="width: 0%; height: 100%; border-radius: 99px;"></div>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span id="activeGoalDays" style="font-size: 0.75rem; color: #9CA3AF; font-weight: 600;">Day
                             1</span>
-                        <span id="activeGoalTargetXP">1000 XP</span>
+                        <span id="activeGoalReward"
+                            style="font-size: 0.75rem; color: #6C5CE7; font-weight: 700;">Reward: ✨ Special Badge</span>
                     </div>
+                </div>
+            </div>
+
+            <!-- Queue (Coming Up) -->
+            <div style="margin-bottom: 30px;">
+                <h3 style="font-size: 1rem; font-weight: 850; color: #1A1A2E; margin: 0 0 16px 4px;">🚀 Coming Up Next
+                </h3>
+                <div id="goalQueueContainer" class="ff-queue-list">
+                    <!-- Queue Items Injected Here -->
+                </div>
+            </div>
+
+            <!-- Trophy Case -->
+            <div>
+                <h3 style="font-size: 1rem; font-weight: 850; color: #1A1A2E; margin: 0 0 16px 4px;">🏆 Trophy Case</h3>
+                <div id="goalHistoryContainer" class="ff-trophy-grid">
+                    <!-- Completed Items Injected Here -->
                 </div>
             </div>
         </div>
 
-        <!-- Up Next Queue -->
-        <h3 style="font-size:1.1rem; color:#334155; margin:0 0 10px 5px;">🚀 Coming Up Next</h3>
-        <div id="goalQueueContainer" class="queue-list">
-            <!-- Queue Items Injected Here -->
-            <div class="queue-card" style="opacity:0.5;">
-                <div style="font-size:1.5rem;">🔒</div>
-                <div style="font-size:0.8rem;">Empty Queue</div>
-            </div>
-        </div>
-
-        <!-- Completed History -->
-        <h3 style="font-size:1.1rem; color:#334155; margin:25px 0 10px 5px;">🏆 Trophy Case</h3>
-        <div id="goalHistoryContainer" class="completed-list">
-            <!-- Completed Items Injected Here -->
-        </div>
-
-        <div style="height: 100px;"></div> <!-- Spacer -->
-        </div>
-
-        <div class="bottom-nav">
-            <button class="nav-btn" onclick="UI.goToScreen('1')">
-                <span>🏠</span>
+        <!-- Bottom Navigation -->
+        <nav class="ff-bottom-nav">
+            <button class="ff-nav-item" onclick="UI.goToScreen('1')">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                    <polyline points="9 22 9 12 15 12 15 22" />
+                </svg>
                 <span>Home</span>
             </button>
-            <button class="nav-btn" onclick="UI.goToScreen('screenTracker')">
-                <span>✅</span>
+            <button class="ff-nav-item" onclick="UI.goToScreen('screenTracker')">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="9 11 12 14 22 4" />
+                    <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+                </svg>
                 <span>Routine</span>
             </button>
-            <button class="nav-btn active">
-                <span>🏆</span>
+            <button class="ff-nav-item active">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="8" r="7" />
+                    <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88" />
+                </svg>
                 <span>Trophies</span>
             </button>
-            <button class="nav-btn" onclick="UI.goToScreen('screenJourney')">
-                <span>📅</span>
+            <button class="ff-nav-item" onclick="UI.goToScreen('screenJourney')">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10" />
+                    <polyline points="12 6 12 12 16 14" />
+                </svg>
                 <span>Journey</span>
             </button>
-        </div>
+        </nav>
     </main>
 
     <main class="screen active" id="screenLanding">
@@ -171,246 +188,634 @@
         </div>
     </main>
 
-    <main class="screen" id="screen1">
-
-
-        <div class="emotion-bento">
-            <button class="bento-card happy" onclick="selectEmotion('Happy', '😊', '#FFD93D')">
-                <span class="emoji">😊</span> <span class="label">Happy</span>
-            </button>
-            <button class="bento-card sad" onclick="selectEmotion('Sad', '😢', '#6CB4EE')">
-                <span class="emoji">😢</span> <span class="label">Sad</span>
-            </button>
-            <button class="bento-card anxious" onclick="selectEmotion('Anxious', '😰', '#A084E8')">
-                <span class="emoji">😰</span> <span class="label">Anxious</span>
-            </button>
-            <button class="bento-card angry" onclick="selectEmotion('Angry', '😠', '#FF6B6B')">
-                <span class="emoji">😠</span> <span class="label">Angry</span>
-            </button>
-            <button class="bento-card calm" onclick="selectEmotion('Calm', '😌', '#6BCB77')">
-                <span class="emoji">😌</span> <span class="label">Calm</span>
-            </button>
-            <button class="bento-card tired" onclick="selectEmotion('Tired', '😫', '#95A5A6')">
-                <span class="emoji">😫</span> <span class="label">Tired</span>
-            </button>
-        </div>
-
-        <div class="quick-mission-section">
-            <h3 class="section-title">Daily Quest ⚔️</h3>
-            <div id="quickTaskListContainer" style="overflow-y: auto; max-height: calc(100vh - 450px);">
-                <div id="quickTaskList" class="quick-task-grid"></div>
+    <main class="screen" id="screen1" style="background: var(--ff-bg-gradient);">
+        <!-- Header Integrated Inside screen1 -->
+        <header class="ff-header">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                <!-- Weather Pill -->
+                <div class="ff-weather-pill">
+                    <span id="weatherIcon" style="font-size: 0.9rem;">🌤️</span>
+                    <span style="font-size: 0.8rem; font-weight: 600; color: #6B7280;">68°F</span>
+                </div>
+                <!-- XP Badge -->
+                <div class="ff-xp-badge" onclick="UI.goToScreen('screenTrophies')">
+                    <span style="font-size: 0.9rem;">⭐</span>
+                    <span id="topXpDisplay">0 XP</span>
+                </div>
             </div>
+            <h1 id="headerTitle" class="ff-greeting">Hey Jason,<br>how's it going?</h1>
+            <div class="ff-date-streak">
+                <span id="todayDateStr" style="font-size: 0.8rem; color: #9CA3AF;">Wednesday, Feb 18</span>
+                <div class="ff-streak-pill">
+                    <span style="font-size: 0.7rem;">🔥</span>
+                    <span>7-Day Streak</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="ff-screen-content">
+            <!-- Emotion Selection Grid -->
+            <section>
+                <h2 style="font-size: 1rem; font-weight: 600; color: #6B7280; margin-bottom: 8px;">How are you feeling?
+                </h2>
+                <div class="ff-emotion-grid">
+                    <button class="ff-emotion-btn" style="--btn-color: #F59E0B"
+                        onclick="selectEmotion('Happy', '😊', '#F59E0B')">
+                        <div class="btn-color-bar"></div>
+                        <span class="emoji">😊</span>
+                        <span class="label">Happy</span>
+                    </button>
+                    <button class="ff-emotion-btn" style="--btn-color: #3B82F6"
+                        onclick="selectEmotion('Sad', '😢', '#3B82F6')">
+                        <div class="btn-color-bar"></div>
+                        <span class="emoji">😢</span>
+                        <span class="label">Sad</span>
+                    </button>
+                    <button class="ff-emotion-btn" style="--btn-color: #8B5CF6"
+                        onclick="selectEmotion('Anxious', '😰', '#8B5CF6')">
+                        <div class="btn-color-bar"></div>
+                        <span class="emoji">😰</span>
+                        <span class="label">Anxious</span>
+                    </button>
+                    <button class="ff-emotion-btn" style="--btn-color: #EF4444"
+                        onclick="selectEmotion('Angry', '😠', '#EF4444')">
+                        <div class="btn-color-bar"></div>
+                        <span class="emoji">😠</span>
+                        <span class="label">Angry</span>
+                    </button>
+                    <button class="ff-emotion-btn" style="--btn-color: #10B981"
+                        onclick="selectEmotion('Calm', '😌', '#10B981')">
+                        <div class="btn-color-bar"></div>
+                        <span class="emoji">😌</span>
+                        <span class="label">Calm</span>
+                    </button>
+                    <button class="ff-emotion-btn" style="--btn-color: #94A3B8"
+                        onclick="selectEmotion('Tired', '😫', '#94A3B8')">
+                        <div class="btn-color-bar"></div>
+                        <span class="emoji">😫</span>
+                        <span class="label">Tired</span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Daily Quest Summary Card -->
+            <section>
+                <button class="ff-quest-summary-card" onclick="UI.goToScreen('screenTracker')">
+                    <span style="font-size: 1.2rem; margin-right: 12px;">⚔️</span>
+                    <div style="display: flex; flex-direction: column;">
+                        <span class="section-title"
+                            style="font-size: 0.9rem; font-weight: 700; color: #1A1A2E; margin:0;">Daily Quest</span>
+                        <span id="questStatusText" style="font-size: 0.8rem; color: #6B7280;">Loading tasks...</span>
+                    </div>
+                    <!-- Progress Ring -->
+                    <div class="ff-progress-ring-container">
+                        <svg width="32" height="32" style="transform: rotate(-90deg);">
+                            <circle cx="16" cy="16" r="14.5" fill="none" stroke="#F1F5F9" stroke-width="3" />
+                            <circle id="questProgressCircle" cx="16" cy="16" r="14.5" fill="none" stroke="#6C5CE7"
+                                stroke-width="3" stroke-linecap="round" stroke-dasharray="91" stroke-dashoffset="91" />
+                        </svg>
+                        <span id="questProgressText" class="ff-progress-ring-text">0/5</span>
+                    </div>
+                    <svg style="margin-left: 8px; color: #9CA3AF;" width="16" height="16" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="m9 18 6-6-6-6" />
+                    </svg>
+                </button>
+            </section>
+
+            <!-- Detailed Quests sits below -->
+            <div id="quickTaskList" class="quick-task-grid"></div>
         </div>
 
-        <!-- 🚨 Emergency Button (Home) -->
-        <button class="btn-emergency-home" onclick="startEmergencyMode()">
-            🆘 Help Me Now
-        </button>
+        <!-- Bottom Nav -->
+        <nav class="ff-bottom-nav">
+            <button class="ff-nav-tab active" onclick="UI.goToScreen('1')">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor"
+                    stroke-width="0.5">
+                    <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                    <polyline points="9 22 9 12 15 12 15 22" />
+                </svg>
+                <span>Home</span>
+                <span class="ff-nav-dot"></span>
+            </button>
+            <button class="ff-nav-tab" onclick="UI.goToScreen('screenTracker')">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                    <polyline points="22 4 12 14.01 9 11.01" />
+                </svg>
+                <span>Routine</span>
+            </button>
+            <button class="ff-nav-tab" onclick="UI.goToScreen('screenTrophies')">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
+                    <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
+                    <path d="M4 22h16" />
+                    <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20 7 22" />
+                    <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20 17 22" />
+                    <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" />
+                </svg>
+                <span>Trophies</span>
+            </button>
+            <button class="ff-nav-tab" onclick="UI.goToScreen('screenJourney')">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <rect width="18" height="18" x="3" y="4" rx="2" ry="2" />
+                    <line x1="16" x2="16" y1="2" y2="6" />
+                    <line x1="8" x2="8" y1="2" y2="6" />
+                    <line x1="3" x2="21" y1="10" y2="10" />
+                    <path d="M8 14h.01" />
+                    <path d="M12 14h.01" />
+                    <path d="M16 14h.01" />
+                    <path d="M8 18h.01" />
+                    <path d="M12 18h.01" />
+                    <path d="M16 18h.01" />
+                </svg>
+                <span>Journey</span>
+            </button>
+        </nav>
     </main>
 
-    <main class="screen" id="screenEmergency">
-        <div class="emergency-container">
-            <h2 class="emergency-title">Emergency Mode</h2>
-            <div id="emergencyActivityArea" class="emergency-activity-area">
-                <!-- Activity Content Injected Here -->
+    <main class="screen ff-emergency-screen" id="screenEmergency">
+        <div class="ff-emergency-container">
+            <h2 class="ff-emergency-title">SOS Support</h2>
+
+            <div id="emergencyActivityArea" class="ff-emergency-activity">
+                <!-- Activity Content Injected by retryEmergencyStrategy/Activities.setupActivity -->
+                <div style="text-align: center; padding: 20px;">
+                    <div style="font-size: 3rem; margin-bottom: 20px;">🧘</div>
+                    <p style="font-size: 1.1rem; font-weight: 600; color: rgba(255,255,255,0.9);">Take a deep breath...
+                    </p>
+                </div>
             </div>
-            <div class="emergency-footer">
-                <button class="btn-emergency-secondary" onclick="retryEmergencyStrategy()">↻ Try Another</button>
-                <button class="btn-emergency-primary" onclick="exitEmergencyMode()">✓ Done</button>
+
+            <div class="ff-activity-footer">
+                <button class="ff-btn-primary" onclick="exitEmergencyMode()"
+                    style="background: white; color: #1A1A2E;">I'm Feeling Better</button>
+                <button class="btn-ff-skip" onclick="retryEmergencyStrategy()"
+                    style="color: rgba(255,255,255,0.7); display: flex; align-items: center; justify-content: center; gap: 6px;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8" />
+                        <path d="M21 3v5h-5" />
+                    </svg>
+                    <span>Try Something Else</span>
+                </button>
             </div>
-            <!-- Link to Crisis Resources -->
-            <div style="margin-top:20px; text-align:center;">
-                <p style="color:rgba(255,255,255,0.7); font-size:0.9rem; margin-bottom:10px;">Still feeling unsafe?</p>
+
+            <!-- Still unsafe trigger -->
+            <div
+                style="margin-top: auto; text-align: center; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1);">
+                <p style="color: rgba(255,255,255,0.5); font-size: 0.85rem; margin-bottom: 12px;">Still feeling unsafe?
+                </p>
                 <button onclick="UI.goToScreen('screenCrisis')"
-                    style="background:transparent; border:1px solid rgba(255,255,255,0.3); color:white; padding:8px 16px; border-radius:20px; font-size:0.9rem;">🆘
-                    Get More Help</button>
+                    style="background: rgba(239, 68, 68, 0.15); border: 1px solid #EF4444; color: #EF4444; padding: 8px 20px; border-radius: 99px; font-size: 0.85rem; font-weight: 700;">
+                    🆘 Get Immediate Help
+                </button>
             </div>
         </div>
     </main>
 
-    <!-- 🆘 SCREEN CRISIS RESOURCES -->
-    <main class="screen" id="screenCrisis" style="background: #f0f9ff; color: #334155;">
-        <div class="header-bar"
-            style="background:white; border-bottom:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center; padding:15px 24px;">
-            <button class="nav-btn" onclick="UI.goToScreen('1')"
-                style="background:none; border:none; font-size:1.5rem; cursor:pointer;">✕</button>
-            <h2 class="header-title" style="color:#ef4444; font-size:1.2rem; font-weight:800; margin:0;">Crisis
-                Resources</h2>
-            <div style="width:24px;"></div>
-        </div>
+    <main class="screen ff-crisis-screen" id="screenCrisis">
+        <header class="ff-header" style="background: white; border-bottom: 1px solid #F1F5F9;">
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+                <button onclick="UI.goToScreen('1')" style="background: none; border: none; padding: 8px;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+                <h1 style="font-size: 1.1rem; font-weight: 850; color: #EF4444; margin: 0;">Specialized Help</h1>
+                <div style="width: 40px;"></div>
+            </div>
+        </header>
 
-        <div class="content-area" style="padding:24px; overflow-y:auto; height:calc(100vh - 70px);">
-            <p style="text-align:center; margin-bottom:30px; font-size:1.1rem; color:#64748b; line-height:1.6;">
+        <div class="ff-crisis-container" style="padding-top: 20px;">
+            <p style="text-align: center; color: #64748B; font-size: 0.95rem; line-height: 1.5; margin-bottom: 30px;">
                 You are not alone. There are people who want to help you right now. 💙
             </p>
 
-            <!-- Card 1: 988 -->
-            <div class="crisis-card">
-                <div class="crisis-icon">📞</div>
-                <h3 class="crisis-card-title">988 Lifeline</h3>
-                <p class="crisis-card-desc">Free, confidential, 24/7.<br>Someone will listen.</p>
-
-                <details class="crisis-details">
-                    <summary>What happens when I call?</summary>
-                    <p>A real person answers. You tell them how you feel. They help you figure out what to do. You can
-                        hang up anytime.</p>
-                </details>
-
-                <a href="tel:988" class="btn-crisis-action btn-call">Call 988</a>
-            </div>
-
-            <!-- Card 2: 741741 -->
-            <div class="crisis-card">
-                <div class="crisis-icon">💬</div>
-                <h3 class="crisis-card-title">Crisis Text Line</h3>
-                <p class="crisis-card-desc">Text HOME to 741741.<br>If you'd rather text than talk.</p>
-
-                <details class="crisis-details">
-                    <summary>What happens when I text?</summary>
-                    <p>You'll text with a real person. Type as much or as little as you want. They are trained to help.
-                    </p>
-                </details>
-
-                <a href="sms:741741&body=HOME" class="btn-crisis-action btn-text">Text 741741</a>
-            </div>
-
-            <!-- Card 3: Guardian -->
-            <div class="crisis-card" id="cardGuardianContact">
-                <div class="crisis-icon">🏠</div>
-                <h3 class="crisis-card-title">Talk to <span id="lblCrisisGuardianName">Guardian</span></h3>
-                <p class="crisis-card-desc">Let them know you're having a hard time.</p>
-
-                <button onclick="window.sendCrisisMessage()" class="btn-crisis-action btn-guardian">
-                    Message Now
-                </button>
-                <p style="font-size:0.8rem; color:#94a3b8; margin-top:10px; text-align:center;">
-                    This will send a message.
-                </p>
-            </div>
-            <div style="height:50px;"></div>
-        </div>
-    </main>
-
-    <main class="screen" id="screenTrigger">
-        <div class="intensity-screen">
-            <h2 id="triggerHeader"
-                style="font-size: 1.8rem; font-weight: 850; margin-bottom: 20px; text-align: center;">What caused this
-                feeling?<br><span id="triggerEmojiDisplay" style="font-size:3rem;"></span></h2>
-
-            <div id="triggerChipsContainer" class="trigger-chips-container">
-                <!-- Chips injected by JS -->
-            </div>
-
-            <div class="other-trigger-input" id="otherTriggerInputDiv"
-                style="display:none; width:100%; margin-top:10px;">
-                <input type="text" id="otherTriggerText" maxlength="30" placeholder="Type what happened..."
-                    style="width:calc(100% - 48px); padding:15px; border-radius:12px; border:1px solid #cbd5e1; font-size:1rem;">
-            </div>
-
-            <div style="margin-top:auto; width:100%; display:flex; gap:10px; padding:20px;">
-                <button class="btn-secondary" onclick="skipTriggers()" style="flex:1;">Skip</button>
-                <button class="btn-primary" onclick="submitTriggers()" style="flex:1; margin:0;">Next →</button>
-            </div>
-        </div>
-    </main>
-
-    <main class="screen" id="screen2">
-        <div class="intensity-screen">
-            <div class="intensity-card">
-                <div id="selectedEmoji" style="font-size: 5rem;">😊</div>
-                <div id="selectedName" style="font-size: 1.5rem; font-weight: 850;">Happy</div>
-                <p style="margin-top: 20px; color: #64748b;">How strong is this feeling?</p>
-                <div class="intensity-display" id="intensityDisplay">5</div>
-                <input type="range" min="1" max="10" value="5" class="intensity-slider" id="intensitySlider"
-                    oninput="updateIntensity(this.value)">
-                <div class="slider-labels">
-                    <span>Mild</span>
-                    <span>Strong</span>
+            <!-- 988 Lifeline -->
+            <div class="ff-crisis-card">
+                <div class="ff-crisis-card-header">
+                    <div class="ff-crisis-card-icon" style="background: #FEF2F2; color: #EF4444;">📞</div>
+                    <div>
+                        <h3 class="ff-crisis-card-title">988 Lifeline</h3>
+                        <p style="font-size: 0.75rem; color: #EF4444; font-weight: 700; margin: 0;">Available 24/7</p>
+                    </div>
+                    <span class="ff-crisis-card-title-sub">Free</span>
                 </div>
+                <p class="ff-crisis-card-desc">Call or text 988 anytime to talk to someone who cares and can help you
+                    through this moment.</p>
+                <a href="tel:988" class="ff-crisis-action-btn primary" style="background: #EF4444;">Call 988</a>
             </div>
-            <button class="btn-primary" onclick="goToResult()">Next</button>
-            <button class="btn-secondary" onclick="UI.back()">← Back</button>
-        </div>
-    </main>
 
-    <main class="screen" id="screen4">
-        <div class="result-summary-bar" id="resultSummaryBar">
-            <span id="summaryEmoji"></span>
-            <span id="summaryText"></span>
-        </div>
-        <div id="strategiesContainer"></div>
-        <div class="strategies-footer">
-            <button class="btn btn-secondary" onclick="UI.back()">← Back</button>
-        </div>
-    </main>
-
-    <main class="screen" id="screenRemeasure">
-        <div class="intensity-screen">
-            <div class="intensity-card">
-                <div id="remeasureEmoji" style="font-size: 4rem;">😊</div>
-                <h2 style="font-size: 1.5rem; font-weight: 850; margin-bottom: 20px;">How do you feel now?</h2>
-
-                <div
-                    style="background:#f1f5f9; padding:10px 20px; border-radius:12px; margin-bottom:20px; color:#64748b; font-weight:600;">
-                    Before: <span id="remeasureBeforeVal">5</span>
+            <!-- Crisis Text Line -->
+            <div class="ff-crisis-card">
+                <div class="ff-crisis-card-header">
+                    <div class="ff-crisis-card-icon" style="background: #F0F9FF; color: #0EA5E9;">💬</div>
+                    <h3 class="ff-crisis-card-title">Crisis Text Line</h3>
+                    <span class="ff-crisis-card-title-sub">Text</span>
                 </div>
-
-                <div class="intensity-display" id="remeasureDisplay">5</div>
-                <input type="range" min="1" max="10" value="5" class="intensity-slider" id="remeasureSlider"
-                    oninput="updateRemeasure(this.value)">
-                <div class="slider-labels">
-                    <span>Mild</span>
-                    <span>Strong</span>
-                </div>
+                <p class="ff-crisis-card-desc">Text HOME to 741741 to connect with a Volunteer Crisis Counselor via text
+                    message.</p>
+                <a href="sms:741741&body=HOME" class="ff-crisis-action-btn"
+                    style="background: #F0F9FF; color: #0EA5E9; border: 1px solid #BAE6FD;">Text HOME to 741741</a>
             </div>
-            <button class="btn-primary" onclick="submitRemeasure()">Done!</button>
+
+            <!-- Guardian Contact -->
+            <div class="ff-crisis-card" id="cardGuardianContact">
+                <div class="ff-crisis-card-header">
+                    <div class="ff-crisis-card-icon" style="background: #F5F3FF; color: #8B5CF6;">🏠</div>
+                    <h3 class="ff-crisis-card-title">Talk to <span id="lblCrisisGuardianName">Guardian</span></h3>
+                </div>
+                <p class="ff-crisis-card-desc">Your guardian is here for you. We can let them know you need a little
+                    extra support.</p>
+                <button onclick="window.sendCrisisMessage()" class="ff-crisis-action-btn"
+                    style="background: #F5F3FF; color: #8B5CF6; border: 1px solid #DDD6FE;">Message Guardian</button>
+            </div>
         </div>
     </main>
 
-    <main class="screen" id="screen5">
-        <div class="result-card" style="text-align:center;">
-            <div class="result-emoji" style="font-size:4rem; margin-bottom:10px;">✨</div>
-            <p style="font-size: 1.4rem; font-weight: 800; margin-bottom:5px;">Great job, Jason!</p>
-
-            <!-- 💡 Dynamic XP Display -->
+    <main class="screen" id="screenTrigger" style="background: var(--ff-bg-gradient);">
+        <div class="flex-col h-full" style="display: flex; flex-direction: column;">
+            <!-- Top Bar -->
             <div
-                style="background:#dcfce7; color:#15803d; padding:10px 20px; border-radius:20px; display:inline-block; font-weight:800; font-size:1.2rem; margin-bottom:20px;">
-                +<span id="screen5XpDisplay">30</span> XP Earned!
+                style="display: flex; align-items: center; justify-content: space-between; height: 48px; padding: 0 16px;">
+                <button onclick="UI.goToScreen('1')"
+                    style="display: flex; align-items: center; justify-content: center; width: 48px; height: 48px; border: none; background: none; color: #1A1A2E;">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="m12 19-7-7 7-7" />
+                        <path d="M19 12H5" />
+                    </svg>
+                </button>
+                <div
+                    style="display: flex; align-items: center; gap: 6px; background: rgba(139, 92, 246, 0.1); padding: 4px 12px; border-radius: 9999px;">
+                    <span id="triggerEmojiDisplay" style="font-size: 0.9rem;">😊</span>
+                    <span id="triggerNameDisplay"
+                        style="font-size: 0.85rem; font-weight: 600; color: #8B5CF6;">Happy</span>
+                </div>
+                <div style="width: 48px;"></div>
             </div>
 
-            <p id="finalMessage" style="color:#64748b; margin-bottom:30px;">Emotion Recorded.</p>
+            <div style="padding: 12px 20px 8px;">
+                <h1 style="font-size: 1.4rem; font-weight: 800; color: #1A1A2E; line-height: 1.2;">What
+                    happened?</h1>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
+                    <p style="font-size: 0.9rem; color: #9CA3AF; margin: 0;">Pick up to 3</p>
+                    <span id="triggerCountDisplay" style="font-size: 0.85rem; font-weight: 600; color: #6C5CE7;">0/3
+                        selected</span>
+                </div>
+            </div>
 
-            <!-- 💡 Share Bonus -->
-            <button class="btn-primary" id="btnShareFamily" onclick="shareWithFamily()"
-                style="background:#8b5cf6; margin-bottom:10px; width:100%;">
+            <div style="flex: 1; padding: 4px 20px; overflow-y: auto;">
+                <div id="triggerTagContainer" class="ff-tag-cloud">
+                    <!-- Tags injected by app.js -->
+                </div>
+            </div>
+
+            <div style="padding: 10px 20px 20px;">
+                <button id="btnNextTrigger" class="btn-ff-primary" onclick="submitTriggers()" disabled>
+                    <span>Next</span>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M5 12h14" />
+                        <path d="m12 5 7 7-7 7" />
+                    </svg>
+                </button>
+                <button class="btn-ff-skip" onclick="skipTriggers()">Skip</button>
+            </div>
+        </div>
+    </main>
+
+    <main class="screen" id="screen2" style="background: var(--ff-bg); transition: background-color 0.3s;">
+        <div class="flex-col h-full" style="display: flex; flex-direction: column;">
+            <!-- Top Bar -->
+            <div
+                style="display: flex; align-items: center; justify-content: space-between; height: 48px; padding: 0 16px;">
+                <button onclick="UI.goToScreen('screenTrigger')"
+                    style="display: flex; align-items: center; justify-content: center; width: 48px; height: 48px; border: none; background: none; color: #1A1A2E;">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="m12 19-7-7 7-7" />
+                        <path d="M19 12H5" />
+                    </svg>
+                </button>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="width: 8px; height: 8px; border-radius: 50%; background: #6C5CE7;"></span>
+                    <span style="width: 8px; height: 8px; border-radius: 50%; background: #6C5CE7;"></span>
+                    <span style="width: 8px; height: 8px; border-radius: 50%; background: #D1D5DB;"></span>
+                </div>
+                <div style="width: 48px;"></div>
+            </div>
+
+            <!-- Emotion Display -->
+            <div style="display: flex; flex-direction: column; align-items: center; padding: 16px 0;">
+                <span id="selectedEmoji" class="animate-emoji-float" style="font-size: 4rem; line-height: 1;">😊</span>
+                <span id="selectedName"
+                    style="font-size: 1.3rem; font-weight: 800; color: #1A1A2E; margin-top: 8px;">Happy</span>
+                <div id="selectedTriggersDisplay" style="display: flex; gap: 6px; margin-top: 8px;">
+                    <!-- Selected trigger pills injected here -->
+                </div>
+            </div>
+
+            <!-- Intensity Card -->
+            <div style="flex: 1; padding: 8px 20px; display: flex; align-items: flex-start; justify-content: center;">
+                <div class="ff-intensity-card">
+                    <p style="font-size: 0.95rem; font-weight: 600; color: #6B7280;">How strong is this feeling?</p>
+
+                    <div id="intensityCircle" class="ff-number-circle">
+                        <span id="intensityDisplay">5</span>
+                    </div>
+
+                    <div style="width: 100%; position: relative;">
+                        <!-- Track Fill -->
+                        <div id="sliderFill"
+                            style="position: absolute; top: 50%; left: 0; height: 6px; transform: translateY(-50%); border-radius: 9999px; background: var(--ff-primary); width: 44.44%; pointer-events: none;">
+                        </div>
+                        <input type="range" id="intensitySlider" min="1" max="10" step="1" value="5"
+                            oninput="updateIntensity(this.value)" class="ff-slider"
+                            style="position: relative; z-index: 10;">
+                    </div>
+
+                    <div class="ff-slider-labels">
+                        <span>Mild</span>
+                        <span style="font-weight: 700; color: var(--ff-primary);">Strong</span>
+                    </div>
+                </div>
+            </div>
+
+            <div style="padding: 12px 20px 20px;">
+                <button class="btn-ff-primary" onclick="goToResult()">
+                    <span>Next</span>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M5 12h14" />
+                        <path d="m12 5 7 7-7 7" />
+                    </svg>
+                </button>
+                <button class="btn-ff-skip" onclick="UI.goToScreen('screenTrigger')"
+                    style="display: flex; align-items: center; justify-content: center; gap: 4px;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="m12 19-7-7 7-7" />
+                        <path d="M19 12H5" />
+                    </svg>
+                    <span>Back</span>
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <main class="screen" id="screen4" style="background: var(--ff-bg-gradient);">
+        <div class="flex-col h-full" style="display: flex; flex-direction: column;">
+            <!-- Top Bar -->
+            <div
+                style="display: flex; align-items: center; justify-content: space-between; height: 48px; padding: 0 16px;">
+                <button onclick="UI.goToScreen('2')"
+                    style="display: flex; align-items: center; justify-content: center; width: 48px; height: 48px; border: none; background: none; color: #1A1A2E;">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="m12 19-7-7 7-7" />
+                        <path d="M19 12H5" />
+                    </svg>
+                </button>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="width: 8px; height: 8px; border-radius: 50%; background: #6C5CE7;"></span>
+                    <span style="width: 8px; height: 8px; border-radius: 50%; background: #6C5CE7;"></span>
+                    <span style="width: 8px; height: 8px; border-radius: 50%; background: #6C5CE7;"></span>
+                    <span style="width: 8px; height: 8px; border-radius: 50%; background: #D1D5DB;"></span>
+                </div>
+                <div style="width: 48px;"></div>
+            </div>
+
+            <!-- Context Strip -->
+            <div style="padding: 4px 20px;">
+                <div class="ff-context-strip">
+                    <span id="resultEmoji" style="font-size: 1rem;">😊</span>
+                    <div id="resultColorDot" class="ff-context-dot" style="background: #F59E0B;"></div>
+                    <span id="resultName" style="font-size: 0.8rem; font-weight: 600; color: #6B7280;">Happy</span>
+                    <span style="font-size: 0.75rem; color: #9CA3AF;">·</span>
+                    <span id="resultIntensity" style="font-size: 0.8rem; font-weight: 600; color: #6B7280;">Intensity
+                        5</span>
+                    <span style="font-size: 0.75rem; color: #9CA3AF;">·</span>
+                    <span id="resultTrigger" style="font-size: 0.8rem; color: #6B7280;">Homework</span>
+                </div>
+            </div>
+
+            <!-- Title Area -->
+            <div style="padding: 20px 20px 12px;">
+                <h1 style="font-size: 1.3rem; font-weight: 800; color: #1A1A2E; line-height: 1.2;">Let's try something
+                </h1>
+                <p style="font-size: 0.85rem; color: #9CA3AF; margin-top: 2px;">Pick one that feels right</p>
+            </div>
+
+            <!-- Strategy Cards Container -->
+            <div id="strategiesContainer" class="flex-1"
+                style="padding: 0 20px; display: flex; flex-direction: column; gap: 12px; overflow-y: auto;">
+                <!-- V0 Strategy Cards Injected by JS -->
+            </div>
+
+            <!-- Bottom Back Button -->
+            <div style="padding: 12px 20px 20px; display: flex; justify-content: center;">
+                <button class="btn-ff-skip" onclick="UI.goToScreen('2')"
+                    style="display: flex; align-items: center; justify-content: center; gap: 4px;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="m12 19-7-7 7-7" />
+                        <path d="M19 12H5" />
+                    </svg>
+                    <span>Back</span>
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <main class="screen" id="screenRemeasure" style="background: var(--ff-bg-gradient);">
+        <div class="flex-col h-full" style="display: flex; flex-direction: column;">
+            <!-- Top Bar -->
+            <div
+                style="display: flex; align-items: center; justify-content: center; height: 48px; padding: 0 16px; position: relative;">
+                <h3 style="font-size: 0.9rem; font-weight: 700; color: #6B7280; margin: 0;">Checking In...</h3>
+            </div>
+
+            <!-- Header -->
+            <div style="padding: 20px 20px 0; text-align: center;">
+                <div id="remeasureEmoji" style="font-size: 3.5rem; margin-bottom: 8px;">😊</div>
+                <h1 style="font-size: 1.3rem; font-weight: 800; color: #1A1A2E; margin-bottom: 4px;">How do you feel
+                    now?</h1>
+                <p style="font-size: 0.85rem; color: #9CA3AF;">You started at Intensity <span id="remeasureBeforeVal"
+                        style="font-weight: 700; color: #6C5CE7;">5</span></p>
+            </div>
+
+            <!-- Intensity Card -->
+            <div style="padding: 20px; flex: 1; display: flex; flex-direction: column; justify-content: center;">
+                <div class="ff-intensity-card" style="margin-bottom: 40px;">
+                    <div id="remeasureCircle" class="ff-number-circle" style="transform: scale(1.066);">
+                        <span id="remeasureDisplay">5</span>
+                    </div>
+                </div>
+
+                <!-- Custom Slider -->
+                <div class="ff-slider-container">
+                    <div class="ff-slider-track">
+                        <div id="remeasureFill" class="ff-slider-fill" style="width: 44.44%;"></div>
+                    </div>
+                    <input type="range" min="1" max="10" value="5" id="remeasureSlider" class="ff-range-input"
+                        oninput="updateRemeasure(this.value)">
+                </div>
+
+                <div class="ff-slider-labels">
+                    <span>A little</span>
+                    <span>Very much</span>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div style="padding: 20px 20px 40px;">
+                <button class="ff-btn-primary" onclick="submitRemeasure()">Done</button>
+            </div>
+        </div>
+    </main>
+
+    <main class="screen" id="screen5" style="background: var(--ff-bg-gradient);">
+        <div class="flex-col h-full"
+            style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 20px;">
+            <!-- Animation Area -->
+            <div id="completionAnimation"
+                style="margin-bottom: 40px; position: relative; width: 200px; height: 200px; display: flex; align-items: center; justify-content: center;">
+                <div style="font-size: 6rem; z-index: 1;">🎉</div>
+                <div class="ff-pulse-ring" style="width: 160px; height: 160px; background: rgba(108, 92, 231, 0.1);">
+                </div>
+            </div>
+
+            <h1 style="font-size: 1.8rem; font-weight: 900; color: #1A1A2E; margin-bottom: 8px;">Check-in Complete!</h1>
+            <p id="finalMessage" style="font-size: 1rem; color: #6B7280; text-align: center; margin-bottom: 32px;">
+                You're doing great, Jason!</p>
+
+            <!-- Reward Card -->
+            <div class="ff-quest-summary-card"
+                style="width: 100%; margin-bottom: 40px; border-color: #E2E8F0; background: white;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div class="ff-quest-icon-circle" style="background: #FEF3C7;">
+                        <span style="font-size: 1.2rem;">✨</span>
+                    </div>
+                    <div style="text-align: left;">
+                        <p style="font-size: 0.95rem; font-weight: 800; color: #1A1A2E; margin: 0;">XP Earned</p>
+                        <p style="font-size: 0.75rem; color: #9CA3AF; margin: 0;">Mission Accomplished</p>
+                    </div>
+                </div>
+                <div style="font-size: 1.5rem; font-weight: 900; color: #F59E0B;">+<span id="screen5XpDisplay">30</span>
+                </div>
+            </div>
+
+            <button class="ff-btn-primary" onclick="goHome()">Back to Home</button>
+
+            <button id="btnShareFamily" class="btn-ff-skip" style="margin-top: 16px; font-weight: 700; color: #6C5CE7;"
+                onclick="Guardian.shareCheckIn()">
                 👨‍👩‍👦 Share with Family (+100 XP)
             </button>
-
-            <button class="btn-secondary" onclick="startOver()" style="width:100%;">Finish</button>
         </div>
     </main>
 
-    <main class="screen" id="screenActivity">
-        <div class="activity-container">
-            <div class="activity-header">
-                <div class="activity-icon" id="activityIcon">🧸</div>
-                <h2 id="activityTitle">Activity</h2>
+    <main class="screen" id="screenActivity" style="background: var(--ff-bg-gradient);">
+        <div class="ff-activity-container">
+            <header class="ff-activity-header">
+                <div class="ff-activity-icon-large" id="activityIcon">🧸</div>
+                <h2 class="ff-activity-title" id="activityTitle">Activity</h2>
+                <div
+                    style="height: 2px; width: 40px; background: var(--ff-primary); margin-top: 12px; border-radius: 2px; opacity: 0.3;">
+                </div>
+            </header>
+
+            <div id="inAppActionArea" class="ff-action-area">
+                <!-- Activity content injected by Activities.setupActivity -->
             </div>
-            <div id="inAppActionArea"></div>
-            <div class="activity-footer">
-                <button class="btn-primary" id="activityBtn" style="display:none;">Save Mission</button>
-                <button class="btn btn-secondary" onclick="UI.back()">← Back</button>
-            </div>
+
+            <footer class="ff-activity-footer">
+                <button class="ff-btn-primary" id="activityBtn" style="display:none;">I'm Finished</button>
+                <button class="btn-ff-skip" onclick="UI.goToScreen('4')"
+                    style="display: flex; align-items: center; justify-content: center; gap: 4px;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="m12 19-7-7 7-7" />
+                        <path d="M19 12H5" />
+                    </svg>
+                    <span>Go Back</span>
+                </button>
+            </footer>
         </div>
     </main>
 
     <!-- 💡 Duplicate screenTrophies removed from here -->
 
-    <main class="screen" id="screenJourney">
-        <div class="history-container">
-            <!-- 💡 Title removed to avoid duplication with Header -->
-            <div id="historyList"></div>
+    <main class="screen" id="screenJourney" style="background: var(--ff-bg-gradient);">
+        <!-- Header -->
+        <header class="ff-header" style="padding-top: 16px;">
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+                <h1 class="ff-greeting" style="margin-top: 0;">My Journey</h1>
+                <div class="ff-header-icon"
+                    style="background: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: var(--ff-card-shadow);">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10" />
+                        <line x1="12" y1="8" x2="12" y2="16" />
+                        <line x1="8" y1="12" x2="16" y2="12" />
+                    </svg>
+                </div>
+            </div>
+        </header>
+
+        <div id="historyList" class="ff-journey-list">
+            <!-- Entries injected by UI.renderHistory -->
         </div>
+
+        <!-- Bottom Nav -->
+        <nav class="ff-bottom-nav">
+            <button class="ff-nav-tab" onclick="UI.goToScreen('1')">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                    <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                    <polyline points="9 22 9 12 15 12 15 22" />
+                </svg>
+                <span>Home</span>
+            </button>
+            <button class="ff-nav-tab" onclick="UI.goToScreen('screenTracker')">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                    <polyline points="22 4 12 14.01 9 11.01" />
+                </svg>
+                <span>Routine</span>
+            </button>
+            <button class="ff-nav-tab" onclick="UI.goToScreen('screenTrophies')">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
+                    <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
+                    <path d="M4 22h16" />
+                    <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20 7 22" />
+                    <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20 17 22" />
+                    <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" />
+                </svg>
+                <span>Trophies</span>
+            </button>
+            <button class="ff-nav-tab active" onclick="UI.goToScreen('screenJourney')">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor"
+                    stroke-width="0.5">
+                    <rect width="18" height="18" x="3" y="4" rx="2" ry="2" />
+                    <line x1="16" x2="16" y1="2" y2="6" />
+                    <line x1="8" x2="8" y1="2" y2="6" />
+                    <line x1="3" x2="21" y1="10" y2="10" />
+                    <path d="M8 14h.01" />
+                    <path d="M12 14h.01" />
+                    <path d="M16 14h.01" />
+                    <path d="M8 18h.01" />
+                    <path d="M12 18h.01" />
+                    <path d="M16 18h.01" />
+                </svg>
+                <span>Journey</span>
+                <span class="ff-nav-dot"></span>
+            </button>
+        </nav>
     </main>
 
 
@@ -460,215 +865,217 @@
         </div>
     </main>
 
-    <main class="screen" id="screenGuardianSettings">
-        <div class="settings-container" style="padding:24px;">
-            <h2 class="section-title">Guardian Settings</h2>
 
-            <!-- 🎯 Goal Management Section -->
-            <div class="strategy-card"
-                style="border: 2px solid #8b5cf6; padding: 20px; border-radius: 16px; background: white; margin-bottom: 20px;">
-                <h3 style="color:#6d28d9; margin-bottom:15px; display:flex; align-items:center; font-weight: 850;">
-                    🎯 Goal Management
-                    <button onclick="UI.showAddGoalForm()"
-                        style="margin-left:auto; font-size:0.8rem; background:#8b5cf6; color:white; border:none; padding:8px 15px; border-radius:20px; font-weight:700;">+
-                        Add New</button>
-                </h3>
 
-                <!-- 🆕 Pending Achievement (Injected via JS) -->
-                <div id="guardianPendingReward" style="display:none;"></div>
-
-                <!-- Active Goal -->
-                <div id="guardianActiveGoal"
-                    style="background:#f5f3ff; padding:15px; border-radius:12px; margin-bottom:15px; border: 1px solid #ddd6fe;">
-                    <div
-                        style="font-size:0.7rem; font-weight:800; color:#7c3aed; text-transform:uppercase; margin-bottom:5px;">
-                        Currently Active</div>
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <span id="guardianActiveGoalName"
-                            style="font-weight:700; color:#1e293b; font-size:1rem;">None</span>
-                        <span id="guardianActiveGoalProgress"
-                            style="font-size:0.9rem; font-weight:700; color:#64748b;">0/0 XP</span>
-                    </div>
-                </div>
-
-                <!-- Queued Goals -->
-                <div style="font-size:0.85rem; font-weight:700; color:#64748b; margin-bottom:10px;">Queue (Upcoming
-                    Missions)</div>
-                <div id="guardianGoalQueue" style="display:flex; flex-direction:column; gap:8px;">
-                    <!-- Injected by JS -->
-                </div>
+    <main class="screen" id="screenGuardian" style="background: var(--ff-bg-gradient);">
+        <header class="ff-header">
+            <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+                <h1 style="font-size: 1.25rem; font-weight: 850; color: #1A1A2E; margin: 0;">Guardian Dashboard</h1>
+                <button onclick="GuardianAuth.logout()" style="background: none; border: none; padding: 8px;">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                        <polyline points="16 17 21 12 16 7" />
+                        <line x1="21" y1="12" x2="9" y2="12" />
+                    </svg>
+                </button>
             </div>
+        </header>
 
-            <!-- Add Goal Modal (Simple overlay or toggle form) -->
-            <div id="addGoalForm"
-                style="display:none; background:#f8fafc; padding:15px; border-radius:12px; border:1px solid #cbd5e1; margin-top:10px;">
-                <h4 style="margin-bottom:10px;">New Advenutre</h4>
-
-                <!-- Template Suggestions -->
-                <div style="display:flex; gap:5px; margin-bottom:12px; flex-wrap:wrap;">
-                    <button onclick="Guardian.setTemplateGoal('first')"
-                        style="flex:1; font-size:0.75rem; padding:6px; background:#f0f9ff; border:1px solid #bae6fd; border-radius:8px; color:#0369a1; cursor:pointer;">⭐
-                        First Steps</button>
-                    <button onclick="Guardian.setTemplateGoal('detective')"
-                        style="flex:1; font-size:0.75rem; padding:6px; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px; color:#15803d; cursor:pointer;">🔍
-                        Detective</button>
-                    <button onclick="Guardian.setTemplateGoal('streak')"
-                        style="flex:1; font-size:0.75rem; padding:6px; background:#fff1f2; border:1px solid #fecdd3; border-radius:8px; color:#be123c; cursor:pointer;">🔥
-                        Streak</button>
-                </div>
-
-                <input type="text" id="newGoalName" placeholder="Goal Name (e.g. Clean Room)"
-                    style="width:100%; margin-bottom:8px; padding:8px; border:1px solid #cbd5e1; border-radius:6px;">
-                <input type="number" id="newGoalTarget" placeholder="Target XP (50 - 1000)"
-                    style="width:100%; margin-bottom:8px; padding:8px; border:1px solid #cbd5e1; border-radius:6px;">
-                <input type="text" id="newGoalReward" placeholder="Reward Text (e.g. Buy the Lego!)"
-                    style="width:100%; margin-bottom:8px; padding:8px; border:1px solid #cbd5e1; border-radius:6px;">
-
-                <div style="margin-bottom:10px;">
-                    <label style="font-size:0.8rem; font-weight:700; color:#64748b;">Pick Emoji:</label>
-                    <div
-                        style="display:flex; gap:8px; flex-wrap:wrap; background:#fff; padding:10px; border-radius:8px; border:1px solid #e2e8f0; margin-top:5px;">
-                        <span class="emoji-option" onclick="selectGoalEmoji('🍕')">🍕</span>
-                        <span class="emoji-option" onclick="selectGoalEmoji('🎮')">🎮</span>
-                        <span class="emoji-option" onclick="selectGoalEmoji('🎬')">🎬</span>
-                        <span class="emoji-option" onclick="selectGoalEmoji('🍦')">🍦</span>
-                        <span class="emoji-option" onclick="selectGoalEmoji('🎁')">🎁</span>
-                        <span class="emoji-option" onclick="selectGoalEmoji('🏆')">🏆</span>
-                        <span class="emoji-option" onclick="selectGoalEmoji('⭐')">⭐</span>
-                        <span class="emoji-option" onclick="selectGoalEmoji('🎵')">🎵</span>
-                        <span class="emoji-option" onclick="selectGoalEmoji('📱')">📱</span>
-                        <span class="emoji-option" onclick="selectGoalEmoji('🛍️')">🛍️</span>
-                        <span class="emoji-option" onclick="selectGoalEmoji('🎪')">🎪</span>
-                        <span class="emoji-option" onclick="selectGoalEmoji('🌟')">🌟</span>
-                    </div>
-                    <input type="hidden" id="newGoalEmoji" value="🏆">
-                    <div id="selectedEmojiDisplay"
-                        style="margin-top:5px; font-size:0.85rem; font-weight:700; color:#64748b;">Selected: 🏆</div>
-                </div>
-
-                <div style="display:flex; gap:10px; margin-top:20px;">
-                    <button onclick="Guardian.addNewGoal()" class="btn-primary"
-                        style="flex:2; margin:0; background:#8b5cf6;">Save Mission</button>
-                    <button onclick="UI.showAddGoalForm()" class="btn-secondary"
-                        style="flex:1; margin:0;">Cancel</button>
-                </div>
-            </div>
-
-            <button class="btn-secondary" onclick="GuardianAuth.logout()"
-                style="width:100%; border:1px solid #ef4444; color:#ef4444;">Log Out</button>
-            <br><br>
-            <button class="btn-secondary" onclick="UI.goToScreen('Guardian')">← Back to Dashboard</button>
-        </div>
-    </main>
-
-    <!-- 💡 Phase 3: Enhanced Guardian Screen -->
-    <main class="screen" id="screenGuardian">
-        <div class="guardian-container">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-                <h2 style="font-weight:850; font-size:1.5rem; color:#1e293b;">Guardian Dashboard</h2>
-                <button onclick="UI.goToScreen('GuardianSettings')"
-                    style="background:none; border:none; font-size:1.5rem;">⚙️</button>
-            </div>
-
+        <div class="ff-content" style="padding: 20px;">
             <!-- Crisis Alert Section -->
-            <div id="guardianAlert"
-                style="display:none; background:#fee2e2; color:#b91c1c; padding:15px; border-radius:16px; margin-bottom:20px; border:1px solid #fecaca;">
-                <strong>🚨 Crisis Alert</strong><br>
-                <span id="guardianAlertMsg">Jason reported high sadness.</span>
-                <div style="margin-top:10px; display:flex; gap:10px;">
-                    <button class="btn-control" style="background:#fff; border:1px solid #fca5a5;"
-                        onclick="Guardian.sendSMS()">💬 SMS</button>
-                    <button class="btn-control" style="background:#fff; border:1px solid #fca5a5;"
+            <div id="guardianAlert" class="ff-guardian-alert" style="display: none;">
+                <div style="display: flex; gap: 12px; margin-bottom: 12px;">
+                    <span style="font-size: 1.25rem;">🚨</span>
+                    <div>
+                        <strong style="display: block; margin-bottom: 4px;">Crisis Alert</strong>
+                        <span id="guardianAlertMsg" style="font-size: 0.85rem;">Emergency detected.</span>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <button class="ff-btn-primary"
+                        style="background: white; color: #EF4444; border: 1px solid #FECACA; font-size: 0.8rem; padding: 8px 16px;"
+                        onclick="Guardian.sendSMS()">💬 SMS Jason</button>
+                    <button class="ff-btn-primary"
+                        style="background: white; color: #EF4444; border: 1px solid #FECACA; font-size: 0.8rem; padding: 8px 16px;"
                         onclick="Guardian.sendReaction()">❤️ Cheer Up</button>
                 </div>
             </div>
 
-            <!-- Stats & Insight -->
-            <div class="guardian-card">
-                <!-- 1) Title & Tabs Stacked -->
-                <div class="weather-header">
-                    <h3 class="guardian-section-title" style="justify-content:center;">📊 Emotion Weather</h3>
-                    <div class="weather-controls">
-                        <button class="weather-tab active"
-                            onclick="Guardian.renderWeather('today', this)">Today</button>
-                        <button class="weather-tab" onclick="Guardian.renderWeather('weekly', this)">Week</button>
-                        <button class="weather-tab" onclick="Guardian.renderWeather('monthly', this)">2 Mo</button>
-                    </div>
+            <!-- Emotion Weather Card -->
+            <div class="ff-card" style="margin-bottom: 24px; padding: 20px;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+                    <h3 style="font-size: 1rem; font-weight: 850; color: #1A1A2E; margin: 0;">📊 Emotion Weather</h3>
                 </div>
 
-                <!-- 2) Graph -->
-                <div class="chart-container" style="height:180px;">
+                <div class="ff-weather-tabs">
+                    <button class="ff-weather-tab active" onclick="Guardian.renderWeather('today', this)">Today</button>
+                    <button class="ff-weather-tab" onclick="Guardian.renderWeather('weekly', this)">Week</button>
+                    <button class="ff-weather-tab" onclick="Guardian.renderWeather('monthly', this)">Month</button>
+                </div>
+
+                <div class="chart-container" style="height: 180px; margin-bottom: 12px;">
                     <canvas id="guardianChart"></canvas>
                 </div>
 
-                <!-- 3) Legend -->
-                <div id="guardianLegend" style="display:flex; flex-wrap:wrap; justify-content:center; gap:4px;"></div>
-
-                <div id="aiInsightBox"
-                    style="margin-top:12px; padding:12px; background:#f0f9ff; border-radius:12px; border-left:4px solid #0ea5e9;">
-                    <div style="font-weight:700; color:#0284c7; font-size:0.8rem; margin-bottom:4px;">🤖 AI Insight
-                    </div>
-                    <p id="aiInsightText" style="font-size:0.85rem; color:#334155; line-height:1.4; margin:0;">Analyzing
-                        data...</p>
-                </div>
-            </div>
-
-            <!-- 🆕 Updated Goal Manager (Replaces old tracker) -->
-            <div id="guardianPendingReward"></div>
-
-            <div class="guardian-card">
-                <div class="guardian-card-header">
-                    <div>
-                        <h3 class="guardian-section-title">🏆 Goal Management</h3>
-                        <div style="font-size:0.8rem; color:#64748b; font-weight:500;">Set rewards for achievements
-                        </div>
-                    </div>
+                <div id="guardianLegend"
+                    style="display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-bottom: 16px;">
                 </div>
 
-                <div id="guardianActiveGoal" style="margin-top:10px;"></div>
-
-                <div style="margin:15px 0 10px; font-size:0.85rem; font-weight:700; color:#64748b;">Upcoming Missions
+                <div id="aiInsightBox" class="ff-insight-box">
+                    <div
+                        style="font-weight: 800; color: #0284C7; font-size: 0.75rem; margin-bottom: 6px; text-transform: uppercase;">
+                        🤖 AI Insight</div>
+                    <p id="aiInsightText" style="font-size: 0.85rem; color: #334155; line-height: 1.5; margin: 0;">
+                        Analyzing emotion patterns...</p>
                 </div>
-                <div id="guardianGoalQueue"></div>
-
-                <button onclick="UI.showAddGoalForm()" class="btn-primary"
-                    style="width:100%; margin-top:20px; background:#8b5cf6;">
-                    + Add New Mission
-                </button>
             </div>
 
             <!-- Recent Activity -->
-            <div class="guardian-card">
-                <h3 class="guardian-section-title">🕒 Recent Activity</h3>
+            <div class="ff-card" style="margin-bottom: 24px; padding: 20px;">
+                <h3 style="font-size: 1rem; font-weight: 850; color: #1A1A2E; margin: 0 0 16px;">🕒 Recent History</h3>
                 <div id="guardianRecentHistory">
-                    <!-- 🆕 Visual Build Tag -->
-                    <div style="text-align:center; padding:20px; color:#cbd5e1; font-size:0.7rem; margin-top:40px;">
-                        FeelFlow Kids • Ver.0218-1157
+                    <!-- History lines injected here -->
+                </div>
+            </div>
+
+            <!-- Goal Management -->
+            <div id="guardianPendingReward"></div>
+
+            <div class="ff-card" style="padding: 20px; margin-bottom: 40px;">
+                <div style="margin-bottom: 20px;">
+                    <h3 style="font-size: 1rem; font-weight: 850; color: #1A1A2E; margin: 0;">🏆 Goal Management</h3>
+                    <p style="font-size: 0.8rem; color: #64748B; margin: 4px 0 0;">Motivate Jason with rewards</p>
+                </div>
+
+                <div id="guardianActiveGoal"></div>
+
+                <div style="margin: 24px 0 12px; font-size: 0.85rem; font-weight: 800; color: #1A1A2E;">Upcoming
+                    Missions</div>
+                <div id="guardianGoalQueue"></div>
+
+                <button id="btnAddMissionToggle" onclick="UI.showAddGoalForm()" class="ff-btn-primary"
+                    style="margin-top: 24px; background: #8B5CF6;">+ Add New Mission</button>
+
+                <!-- Add Goal Inline Form -->
+                <div id="addGoalForm"
+                    style="display: none; margin-top: 24px; padding-top: 24px; border-top: 1px solid #F1F5F9;">
+                    <h4 style="font-size: 0.95rem; font-weight: 850; color: #1A1A2E; margin: 0 0 16px;">New Mission
+                        Details</h4>
+
+                    <div style="display: flex; gap: 8px; margin-bottom: 16px; overflow-x: auto; padding-bottom: 4px;">
+                        <button onclick="Guardian.setTemplateGoal('streak')"
+                            style="flex: none; font-size: 0.75rem; font-weight: 700; padding: 8px 12px; background: #F5F3FF; color: #7C3AED; border: 1px solid #DDD6FE; border-radius: 99px; white-space: nowrap;">🔥
+                            7-Day Streak</button>
+                        <button onclick="Guardian.setTemplateGoal('detective')"
+                            style="flex: none; font-size: 0.75rem; font-weight: 700; padding: 8px 12px; background: #ECFDF5; color: #059669; border: 1px solid #A7F3D0; border-radius: 99px; white-space: nowrap;">🔍
+                            Emotion Master</button>
+                    </div>
+
+                    <input type="text" id="newGoalName" placeholder="Mission Name" class="ff-range-input"
+                        style="height: 48px; padding: 0 16px; border: 1px solid #E2E8F0; border-radius: 12px; margin-bottom: 12px; width: 100%;">
+                    <input type="number" id="newGoalTarget" placeholder="Target XP" class="ff-range-input"
+                        style="height: 48px; padding: 0 16px; border: 1px solid #E2E8F0; border-radius: 12px; margin-bottom: 12px; width: 100%;">
+                    <input type="text" id="newGoalReward" placeholder="Reward Description" class="ff-range-input"
+                        style="height: 48px; padding: 0 16px; border: 1px solid #E2E8F0; border-radius: 12px; margin-bottom: 16px; width: 100%;">
+
+                    <div style="display: flex; gap: 8px; margin-bottom: 24px;">
+                        <span class="emoji-option" onclick="selectGoalEmoji('🎮')"
+                            style="background: #F8FAFC; border: 1px solid #E2E8F0; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 12px; font-size: 1.25rem;">🎮</span>
+                        <span class="emoji-option" onclick="selectGoalEmoji('🍕')"
+                            style="background: #F8FAFC; border: 1px solid #E2E8F0; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 12px; font-size: 1.25rem;">🍕</span>
+                        <span class="emoji-option" onclick="selectGoalEmoji('🎁')"
+                            style="background: #F8FAFC; border: 1px solid #E2E8F0; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 12px; font-size: 1.25rem;">🎁</span>
+                        <input type="hidden" id="newGoalEmoji" value="🏆">
+                    </div>
+
+                    <div style="display: flex; gap: 12px;">
+                        <button onclick="Guardian.addNewGoal()" class="ff-btn-primary" style="flex: 2; margin: 0;">Save
+                            Mission</button>
+                        <button onclick="UI.showAddGoalForm()" class="btn-ff-skip"
+                            style="flex: 1; margin: 0; color: #64748B;">Cancel</button>
                     </div>
                 </div>
             </div>
         </div>
     </main>
 
-    <main class="screen" id="screenTracker">
-        <div class="tracker-container">
-            <div class="tracker-tabs">
-                <button class="tracker-tab active" id="tabMorning" onclick="switchRoutine('morning')">🌅
-                    Morning</button>
-                <button class="tracker-tab" id="tabEvening" onclick="switchRoutine('evening')">🌙 Evening</button>
-            </div>
-            <div class="progress-card">
-                <div class="progress-header">
-                    <span id="progressTitle" style="font-weight:850;">Jason's Routine</span>
-                    <span id="progressFraction" style="color:#7c3aed; font-weight:850;">0/0</span>
-                </div>
-                <div class="progress-bar-container">
-                    <div id="progressBar" class="progress-bar-fill"></div>
+    <main class="screen" id="screenTracker" style="background: var(--ff-bg-gradient);">
+        <!-- Custom Header for Tracker (since it's a main tab) -->
+        <header class="ff-header" style="padding-top: 16px;">
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+                <h1 class="ff-greeting" style="margin-top: 0;">My Routine</h1>
+                <div class="ff-streak-pill" style="height: fit-content;">
+                    <span style="font-size: 0.7rem;">🔥</span>
+                    <span>7-Day Streak</span>
                 </div>
             </div>
-            <div id="taskList"></div>
+        </header>
 
+        <div class="ff-tracker-tabs">
+            <button class="ff-tracker-tab active" id="tabMorning" onclick="switchRoutine('morning')">🌅 Morning</button>
+            <button class="ff-tracker-tab" id="tabEvening" onclick="switchRoutine('evening')">🌙 Evening</button>
         </div>
+
+        <div class="ff-progress-card">
+            <div class="ff-progress-header">
+                <span class="ff-progress-title">Daily Progress</span>
+                <span id="progressFraction" class="ff-progress-fraction">0/0</span>
+            </div>
+            <div class="ff-progress-bar-bg">
+                <div id="progressBar" class="ff-progress-bar-fill" style="width: 0%;"></div>
+            </div>
+        </div>
+
+        <div id="taskList" class="ff-routine-list">
+            <!-- Tasks injected by app.js -->
+        </div>
+
+        <!-- Bottom Nav -->
+        <nav class="ff-bottom-nav">
+            <button class="ff-nav-tab" onclick="UI.goToScreen('1')">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                    <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                    <polyline points="9 22 9 12 15 12 15 22" />
+                </svg>
+                <span>Home</span>
+            </button>
+            <button class="ff-nav-tab active" onclick="UI.goToScreen('screenTracker')">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor"
+                    stroke-width="0.5">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                    <polyline points="22 4 12 14.01 9 11.01" />
+                </svg>
+                <span>Routine</span>
+                <span class="ff-nav-dot"></span>
+            </button>
+            <button class="ff-nav-tab" onclick="UI.goToScreen('screenTrophies')">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
+                    <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
+                    <path d="M4 22h16" />
+                    <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20 7 22" />
+                    <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20 17 22" />
+                    <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" />
+                </svg>
+                <span>Trophies</span>
+            </button>
+            <button class="ff-nav-tab" onclick="UI.goToScreen('screenJourney')">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <rect width="18" height="18" x="3" y="4" rx="2" ry="2" />
+                    <line x1="16" x2="16" y1="2" y2="6" />
+                    <line x1="8" x2="8" y1="2" y2="6" />
+                    <line x1="3" x2="21" y1="10" y2="10" />
+                    <path d="M8 14h.01" />
+                    <path d="M12 14h.01" />
+                    <path d="M16 14h.01" />
+                    <path d="M8 18h.01" />
+                    <path d="M12 18h.01" />
+                    <path d="M16 18h.01" />
+                </svg>
+                <span>Journey</span>
+            </button>
+        </nav>
     </main>
 </body>
 

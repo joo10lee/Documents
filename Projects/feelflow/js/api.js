@@ -95,6 +95,36 @@ const EmotionAPI = {
             console.error(error);
             return { insight: "AI analysis unavailable right now. Keep tracking!" };
         }
+    },
+
+    // F. Goals 동기화 (GET/POST) 🆕
+    async syncGoals(goals = null) {
+        try {
+            const userId = "test_user"; // In production, get from AUTH
+            const method = goals ? 'POST' : 'GET';
+            const options = {
+                method,
+                headers: this.headers
+            };
+            if (goals) options.body = JSON.stringify({ goals });
+
+            const response = await fetch(`${API_BASE_URL}/goals?userId=${userId}`, options);
+            if (!response.ok) throw new Error("Goals sync failed");
+
+            const data = await response.json();
+            if (method === 'GET' && data) {
+                // If we get data, update global state
+                if (typeof FeelFlow !== 'undefined') {
+                    FeelFlow.goals = data;
+                    localStorage.setItem('feelflow_goals', JSON.stringify(data));
+                    console.log("✅ Goals pulled from Cloud:", data.active?.name);
+                }
+            }
+            return data;
+        } catch (error) {
+            console.warn("Goals sync skip (Offline/Error):", error.message);
+            return null;
+        }
     }
 };
 

@@ -84,6 +84,27 @@ Resources:
             Path: /ai/insight
             Method: post
 
+  # Lambda Function (Sync Goals)
+  SyncGoalsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/
+      Handler: syncGoals.handler
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref FeelFlowTable
+      Events:
+        GetGoals:
+          Type: Api
+          Properties:
+            Path: /goals
+            Method: get
+        PostGoals:
+          Type: Api
+          Properties:
+            Path: /goals
+            Method: post
+
   # S3 Bucket (Private)
   FrontendBucket:
     Type: AWS::S3::Bucket

@@ -29,10 +29,14 @@ exports.handler = async (event) => {
 
         // Transform back to frontend format if needed
         const history = (result.Items || []).map(item => ({
-            timestamp: item.timestamp || item.createdAt, // Prefer client timestamp
+            timestamp: item.timestamp || item.createdAt,
             emotion: item.emotion,
             intensity: item.intensity,
-            notes: item.notes
+            afterIntensity: item.afterIntensity, // 🆕 Expose rich data
+            triggers: item.triggers,             // 🆕 Expose rich data
+            notes: item.notes,
+            photo: item.photo,                   // 🆕 Expose rich data
+            activityData: item.activityData      // 🆕 Expose rich data
         }));
 
         return {

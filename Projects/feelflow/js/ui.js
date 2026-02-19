@@ -174,72 +174,53 @@ const UI = {
 
     // 3. 감정 기록 리스트 렌더링
     renderHistory(history) {
-        console.log("📅 renderHistory called with:", history ? history.length : "null");
         const container = document.getElementById('historyList');
         if (!container) return;
 
         if (!history || history.length === 0) {
-            container.innerHTML = '<div class="empty-history"><p>No records yet!</p></div>';
+            container.innerHTML = '<div style="text-align:center; padding:40px; color:#9CA3AF;">No check-ins yet! 📝</div>';
             return;
         }
 
         const sorted = [...history].sort((a, b) => new Date(b.timestamp || b.createdAt) - new Date(a.timestamp || a.createdAt));
 
-        if (sorted.length === 0) {
-            container.innerHTML = `<div style="text-align:center; padding:40px; color:#cbd5e1;">No Check-ins yet! 📝</div>`;
-            return;
-        }
-
         container.innerHTML = sorted.map(entry => {
             const date = new Date(entry.timestamp || entry.createdAt);
             const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             const dateStr = date.toLocaleDateString([], { month: 'short', day: 'numeric' });
-
-            const photoHtml = entry.photo
-                ? `<img src="${entry.photo}" class="history-photo" alt="Moment">`
-                : '';
+            const color = entry.color || '#6C5CE7';
 
             const noteHtml = entry.note
-                ? `<div class="history-note">${entry.note}</div>`
+                ? `<div class="ff-entry-note">${entry.note}</div>`
+                : '';
+
+            const activityHtml = entry.activityData
+                ? `<div class="ff-entry-activity">
+                    <span>${entry.activityData.icon || '✨'}</span>
+                    <span style="margin-left:4px;">${entry.activityData.detail}</span>
+                   </div>`
                 : '';
 
             return `
-                <div class="history-card">
-                    <div class="history-header">
-                        <span>${dateStr}</span>
-                        <span>${timeStr}</span>
+                <div class="ff-journey-entry">
+                    <div class="ff-entry-marker" style="border-color: ${color}">
+                        <div class="ff-entry-dot" style="background: ${color}"></div>
                     </div>
-                    <div class="history-mood">
-                        <span style="font-size:1.5rem;">${entry.emoji || '✨'}</span>
-                        <span>${entry.emotion}</span>
-                        <span style="font-size:0.8rem; color:#7c3aed; margin-left:auto; background:#f3e8ff; padding:2px 8px; border-radius:10px;">Lv.${entry.intensity}</span>
+                    <div class="ff-entry-card">
+                        <div class="ff-entry-header">
+                            <span class="ff-entry-time">${dateStr} · ${timeStr}</span>
+                            <span class="ff-entry-intensity" style="background: ${color}15; color: ${color}">Lv.${entry.intensity}</span>
+                        </div>
+                        <div class="ff-entry-mood">
+                            <span class="ff-entry-emoji">${entry.emoji || '✨'}</span>
+                            <span class="ff-entry-name">${entry.emotion}</span>
+                        </div>
+                        ${noteHtml}
+                        ${activityHtml}
+                        ${entry.photo ? `<img src="${entry.photo}" class="ff-entry-photo">` : ''}
                     </div>
-                    </div>
-                    ${noteHtml}
-                    ${(() => {
-                    if (entry.activityData) {
-                        const act = entry.activityData;
-                        let icon = '✨';
-                        if (act.category === 'Music') icon = '🎵';
-                        else if (act.category === 'Gratitude') icon = '🌻';
-                        else if (act.category === 'Breathing') icon = '🫁';
-                        else if (act.category === 'Meditation') icon = '🧘';
-                        else if (act.category === 'Drawing') icon = '🖍️';
-
-                        return `
-                                <div style="background:#f8fafc; padding:10px; border-radius:10px; margin-top:10px; border:1px solid #e2e8f0; font-size:0.9rem; color:#475569;">
-                                    <div style="font-weight:700; display:flex; align-items:center; gap:5px;">
-                                        <span>${icon}</span> ${act.detail}
-                                    </div>
-                                    ${act.volume ? `<div style="font-size:0.8rem; margin-top:2px;">Volume: ${Math.round(act.volume * 100)}%</div>` : ''}
-                                    ${act.garden ? `<div style="font-size:1.2rem; margin-top:5px; letter-spacing:2px;">${act.garden}</div>` : ''}
-                                </div>
-                            `;
-                    }
-                    return '';
-                })()}
-                    ${photoHtml}
-                </div>`;
+                </div>
+            `;
         }).join('');
     },
 

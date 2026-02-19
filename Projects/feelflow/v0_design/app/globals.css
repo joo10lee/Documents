@@ -1,0 +1,232 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --background: #F5F2EC;
+  --foreground: #1A1A2E;
+  --card: #FFFFFF;
+  --card-foreground: #1A1A2E;
+  --popover: #FFFFFF;
+  --popover-foreground: #1A1A2E;
+  --primary: #6C5CE7;
+  --primary-foreground: #FFFFFF;
+  --secondary: #74B9FF;
+  --secondary-foreground: #FFFFFF;
+  --muted: #E8E4DD;
+  --muted-foreground: #6B7280;
+  --accent: #F5F2EC;
+  --accent-foreground: #1A1A2E;
+  --destructive: #FF6B6B;
+  --destructive-foreground: #FFFFFF;
+  --border: rgba(0, 0, 0, 0.06);
+  --input: rgba(0, 0, 0, 0.06);
+  --ring: #6C5CE7;
+  --radius: 1.25rem;
+}
+
+@theme inline {
+  --font-sans: var(--font-jakarta), 'Plus Jakarta Sans', sans-serif;
+  --font-mono: var(--font-jetbrains), 'JetBrains Mono', monospace;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-sm: calc(var(--radius) - 8px);
+  --radius-md: calc(var(--radius) - 4px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply text-foreground;
+  }
+}
+
+/* FAB pulse - shadow only, ASD safe */
+@keyframes fab-pulse {
+  0%, 100% { box-shadow: 0 4px 16px rgba(255, 107, 107, 0.35); }
+  50% { box-shadow: 0 4px 24px rgba(255, 107, 107, 0.55); }
+}
+
+.animate-fab-pulse {
+  animation: fab-pulse 3s ease-in-out infinite;
+}
+
+/* Tag select pop */
+@keyframes tag-pop {
+  0% { transform: scale(1); }
+  40% { transform: scale(0.95); }
+  70% { transform: scale(1.02); }
+  100% { transform: scale(1); }
+}
+
+.animate-tag-pop {
+  animation: tag-pop 200ms ease-out;
+}
+
+/* Gentle emoji float - ASD safe, very slow */
+@keyframes emoji-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+.animate-emoji-float {
+  animation: emoji-float 4s ease-in-out infinite;
+}
+
+/* Custom range slider styling */
+input[type="range"].intensity-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  border-radius: 9999px;
+  outline: none;
+  background: transparent;
+}
+
+input[type="range"].intensity-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #FFFFFF;
+  border: 3px solid var(--thumb-color, #8B5CF6);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  margin-top: -11px;
+  transition: transform 150ms ease-out;
+}
+
+input[type="range"].intensity-slider:active::-webkit-slider-thumb {
+  transform: scale(1.1);
+}
+
+input[type="range"].intensity-slider::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 9999px;
+}
+
+input[type="range"].intensity-slider::-moz-range-thumb {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #FFFFFF;
+  border: 3px solid var(--thumb-color, #8B5CF6);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+}
+
+input[type="range"].intensity-slider::-moz-range-track {
+  height: 6px;
+  border-radius: 9999px;
+}
+
+/* Breathing cycle: expand on inhale, hold, contract on exhale, hold */
+@keyframes breathe-circle {
+  0%   { transform: scale(0.85); }   /* start small — breathe in begins */
+  25%  { transform: scale(1.0); }    /* fully expanded — hold */
+  50%  { transform: scale(1.0); }    /* still holding */
+  75%  { transform: scale(0.85); }   /* contracted — breathe out done */
+  100% { transform: scale(0.85); }   /* hold before next cycle */
+}
+
+.animate-breathe {
+  animation: breathe-circle 16s ease-in-out infinite;
+}
+
+/* Timer ring progress — used via inline style for dynamic dashoffset */
+@keyframes timer-spin {
+  from { stroke-dashoffset: var(--dash-total); }
+  to   { stroke-dashoffset: 0; }
+}
+
+/* Sparkle entrance — one-time scale pop */
+@keyframes sparkle-entrance {
+  0%   { transform: scale(0); opacity: 0; }
+  60%  { transform: scale(1.1); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.animate-sparkle-entrance {
+  animation: sparkle-entrance 500ms ease-out forwards;
+}
+
+/* Confetti drift — slow, ASD-safe */
+@keyframes confetti-drift {
+  0%   { transform: translateY(-10px) rotate(0deg); opacity: 0.3; }
+  100% { transform: translateY(700px) rotate(45deg); opacity: 0; }
+}
+
+/* Emergency ring glow — very slow, ASD safe, shadow only */
+@keyframes emergency-glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(108, 92, 231, 0.15); }
+  50% { box-shadow: 0 0 30px rgba(108, 92, 231, 0.25); }
+}
+
+.animate-emergency-glow {
+  animation: emergency-glow 4s ease-in-out infinite;
+}
+
+/* Reward emoji gentle bounce */
+@keyframes reward-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+.animate-reward-bounce {
+  animation: reward-bounce 2s ease-in-out infinite;
+}
+
+/* Progress bar fill animation */
+@keyframes progress-fill {
+  from { width: 0%; }
+  to { width: var(--progress-width, 65%); }
+}
+
+.animate-progress-fill {
+  animation: progress-fill 800ms ease-out forwards;
+}
+
+/* Checkbox tap — satisfying scale bounce */
+@keyframes check-bounce {
+  0%   { transform: scale(1); }
+  30%  { transform: scale(0.9); }
+  60%  { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+.animate-check-bounce {
+  animation: check-bounce 200ms ease-out;
+}
+
+/* Scrollbar hide */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

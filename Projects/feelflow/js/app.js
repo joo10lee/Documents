@@ -175,6 +175,11 @@ const FeelFlow = {
             if (index === 2) return '🥇';
             return '🏆';
         };
+
+        // 🆕 Pull from Cloud on Init
+        if (typeof EmotionAPI !== 'undefined' && EmotionAPI.syncGoals) {
+            EmotionAPI.syncGoals();
+        }
     },
 
     addXP(amount, reason) {
@@ -319,6 +324,14 @@ const FeelFlow = {
         }
     },
 
+    completeActiveGoalManually() {
+        if (this.goals.active && this.goals.active.earnedXP >= this.goals.active.targetXP) {
+            if (confirm("Moving this mission to the 'Pending' list and preparing the next one. Proceed?")) {
+                this.triggerCelebration();
+            }
+        }
+    },
+
     showCelebrationOverlay(goal) {
         // Create Overlay Elements dynamically if not exist
         let overlay = document.getElementById('celebrationOverlay');
@@ -395,6 +408,10 @@ const FeelFlow = {
 
     saveGoals() {
         localStorage.setItem('feelflow_goals', JSON.stringify(this.goals));
+        // 🆕 Sync to Cloud
+        if (typeof EmotionAPI !== 'undefined' && EmotionAPI.syncGoals) {
+            EmotionAPI.syncGoals(this.goals);
+        }
     }
 };
 
@@ -511,18 +528,17 @@ const Guardian = {
             if (pending) {
                 pendingSlot.style.display = 'block';
                 pendingSlot.innerHTML = `
-                    <div style="background:#fff7ed; padding:15px; border-radius:12px; border:2px dashed #fb923c; margin-bottom:15px; animation: pulse 2s infinite;">
-                        <div style="font-size:0.7rem; font-weight:800; color:#c2410c; text-transform:uppercase; margin-bottom:5px;">🎉 Mission Complete! (Reward Ready)</div>
-                        <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <div>
-                                <div style="font-weight:700; color:#1e293b; font-size:1.1rem;">${pending.emoji} ${pending.name}</div>
-                                <div style="font-size:0.85rem; color:#9a3412; font-weight:600;">Reward: ${pending.reward}</div>
+                    <div class="ff-quest-summary-card" style="border-color: #F97316; background: #FFF7ED; margin-bottom: 24px;">
+                        <div style="display:flex; align-items:center; gap:12px;">
+                            <div class="ff-quest-icon-circle" style="background:#FFEDD5; color:#EA580C;">
+                                <span style="font-size:1.2rem;">${pending.emoji}</span>
                             </div>
-                            <button onclick="FeelFlow.acknowledgeReward()" 
-                                style="background:#f97316; color:white; border:none; padding:8px 15px; border-radius:12px; font-weight:700; font-size:0.8rem; box-shadow:0 4px 10px rgba(249, 115, 22, 0.3);">
-                                Done!
-                            </button>
+                            <div style="text-align:left;">
+                                <p style="font-size:0.95rem; font-weight:800; color:#1A1A2E; margin:0;">Goal Accomplished! 🎉</p>
+                                <p style="font-size:0.75rem; color:#9A3412; margin:0;">Reward: ${pending.reward}</p>
+                            </div>
                         </div>
+                        <button onclick="FeelFlow.acknowledgeReward()" class="ff-btn-primary" style="background:#EA580C; padding: 8px 16px; font-size: 0.8rem; margin: 0;">Acknowledge</button>
                     </div>
                 `;
             } else {
@@ -532,25 +548,33 @@ const Guardian = {
 
         // Active Goal
         if (active && activeContainer) {
-            const isStarted = active.earnedXP > 0;
-            const rewardLabel = isStarted ? 'Edit Reward (Goal Locked)' : 'Goal & Reward';
+            const isCompleted = active.earnedXP >= active.targetXP;
 
             activeContainer.innerHTML = `
-                <div style="background:#f5f3ff; padding:15px; border-radius:12px; border:1px solid #ddd6fe; margin-bottom:15px;">
-                    <div style="font-size:0.7rem; font-weight:800; color:#7c3aed; text-transform:uppercase; margin-bottom:5px;">Current Mission</div>
-                    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px;">
+                <div class="ff-goal-card" style="background: #F5F3FF; border-color: #DDD6FE;">
+                    <div class="ff-goal-header" style="margin-bottom: 12px;">
+                        <div class="ff-goal-icon-large" style="background: #EDE9FE; color: #7C3AED; width: 48px; height: 48px; font-size: 1.5rem;">${active.emoji}</div>
                         <div>
-                            <div style="font-size:1.1rem; font-weight:700; color:#1e293b;">${active.emoji} ${active.name}</div>
-                            <div style="font-size:0.85rem; color:#64748b;">Target: ${active.targetXP} XP</div>
-                        </div>
-                        <div style="text-align:right;">
-                            <div style="font-size:0.9rem; font-weight:800; color:#8b5cf6;">${active.earnedXP} / ${active.targetXP} XP</div>
-                            <div style="font-size:0.75rem; color:#94a3b8;">Reward: ${active.reward}</div>
+                            <p style="font-size:0.7rem; font-weight:800; color:#7C3AED; text-transform:uppercase; margin:0;">Active Mission</p>
+                            <h2 style="font-size:1.05rem; font-weight:800; color:#1A1A2E; margin:0;">${active.name}</h2>
                         </div>
                     </div>
+                    
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                        <span style="font-size:0.85rem; font-weight:800; color:#1A1A2E;">${active.earnedXP} / ${active.targetXP} XP</span>
+                        <span style="font-size:0.75rem; color:#6C5CE7; font-weight:700;">Reward: ${active.reward}</span>
+                    </div>
+
+                    ${isCompleted ? `
+                    <div style="background:#FFF7ED; padding:10px; border-radius:12px; border:1px solid #FFEDD5; border-left:4px solid #F97316; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center;">
+                        <span style="font-size:0.8rem; font-weight:800; color:#C2410C;">🎉 Goal Reached!</span>
+                        <button onclick="FeelFlow.completeActiveGoalManually()" class="ff-btn-primary" style="background:#F97316; padding:6px 12px; font-size:0.75rem; margin:0;">Complete</button>
+                    </div>
+                    ` : ''}
+
                     <div style="display:flex; gap:8px;">
-                        <button onclick="Guardian.editGoalPrompt('active')" class="btn-secondary" style="font-size:0.7rem; padding:8px 12px; border-radius:8px;">Edit Reward</button>
-                        <button onclick="FeelFlow.resetActiveGoal()" class="btn-secondary" style="font-size:0.7rem; padding:8px 12px; border-radius:8px; color:#e11d48; border-color:#fecdd3;">Reset Progress</button>
+                        <button onclick="Guardian.editGoalPrompt('active')" class="btn-ff-skip" style="font-size:0.7rem; padding:8px 12px; flex:1;">Edit Reward</button>
+                        <button onclick="FeelFlow.resetActiveGoal()" class="btn-ff-skip" style="font-size:0.7rem; padding:8px 12px; flex:1; color:#EF4444;">Reset Progress</button>
                     </div>
                 </div>
             `;
@@ -560,20 +584,23 @@ const Guardian = {
         if (queueContainer) {
             if (!queue || queue.length === 0) {
                 queueContainer.innerHTML = `
-                    <div style="font-size:0.8rem; color:#94a3b8; font-style:italic; padding:15px; background:#f8fafc; border-radius:12px; border:1px dashed #e2e8f0; text-align:center;">
-                        No upcoming missions. <br>Add one to keep the momentum!
+                    <div class="ff-queue-item" style="opacity: 0.6; border-style: dashed; justify-content: center; padding: 24px;">
+                        <div style="text-align:center;">
+                            <div style="font-size:1.25rem; margin-bottom:4px;">🔒</div>
+                            <div style="font-size:0.8rem; color:#94A3B8; font-weight:600;">No upcoming missions</div>
+                        </div>
                     </div>`;
             } else {
                 queueContainer.innerHTML = queue.map((q, index) => `
-                    <div style="background:white; border:1px solid #e2e8f0; border-radius:12px; padding:10px 15px; display:flex; align-items:center; margin-bottom:8px; box-shadow:0 2px 4px rgba(0,0,0,0.02);">
-                        <div style="font-size:1.5rem; margin-right:12px;">${q.emoji}</div>
-                        <div style="flex-grow:1;" onclick="Guardian.editGoalPrompt(${index})">
-                            <div style="font-size:0.9rem; font-weight:700; color:#1e293b;">${q.name}</div>
-                            <div style="font-size:0.75rem; color:#64748b;">${q.targetXP} XP • ${q.reward}</div>
+                    <div class="ff-queue-item">
+                        <div class="ff-queue-icon" style="background: #F1F5F9; color: #1A1A2E;">${q.emoji}</div>
+                        <div style="flex:1;" onclick="Guardian.editGoalPrompt(${index})">
+                            <div style="font-size:0.9rem; font-weight:800; color:#1A1A2E;">${q.name}</div>
+                            <div style="font-size:0.7rem; color:#9CA3AF; font-weight:600;">${q.targetXP} XP • ${q.reward}</div>
                         </div>
-                        <div style="display:flex; gap:5px;">
-                            <button onclick="Guardian.moveGoalUp(${index})" style="background:#f1f5f9; border:none; color:#64748b; cursor:pointer; font-size:1rem; padding:5px 8px; border-radius:6px;">↑</button>
-                            <button onclick="Guardian.deleteGoal(${index})" style="background:#fff1f2; border:none; color:#e11d48; cursor:pointer; font-size:1rem; padding:5px 8px; border-radius:6px;">×</button>
+                        <div style="display:flex; gap:4px;">
+                            <button onclick="Guardian.moveGoalUp(${index})" style="background:#F1F5F9; border:none; color:#64748B; width:32px; height:32px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-weight:800;">↑</button>
+                            <button onclick="Guardian.deleteGoal(${index})" style="background:#FEF2F2; border:none; color:#EF4444; width:32px; height:32px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-weight:800;">×</button>
                         </div>
                     </div>
                 `).join('');
@@ -639,7 +666,6 @@ const Guardian = {
             createdAt: new Date().toISOString()
         };
 
-        // If no active goal (e.g. placeholder), make this active immediately
         if (!FeelFlow.goals.active || FeelFlow.goals.active.id === 'g_placeholder') {
             newGoal.status = 'active';
             newGoal.createdAt = new Date().toISOString();
@@ -650,7 +676,7 @@ const Guardian = {
 
         FeelFlow.saveGoals();
 
-        // Reset Form
+        // 💡 Reset and Hide Form
         nameEl.value = '';
         targetEl.value = '';
         rewardEl.value = '';
@@ -659,31 +685,30 @@ const Guardian = {
         this.renderGoalManager();
         if (typeof renderTrophies === 'function') renderTrophies();
 
-        // 🚀 Go back to Dashboard to see the new mission
-        UI.goToScreen('Guardian');
-        alert("Mission Saved!");
+        console.log("Mission Saved!");
     },
 
     setTemplateGoal(type) {
         console.log("🛠️ Loading Template:", type);
         const templates = {
-            'first': { name: 'First Steps', target: 100, emoji: '⭐' },
-            'detective': { name: 'Feeling Detective', target: 200, emoji: '🔍' },
-            'streak': { name: 'Streak Builder', target: 300, emoji: '🔥' }
+            'first': { name: 'First Steps (Starter)', target: 100, emoji: '⭐', reward: 'Special Sticker' },
+            'detective': { name: 'Feeling Detective (Check-ins)', target: 200, emoji: '🔍', reward: 'Extra Playtime' },
+            'streak': { name: 'Streak Builder (Consistency)', target: 500, emoji: '🔥', reward: 'Small Toy/Prize' }
         };
         const t = templates[type];
         if (t) {
             const nameEl = document.getElementById('newGoalName');
             const targetEl = document.getElementById('newGoalTarget');
+            const rewardEl = document.getElementById('newGoalReward');
             const emojiEl = document.getElementById('newGoalEmoji');
             const displayEl = document.getElementById('selectedEmojiDisplay');
 
             if (nameEl) nameEl.value = t.name;
             if (targetEl) targetEl.value = t.target;
+            if (rewardEl) rewardEl.value = t.reward;
             if (emojiEl) emojiEl.value = t.emoji;
             if (displayEl) displayEl.textContent = `Selected: ${t.emoji}`;
 
-            document.getElementById('newGoalReward')?.focus();
             console.log("✅ Template Applied:", t.name);
         }
     },
@@ -744,48 +769,37 @@ const Guardian = {
                 dateStr = dateObj.toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
             }
 
-            // Photo handling
-            const photoHtml = h.photo ? `<div style="width:40px; height:40px; border-radius:8px; background:url('${h.photo}') center/cover; margin-right:10px; border:1px solid #e2e8f0;"></div>` : '';
-
-            // 💡 Phase 7: High Intensity Alert Logic 
+            const isEmergency = h.emotion === 'Emergency' || h.isEmergency;
             const isHighIntensity = h.intensity >= 8;
-            const isEmergency = h.emotion === 'Emergency' || h.isEmergency; // 🆕 Emergency Check
 
-            let borderStyle = 'border:1px solid #f1f5f9; background:#f8fafc;';
+            let cardClass = "ff-routine-item";
             let actionButtons = '';
 
             if (isEmergency) {
-                borderStyle = 'border:2px solid #ef4444; background:#fee2e2; box-shadow: 0 4px 12px rgba(239,68,68,0.2);';
+                cardClass += " emergency-alert";
                 actionButtons = `
-                    <div style="margin-top:10px;">
-                        <span style="font-weight:700; color:#b91c1c;">🚨 EMERGENCY CHECK-IN</span>
-                        <div style="margin-top:10px; display:flex; gap:8px;">
-                             <button onclick="Guardian.sendMessage('I saw the emergency alert. Are you okay?')" style="flex:1; background:#ef4444; color:white; border:none; border-radius:8px; padding:8px; font-weight:700;">📞 Call/Text Now</button>
-                        </div>
+                    <div style="margin-top:12px; display:flex; gap:8px;">
+                        <button onclick="Guardian.sendMessage('I saw the emergency alert. Are you okay?')" class="ff-btn-primary" style="background:#EF4444; margin:0; font-size:0.8rem; flex:1;">📞 SOS Callback</button>
                     </div>
                 `;
             } else if (isHighIntensity) {
-                borderStyle = 'border:2px solid #f87171; background:#fef2f2;';
                 actionButtons = `
-                    <div style="margin-top:10px; display:flex; gap:8px;">
-                        <button onclick="Guardian.sendMessage('Doing okay? ❤️')" style="flex:1; background:#fff; border:1px solid #ef4444; color:#ef4444; border-radius:8px; padding:6px; font-size:0.8rem; font-weight:600;">❤️ Cheer</button>
-                        <button onclick="Guardian.promptMessage()" style="flex:1; background:#fff; border:1px solid #3b82f6; color:#3b82f6; border-radius:8px; padding:6px; font-size:0.8rem; font-weight:600;">💬 Text</button>
-                        <button onclick="alert('Calling Jason... 📞')" style="flex:1; background:#fff; border:1px solid #10b981; color:#10b981; border-radius:8px; padding:6px; font-size:0.8rem; font-weight:600;">📞 Call</button>
+                    <div style="margin-top:12px; display:flex; gap:8px;">
+                        <button onclick="Guardian.sendMessage('Doing okay? ❤️')" class="btn-ff-skip" style="margin:0; font-size:0.75rem; flex:1; border-color:#DDD6FE; color:#8B5CF6;">❤️ Cheer</button>
+                        <button onclick="Guardian.promptMessage()" class="btn-ff-skip" style="margin:0; font-size:0.75rem; flex:1; border-color:#BAE6FD; color:#0EA5E9;">💬 Text</button>
                     </div>
                 `;
             }
 
             return `
-            <div class="recent-history-item" style="display:flex; flex-direction:column; padding:12px; border-radius:12px; ${borderStyle} margin-bottom:8px;">
-                <div style="display:flex; align-items:center; width:100%;">
-                    ${photoHtml}
-                    <div style="font-size:1.5rem; margin-right:12px;">${h.emoji || '❓'}</div>
+            <div class="${cardClass}" style="flex-direction:column; align-items: stretch; padding:16px; margin-bottom:12px; cursor:default;">
+                <div style="display:flex; align-items:center; gap:12px;">
+                    <div class="ff-routine-icon" style="background:var(--ff-bg-soft); color:var(--ff-primary); font-size:1.25rem;">${h.emoji || '❓'}</div>
                     <div style="flex:1;">
-                        <div style="font-weight:700; color:#334155; font-size:0.95rem;">
-                            ${h.emotion} 
-                            <span style="font-weight:400; color:#94a3b8; font-size:0.85rem;">Lv.${h.intensity}</span>
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span style="font-weight:800; color:#1A1A2E; font-size:0.95rem;">${h.emotion} <span style="font-weight:600; color:#9CA3AF; font-size:0.8rem;">Lv.${h.intensity}</span></span>
+                            <span style="font-size:0.7rem; color:#9CA3AF; font-weight:600;">${dateStr}</span>
                         </div>
-                        <div style="font-size:0.75rem; color:#64748b;">${dateStr}</div>
                     </div>
                 </div>
                 ${actionButtons}
@@ -1131,11 +1145,9 @@ const Guardian = {
     },
 
     loadSettings() {
-        const k = localStorage.getItem('guardian_keywords') || "";
-        document.getElementById('childKeywords').value = k;
-
         const savedGoal = localStorage.getItem('feelflow_goal_msg') || '';
-        document.getElementById('guardianGoalInput').value = savedGoal;
+        const goalInput = document.getElementById('guardianGoalInput');
+        if (goalInput) goalInput.value = savedGoal;
     },
 
     saveGoal() {
@@ -1229,41 +1241,41 @@ function selectEmotion(name, emoji, color) {
 
 function renderTriggerScreen() {
     // 1. DOM Elements
-    const header = document.getElementById('triggerHeader');
-    const container = document.getElementById('triggerChipsContainer');
-    if (header) {
-        header.innerHTML = `What caused this feeling?<br><span style="font-size:3rem;">${currentEmotion.emoji}</span>`;
-    }
+    const emojiDisplay = document.getElementById('triggerEmojiDisplay');
+    const nameDisplay = document.getElementById('triggerNameDisplay');
+    const container = document.getElementById('triggerTagContainer');
+    const countDisplay = document.getElementById('triggerCountDisplay');
+    const nextBtn = document.getElementById('btnNextTrigger');
+
+    if (emojiDisplay) emojiDisplay.textContent = currentEmotion.emoji;
+    if (nameDisplay) nameDisplay.textContent = currentEmotion.name;
+    if (countDisplay) countDisplay.textContent = "0/3 selected";
+    if (nextBtn) nextBtn.disabled = true;
 
     // 2. Define Triggers
     const triggers = [
-        { id: 'school', text: '🏫 School' },
-        { id: 'friends', text: '👫 Friends' },
+        { id: 'school', text: '🏫 Homework' },
+        { id: 'friends', text: '👫 Classmates' },
         { id: 'family', text: '👨‍👩‍👦 Family' },
-        { id: 'noise', text: '🔊 Noise' },
-        { id: 'routine', text: '🔄 Change in Routine' },
+        { id: 'noise', text: '🔊 Too Loud' },
+        { id: 'routine', text: '🔄 Change in Plan' },
+        { id: 'presentation', text: '📝 Presentation' },
         { id: 'tired', text: '😴 Tired' },
         { id: 'hungry', text: '🍽️ Hungry' },
-        { id: 'sensory', text: '⚡ Sensory Overload' },
-        { id: 'unknown', text: '❓ Don\'t Know' },
+        { id: 'argument', text: '💬 Argument' },
         { id: 'other', text: '✏️ Other' }
     ];
 
-    // 3. Render Chips
+    // 3. Render Tags
     if (container) {
         container.innerHTML = triggers.map(t => `
-            <div id="trig-${t.id}" class="trigger-chip" onclick="toggleTrigger('${t.id}', '${t.text.replace("'", "\\'")}')">
+            <button id="trig-${t.id}" class="ff-tag-btn" onclick="toggleTrigger('${t.id}', '${t.text.replace("'", "\\'")}')">
                 ${t.text}
-            </div>
+            </button>
         `).join('');
     }
 
-    // 4. Reset Other Input
-    const otherDiv = document.getElementById('otherTriggerInputDiv');
-    const otherInput = document.getElementById('otherTriggerText');
-    if (otherDiv) otherDiv.style.display = 'none';
-    if (otherInput) otherInput.value = '';
-
+    currentEmotion.triggers = [];
     UI.goToScreen('Trigger');
 }
 
@@ -1271,52 +1283,70 @@ function toggleTrigger(id, text) {
     const el = document.getElementById(`trig-${id}`);
     if (!el) return;
 
-    // Toggle Style
-    el.classList.toggle('active');
-
-    // Handle "Other" Visibility
-    if (id === 'other') {
-        const otherDiv = document.getElementById('otherTriggerInputDiv');
-        if (otherDiv) otherDiv.style.display = el.classList.contains('active') ? 'block' : 'none';
-    }
-
-    // Update Array (simple toggle logic)
     if (!currentEmotion.triggers) currentEmotion.triggers = [];
-
     const idx = currentEmotion.triggers.indexOf(text);
+
     if (idx > -1) {
+        // Remove
         currentEmotion.triggers.splice(idx, 1);
+        el.classList.remove('selected');
     } else {
-        currentEmotion.triggers.push(text);
+        // Add (max 3)
+        if (currentEmotion.triggers.length < 3) {
+            currentEmotion.triggers.push(text);
+            el.classList.add('selected');
+            el.classList.add('animate-tag-pop');
+            setTimeout(() => el.classList.remove('animate-tag-pop'), 200);
+        } else {
+            // Haptic feedback for "too many"
+            safeVibrate([50, 50]);
+            return;
+        }
     }
+
+    // Update UI
+    const countDisplay = document.getElementById('triggerCountDisplay');
+    if (countDisplay) countDisplay.textContent = `${currentEmotion.triggers.length}/3 selected`;
+
+    const nextBtn = document.getElementById('btnNextTrigger');
+    if (nextBtn) nextBtn.disabled = (currentEmotion.triggers.length === 0);
 
     safeVibrate(10);
 }
 
 function submitTriggers() {
-    // Handle "Other" Text
-    const otherInput = document.getElementById('otherTriggerText');
-    const otherChip = document.getElementById('trig-other');
-
-    if (otherChip && otherChip.classList.contains('active') && otherInput && otherInput.value.trim() !== '') {
-        // Remove "✏️ Other" placeholder if present and add real text
-        const idx = currentEmotion.triggers.indexOf('✏️ Other');
-        if (idx > -1) currentEmotion.triggers.splice(idx, 1);
-        currentEmotion.triggers.push(`Other: ${otherInput.value.trim()}`);
-    }
-
     // Go to Next Screen (Intensity)
     const emojiEl = document.getElementById('selectedEmoji');
     const nameEl = document.getElementById('selectedName');
+    const triggersEl = document.getElementById('selectedTriggersDisplay');
+
     if (emojiEl) emojiEl.textContent = currentEmotion.emoji;
     if (nameEl) nameEl.textContent = currentEmotion.name;
+
+    if (triggersEl) {
+        triggersEl.innerHTML = currentEmotion.triggers.map(t => `
+            <span class="flex items-center gap-1 rounded-full px-2.5 py-1" style="background:#F3F4F6; text-[0.75rem]; color:#6B7280; display:flex; gap:4px; align-items:center;">
+                ${t}
+            </span>
+        `).join('');
+    }
 
     // Reset Slider
     const slider = document.getElementById('intensitySlider');
     const display = document.getElementById('intensityDisplay');
+    const fill = document.getElementById('sliderFill');
+    const circle = document.getElementById('intensityCircle');
+
     if (slider) slider.value = 5;
     if (display) display.textContent = '5';
+    if (fill) fill.style.width = '44.44%';
+    if (circle) circle.style.transform = 'scale(1.066)'; // (1 + (5 - 1) * (0.15 / 9))
+
     currentEmotion.intensity = 5;
+
+    // Reset background wash
+    const screen2 = document.getElementById('screen2');
+    if (screen2) screen2.style.backgroundColor = `rgba(108, 92, 231, ${((5 - 1) / 9) * 0.04})`;
 
     UI.goToScreen('2', "How strong is it?");
 }
@@ -1328,8 +1358,25 @@ function skipTriggers() {
 
 // 💡 Remeasure Logic
 function updateRemeasure(val) {
+    const intensity = parseInt(val);
     const display = document.getElementById('remeasureDisplay');
     if (display) display.innerText = val;
+
+    // Update Fill Bar
+    const fill = document.getElementById('remeasureFill');
+    if (fill) {
+        const fillPct = ((intensity - 1) / 9) * 100;
+        fill.style.width = `${fillPct}%`;
+    }
+
+    // Update Circle Scale
+    const circle = document.getElementById('remeasureCircle');
+    if (circle) {
+        const circleScale = 1 + (intensity - 1) * (0.15 / 9);
+        circle.style.transform = `scale(${circleScale})`;
+    }
+
+    safeVibrate(5);
 }
 
 function submitRemeasure() {
@@ -1344,25 +1391,56 @@ function startQuest(taskId, title) {
 }
 
 function updateIntensity(val) {
-    currentEmotion.intensity = parseInt(val);
+    const intensity = parseInt(val);
+    currentEmotion.intensity = intensity;
+
+    // Update Display
     const display = document.getElementById('intensityDisplay');
     if (display) display.textContent = val;
+
+    // Update Fill Bar
+    const fill = document.getElementById('sliderFill');
+    if (fill) {
+        const fillPct = ((intensity - 1) / 9) * 100;
+        fill.style.width = `${fillPct}%`;
+    }
+
+    // Update Circle Scale
+    const circle = document.getElementById('intensityCircle');
+    if (circle) {
+        const circleScale = 1 + (intensity - 1) * (0.15 / 9);
+        circle.style.transform = `scale(${circleScale})`;
+    }
+
+    // Update Background Wash
+    const screen2 = document.getElementById('screen2');
+    if (screen2) {
+        const bgWashOpacity = ((intensity - 1) / 9) * 0.04;
+        screen2.style.backgroundColor = `rgba(108, 92, 231, ${bgWashOpacity})`;
+    }
+
+    safeVibrate(5);
 }
 
 // 💡 [최종 교정] goToResult: ui.js 0215 버전 지능형 전략 엔진 연동
 function goToResult() {
     console.log("🎯 전략 엔진 가동: 강도별 맞춤 카드 생성");
 
-    const summaryEmoji = document.getElementById('summaryEmoji');
-    const summaryText = document.getElementById('summaryText');
-    const summaryBar = document.getElementById('resultSummaryBar');
+    // Populate V0 Context Strip
+    const resultEmoji = document.getElementById('resultEmoji');
+    const resultColorDot = document.getElementById('resultColorDot');
+    const resultName = document.getElementById('resultName');
+    const resultIntensity = document.getElementById('resultIntensity');
+    const resultTrigger = document.getElementById('resultTrigger');
 
-    if (summaryEmoji) summaryEmoji.textContent = currentEmotion.emoji;
-    if (summaryText) summaryText.textContent = `${currentEmotion.name} (Lv. ${currentEmotion.intensity})`;
-
-    if (summaryBar && currentEmotion.color) {
-        summaryBar.style.backgroundColor = `${currentEmotion.color}20`;
-        summaryBar.style.borderColor = currentEmotion.color;
+    if (resultEmoji) resultEmoji.textContent = currentEmotion.emoji;
+    if (resultColorDot) resultColorDot.style.backgroundColor = currentEmotion.color;
+    if (resultName) resultName.textContent = currentEmotion.name;
+    if (resultIntensity) resultIntensity.textContent = `Intensity ${currentEmotion.intensity}`;
+    if (resultTrigger) {
+        resultTrigger.textContent = (currentEmotion.triggers && currentEmotion.triggers.length > 0)
+            ? currentEmotion.triggers.join(', ')
+            : 'No triggers';
     }
 
     // 💡 강도(intensity)를 함께 전달하여 Happy 1단계 '🌱' 분기 활성화
@@ -1384,14 +1462,21 @@ window.finishCheckIn = async function () {
         const remeasureSlider = document.getElementById('remeasureSlider');
         const remeasureDisplay = document.getElementById('remeasureDisplay');
         const remeasureEmoji = document.getElementById('remeasureEmoji');
+        const remeasureFill = document.getElementById('remeasureFill');
+        const remeasureCircle = document.getElementById('remeasureCircle');
 
         // Setup Re-measure Screen
         if (remeasureBefore) remeasureBefore.innerText = currentEmotion.intensity;
         if (remeasureEmoji) remeasureEmoji.innerText = currentEmotion.emoji;
 
         // Default slider to current intensity for easier comparison
-        if (remeasureSlider) remeasureSlider.value = currentEmotion.intensity;
-        if (remeasureDisplay) remeasureDisplay.innerText = currentEmotion.intensity;
+        const startVal = currentEmotion.intensity || 5;
+        if (remeasureSlider) remeasureSlider.value = startVal;
+        if (remeasureDisplay) remeasureDisplay.innerText = startVal;
+
+        // Sync fill and circle
+        if (remeasureFill) remeasureFill.style.width = `${((startVal - 1) / 9) * 100}%`;
+        if (remeasureCircle) remeasureCircle.style.transform = `scale(${1 + (startVal - 1) * (0.15 / 9)})`;
 
         UI.goToScreen('Remeasure');
         return; // Stop here, wait for submitRemeasure
@@ -1575,49 +1660,42 @@ function renderRoutineScreen() {
     tabEvening.classList.toggle('active', currentRoutineTab === 'evening');
 
     const tasks = DailyRoutines[currentRoutineTab];
-    // Calculated active tasks for progress
-    const activeTasks = tasks.filter(t => t.active !== false); // Treat undefined as true
+    const activeTasks = tasks.filter(t => t.active !== false);
     const done = activeTasks.filter(t => t.completed).length;
     const total = activeTasks.length;
     const percent = total === 0 ? 0 : (done / total) * 100;
 
-    document.getElementById('progressFraction').textContent = `${done}/${total}`;
-    document.getElementById('progressBar').style.width = `${percent}%`;
+    const fractionEl = document.getElementById('progressFraction');
+    const barEl = document.getElementById('progressBar');
+    if (fractionEl) fractionEl.textContent = `${done}/${total}`;
+    if (barEl) barEl.style.width = `${percent}%`;
 
-    // Check if we have Custom tasks to show delete button
     const isCustom = (id) => id.toString().startsWith('c');
 
     container.innerHTML = tasks.map(t => {
         const isActive = t.active !== false;
-        const disabledClass = !isActive ? 'disabled' : '';
         const completedClass = t.completed ? 'completed' : '';
-
-        // Disable check action if disabled
         const checkAction = isActive ? `handleRoutineCheck('${t.id}', 'tracker')` : '';
 
-        let controlsHtml = '';
-        if (isCustom(t.id)) {
-            controlsHtml = `<button class="btn-control delete" onclick="deleteRoutine('${t.id}')">🗑️</button>`;
-        } else {
-            const btnText = isActive ? 'Disable' : 'Enable';
-            controlsHtml = `<button class="btn-control" onclick="toggleRoutineActive('${t.id}')">${btnText}</button>`;
-        }
+        // Only show active tasks in the list for now to keep it clean, 
+        // Or show disabled ones with lower opacity
+        if (!isActive) return '';
 
         return `
-            <div class="routine-checkbox-item ${completedClass} ${disabledClass}" id="routine-${t.id}">
-                <div class="custom-checkbox" onclick="${checkAction}"></div>
-                <span class="routine-text" style="flex:1; font-weight:850; font-size:1.05rem;">${t.text}</span>
-                <div class="routine-controls">
-                    ${controlsHtml}
-                </div>
+            <div class="ff-routine-item ${completedClass}" id="routine-${t.id}" onclick="${checkAction}">
+                <div class="ff-routine-checkbox"></div>
+                <span class="ff-routine-text">${t.text}</span>
+                ${isCustom(t.id) ? `<button class="ff-delete-btn" style="margin-left:auto; background:none; border:none; color:#FCA5A5; font-size:1.2rem; padding:0 8px;" onclick="event.stopPropagation(); deleteRoutine('${t.id}')">×</button>` : ''}
             </div>
             `;
     }).join('') + `
-            <div class="add-custom-routine">
-                <input type="text" id="customRoutineInput" placeholder="+ Add a task..." onkeypress="if(event.key === 'Enter') addCustomRoutine(this.value)">
+            <div style="margin-top: 12px; padding: 0 4px;">
+                <input type="text" id="customRoutineInput" placeholder="+ Add a task..." 
+                    style="width: 100%; height: 48px; border-radius: 12px; border: 2px dashed #E2E8F0; background: none; padding: 0 16px; font-size: 0.95rem; color: #1A1A2E;"
+                    onkeypress="if(event.key === 'Enter') addCustomRoutine(this.value)">
             </div>`;
 
-    UI.updateNavActive('navRoutine');
+    if (typeof UI !== 'undefined' && UI.updateNavActive) UI.updateNavActive('navRoutine');
 }
 
 function handleRoutineCheck(id, source) {
@@ -1739,11 +1817,20 @@ function renderTrophies() {
         if (pending) {
             pendingContainer.style.display = 'block';
             pendingContainer.innerHTML = `
-                <div class="achievement-card">
-                    <div class="achievement-badge">MISSION ACCOMPLISHED!</div>
-                    <div style="font-size:3.5rem; margin:10px 0;">${pending.emoji}</div>
-                    <h3 style="margin-bottom:5px;">${pending.name}</h3>
-                    <div style="color:#64748b; font-size:0.9rem;">Wait for your Guardian <br>to deliver the reward! 🎁</div>
+                <div class="ff-quest-summary-card" style="border-color: #F59E0B; background: #FFFBEB;">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div class="ff-quest-icon-circle" style="background: #FEF3C7; color: #F59E0B;">
+                            <span style="font-size: 1.2rem;">${pending.emoji}</span>
+                        </div>
+                        <div style="text-align: left;">
+                            <p style="font-size: 0.95rem; font-weight: 800; color: #1A1A2E; margin: 0;">Goal Accomplished!</p>
+                            <p style="font-size: 0.75rem; color: #92400E; margin: 0;">${pending.name}</p>
+                        </div>
+                    </div>
+                    <div style="text-align: right;">
+                        <span style="display: block; font-size: 0.7rem; color: #B45309; font-weight: 700;">PENDING</span>
+                        <span style="font-size: 1.25rem;">🎁</span>
+                    </div>
                 </div>
             `;
         } else {
@@ -1774,56 +1861,42 @@ function renderTrophies() {
         if (daysEl) daysEl.textContent = `Day ${days}`;
     }
 
-    // --- Queue (Coming Up Next) ---
     const queueContainer = document.getElementById('goalQueueContainer');
     if (queueContainer) {
         if (!queue || queue.length === 0) {
             queueContainer.innerHTML = `
-                <div class="queue-card" style="opacity:0.5;">
-                    <div style="font-size:1.5rem;">🔒</div>
-                    <div style="font-size:0.8rem;">Empty Queue</div>
+                <div class="ff-queue-item" style="opacity: 0.6; border-style: dashed;">
+                    <div class="ff-queue-icon">🔒</div>
+                    <div style="font-size: 0.9rem; font-weight: 600; color: #94A3B8;">Queue is empty</div>
                 </div>`;
         } else {
-            // Show up to 2 queued goals as previews (name + emoji only)
+            // V0-style queue items
             queueContainer.innerHTML = queue.slice(0, 2).map(q => `
-                <div class="queue-card">
-                    <div class="queue-card-emoji">${q.emoji}</div>
-                    <div style="font-size:0.85rem; font-weight:700; color:#475569; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${q.name}</div>
-                    <div style="font-size:1.4rem; margin-top:5px;">🎁</div>
+                <div class="ff-queue-item">
+                    <div class="ff-queue-icon">${q.emoji}</div>
+                    <div style="flex: 1;">
+                        <div style="font-size: 0.9rem; font-weight: 800; color: #1A1A2E;">${q.name}</div>
+                        <div style="font-size: 0.7rem; color: #9CA3AF; font-weight: 600;">Reward: ${q.reward}</div>
+                    </div>
+                    <div style="font-size: 1.25rem;">🎁</div>
                 </div>
             `).join('');
         }
     }
 
-    // --- History (Trophy Case with Tiered Icons) ---
     const historyContainer = document.getElementById('goalHistoryContainer');
     if (historyContainer) {
         if (!history || history.length === 0) {
-            historyContainer.innerHTML = `<div style="text-align:center; color:#94a3b8; font-size:0.9rem; padding:20px;">No trophies yet. Keep checking in!</div>`;
+            historyContainer.innerHTML = `<div style="grid-column: span 2; text-align:center; color:#9CA3AF; font-size:0.9rem; padding:40px;">No trophies yet. Keep going! 🏆</div>`;
         } else {
-            // History list with tiered icons based on index
-            historyContainer.innerHTML = history.slice(0, 10).map((h, idx) => {
-                let icon = '🏆';
-                if (idx === 0) icon = '🥉';
-                else if (idx === 1) icon = '🥈';
-                else if (idx === 2) icon = '🥇';
-
-                return `
-                    <div class="completed-card">
-                        <div class="completed-icon" style="font-size:1.8rem;">${icon}</div>
-                        <div style="flex-grow:1; margin-left:12px;">
-                            <div style="font-weight:700; color:#1e293b;">${h.name}</div>
-                            <div style="font-size:0.75rem; color:#64748b;">
-                                ${new Date(h.completedAt).toLocaleDateString()} • ${h.daysToComplete || 1} days 
-                            </div>
-                        </div>
-                        <div style="text-align:right;">
-                            <div style="font-weight:700; color:#8b5cf6;">${h.targetXP} XP</div>
-                            <div style="font-size:0.7rem; color:#94a3b8;">${h.emoji}</div>
-                        </div>
-                    </div>
-                `;
-            }).join('');
+            // Trophy Case Grid
+            historyContainer.innerHTML = history.slice(0, 10).map((h, idx) => `
+                <div class="ff-trophy-item">
+                    <span class="ff-trophy-icon">${h.emoji}</span>
+                    <span class="ff-trophy-name">${h.name}</span>
+                    <span class="ff-trophy-date">${new Date(h.completedAt).toLocaleDateString([], { month: 'short', day: 'numeric' })}</span>
+                </div>
+            `).join('');
         }
     }
 

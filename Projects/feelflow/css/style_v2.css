@@ -1,8 +1,812 @@
+:root {
+    /* FeelFlow V4 Design System (from V0) */
+    --ff-bg: #F5F2EC;
+    --ff-bg-gradient: linear-gradient(180deg, #F5F2EC 0%, #EDE9E1 100%);
+    --ff-card: #FFFFFF;
+    --ff-card-shadow: 0 2px 16px rgba(0, 0, 0, 0.05), 0 0.5px 2px rgba(0, 0, 0, 0.03);
+    --ff-card-radius: 20px;
+    --ff-primary: #6C5CE7;
+    --ff-primary-light: #F0EDFF;
+    --ff-success: #10B981;
+    --ff-warning: #FDCB6E;
+    --ff-danger: #FF6B6B;
+    --ff-danger-gradient: linear-gradient(135deg, #FF6B6B, #E17055);
+    --ff-text-primary: #1A1A2E;
+    --ff-text-secondary: #6B7280;
+    --ff-text-tertiary: #9CA3AF;
+    --ff-border: rgba(0, 0, 0, 0.06);
+    --ff-nav-height: 72px;
+
+    /* Emotion colors */
+    --ff-happy: #F59E0B;
+    --ff-sad: #3B82F6;
+    --ff-anxious: #8B5CF6;
+    --ff-angry: #EF4444;
+    --ff-calm: #10B981;
+    --ff-tired: #94A3B8;
+
+    /* Font family */
+    --ff-font: 'Plus Jakarta Sans', -apple-system, sans-serif;
+    --ff-font-mono: 'JetBrains Mono', monospace;
+}
+
+/* Animations (from V0) */
+@keyframes fab-pulse {
+
+    0%,
+    100% {
+        box-shadow: 0 4px 16px rgba(255, 107, 107, 0.35);
+    }
+
+    50% {
+        box-shadow: 0 4px 24px rgba(255, 107, 107, 0.55);
+    }
+}
+
+.fab-emergency {
+    animation: fab-pulse 3s ease-in-out infinite;
+}
+
+@keyframes tag-pop {
+    0% {
+        transform: scale(1);
+    }
+
+    40% {
+        transform: scale(0.95);
+    }
+
+    70% {
+        transform: scale(1.02);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+.animate-tag-pop {
+    animation: tag-pop 200ms ease-out;
+}
+
+@keyframes emoji-float {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-4px);
+    }
+}
+
+.animate-emoji-float {
+    animation: emoji-float 4s ease-in-out infinite;
+}
+
+@keyframes breathe-circle {
+    0% {
+        transform: scale(0.85);
+    }
+
+    25% {
+        transform: scale(1.0);
+    }
+
+    50% {
+        transform: scale(1.0);
+    }
+
+    75% {
+        transform: scale(0.85);
+    }
+
+    100% {
+        transform: scale(0.85);
+    }
+}
+
+.animate-breathe {
+    animation: breathe-circle 16s ease-in-out infinite;
+}
+
+@keyframes emergency-glow {
+
+    0%,
+    100% {
+        box-shadow: 0 0 20px rgba(108, 92, 231, 0.15);
+    }
+
+    50% {
+        box-shadow: 0 0 30px rgba(108, 92, 231, 0.25);
+    }
+}
+
+.animate-emergency-glow {
+    animation: emergency-glow 4s ease-in-out infinite;
+}
+
+@keyframes sparkle-entrance {
+    0% {
+        transform: scale(0);
+        opacity: 0;
+    }
+
+    60% {
+        transform: scale(1.1);
+        opacity: 1;
+    }
+
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.animate-sparkle {
+    animation: sparkle-entrance 500ms ease-out forwards;
+}
+
+@keyframes reward-bounce {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-4px);
+    }
+}
+
+.animate-reward-bounce {
+    animation: reward-bounce 2s ease-in-out infinite;
+}
+
+@keyframes progress-fill {
+    from {
+        width: 0%;
+    }
+
+    to {
+        width: var(--progress-width, 65%);
+    }
+}
+
+.animate-progress-fill {
+    animation: progress-fill 800ms ease-out forwards;
+}
+
+@keyframes check-bounce {
+    0% {
+        transform: scale(1);
+    }
+
+    30% {
+        transform: scale(0.9);
+    }
+
+    60% {
+        transform: scale(1.1);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+.animate-check-bounce {
+    animation: check-bounce 200ms ease-out;
+}
+
+@keyframes confetti-drift {
+    0% {
+        transform: translateY(-10px) rotate(0deg);
+        opacity: 0.3;
+    }
+
+    100% {
+        transform: translateY(700px) rotate(45deg);
+        opacity: 0;
+    }
+}
+
+/* Slider Style (from V0) */
+input[type="range"].ff-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 6px;
+    border-radius: 9999px;
+    outline: none;
+    background: transparent;
+}
+
+input[type="range"].ff-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #FFFFFF;
+    border: 3px solid var(--thumb-color, #8B5CF6);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    cursor: pointer;
+    margin-top: -11px;
+    transition: transform 150ms ease-out;
+}
+
+input[type="range"].ff-slider:active::-webkit-slider-thumb {
+    transform: scale(1.1);
+}
+
+input[type="range"].ff-slider::-webkit-slider-runnable-track {
+    height: 6px;
+    border-radius: 9999px;
+}
+
 /* * FeelFlow Premium UI Stack 
  * Build: Ver.0213-1610 (iOS Safari Scroll Lock)
  */
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;850&display=swap');
+
+/* Home Screen Specifics (Step 2) */
+.ff-header {
+    padding: 8px 20px;
+    background: var(--ff-bg);
+}
+
+.ff-weather-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(0, 0, 0, 0.04);
+    padding: 5px 12px;
+    border-radius: 9999px;
+}
+
+.ff-xp-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: #FEF3C7;
+    padding: 5px 12px;
+    border-radius: 9999px;
+    color: #D97706;
+    font-weight: 700;
+    font-family: var(--ff-font-mono);
+}
+
+.ff-greeting {
+    font-family: var(--ff-font);
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: var(--ff-text-primary);
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    margin-top: 12px;
+}
+
+.ff-date-streak {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 4px;
+}
+
+.ff-streak-pill {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: #FFF7ED;
+    padding: 2px 10px;
+    border-radius: 9999px;
+    color: #EA580C;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.ff-screen-content {
+    padding: 0 20px 100px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.ff-emotion-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.ff-emotion-btn {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 85px;
+    background: var(--ff-card);
+    border-radius: 18px;
+    box-shadow: var(--ff-card-shadow);
+    border: none;
+    transition: all 0.2s ease-out;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.ff-emotion-btn:active {
+    transform: scale(0.97);
+}
+
+.ff-emotion-btn .btn-color-bar {
+    position: absolute;
+    left: 0;
+    top: 16px;
+    bottom: 16px;
+    width: 4px;
+    background: var(--btn-color);
+    border-radius: 0 4px 4px 0;
+    transition: width 0.2s;
+}
+
+.ff-emotion-btn.selected {
+    transform: translateY(-1px);
+    box-shadow: 0 0 0 2px var(--btn-color), var(--ff-card-shadow);
+}
+
+.ff-emotion-btn.selected .btn-color-bar {
+    width: 6px;
+}
+
+.ff-emotion-btn .emoji {
+    font-size: 2.2rem;
+    line-height: 1;
+}
+
+.ff-emotion-btn .label {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--ff-text-primary);
+    margin-top: 6px;
+}
+
+.ff-quest-summary-card {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    height: 52px;
+    background: var(--ff-card);
+    border-radius: 16px;
+    padding: 0 16px;
+    border: none;
+    box-shadow: var(--ff-card-shadow);
+    transition: all 0.2s;
+    text-align: left;
+}
+
+.ff-quest-summary-card:active {
+    transform: scale(0.98);
+}
+
+.ff-progress-ring-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: auto;
+}
+
+.ff-progress-ring-text {
+    position: absolute;
+    font-size: 0.6rem;
+    font-weight: 700;
+    font-family: var(--ff-font-mono);
+    color: var(--ff-primary);
+}
+
+/* Trigger Screen Specifics (Step 2) */
+.ff-tag-cloud {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 10px 0;
+}
+
+.ff-tag-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    height: 40px;
+    padding: 0 16px;
+    background: var(--ff-card);
+    border-radius: 9999px;
+    border: 1.5px solid #E5E7EB;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #374151;
+    transition: all 0.2s ease-out;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.ff-tag-btn:active {
+    transform: scale(0.95);
+}
+
+.ff-tag-btn.selected {
+    background: #F0EDFF;
+    border-color: #6C5CE7;
+    color: #6C5CE7;
+    font-weight: 700;
+}
+
+/* Intensity Screen Specifics (Step 2) */
+.ff-intensity-card {
+    background: var(--ff-card);
+    border-radius: 24px;
+    padding: 28px 24px;
+    box-shadow: var(--ff-card-shadow);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+.ff-number-circle {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: rgba(108, 92, 231, 0.1);
+    border: 2px solid rgba(108, 92, 231, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 20px 0 24px;
+    transition: transform 0.3s ease-out;
+}
+
+.ff-number-circle span {
+    font-family: var(--ff-font-mono);
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: var(--ff-primary);
+    line-height: 1;
+}
+
+.ff-slider-labels {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    margin-top: 8px;
+    font-size: 0.8rem;
+    color: #9CA3AF;
+}
+
+.btn-ff-primary {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    height: 52px;
+    background: var(--ff-primary);
+    color: white;
+    border: none;
+    border-radius: 16px;
+    font-size: 1rem;
+    font-weight: 700;
+    transition: all 0.2s;
+}
+
+.btn-ff-primary:active {
+    transform: scale(0.97);
+}
+
+.btn-ff-primary:disabled {
+    background: rgba(108, 92, 231, 0.4);
+    cursor: not-allowed;
+}
+
+/* Strategy Selection Specifics (Step 2) */
+.ff-context-strip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: white;
+    padding: 10px 16px;
+    border-radius: 16px;
+    box-shadow: 0 1px 8px rgba(0, 0, 0, 0.04);
+    margin-top: 4px;
+}
+
+.ff-context-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+}
+
+.ff-strategy-card {
+    position: relative;
+    width: 100%;
+    background: white;
+    border-radius: 20px;
+    border: none;
+    box-shadow: var(--ff-card-shadow);
+    display: flex;
+    align-items: center;
+    padding: 16px;
+    text-align: left;
+    transition: all 0.2s ease-out;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    overflow: hidden;
+}
+
+.ff-strategy-card:active {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.ff-strategy-card::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: var(--ff-primary);
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.ff-strategy-card:active::before {
+    opacity: 1;
+}
+
+.ff-strategy-icon-circle {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--ff-primary-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.ff-strategy-icon-circle span {
+    font-size: 1.5rem;
+    line-height: 1;
+}
+
+.ff-strategy-info {
+    flex: 1;
+    margin-left: 16px;
+    min-width: 0;
+}
+
+.ff-strategy-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #1A1A2E;
+    margin: 0;
+}
+
+.ff-strategy-desc {
+    font-size: 0.78rem;
+    color: #9CA3AF;
+    margin: 2px 0 6px;
+    line-height: 1.2;
+}
+
+.ff-strategy-meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.ff-strategy-duration {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--ff-primary);
+    background: var(--ff-primary-light);
+    padding: 2px 8px;
+    border-radius: 9999px;
+}
+
+.ff-strategy-tag {
+    font-size: 0.75rem;
+    color: #6B7280;
+}
+
+/* Tracker Screen Specifics (Step 2) */
+.ff-tracker-tabs {
+    display: flex;
+    background: rgba(0, 0, 0, 0.04);
+    padding: 4px;
+    border-radius: 12px;
+    margin: 0 20px 20px;
+}
+
+.ff-tracker-tab {
+    flex: 1;
+    padding: 8px;
+    border: none;
+    background: none;
+    border-radius: 9px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #6B7280;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.ff-tracker-tab.active {
+    background: white;
+    color: #1A1A2E;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.ff-progress-card {
+    background: white;
+    margin: 0 20px 24px;
+    padding: 20px;
+    border-radius: 20px;
+    box-shadow: var(--ff-card-shadow);
+}
+
+.ff-progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.ff-progress-title {
+    font-size: 0.95rem;
+    font-weight: 850;
+    color: #1A1A2E;
+}
+
+.ff-progress-fraction {
+    font-size: 0.95rem;
+    font-weight: 850;
+    color: var(--ff-primary);
+    font-family: var(--ff-font-mono);
+}
+
+.ff-progress-bar-bg {
+    height: 8px;
+    background: #F1F5F9;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.ff-progress-bar-fill {
+    height: 100%;
+    background: var(--ff-primary);
+    border-radius: 4px;
+    transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.ff-routine-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 0 20px 100px;
+}
+
+.ff-routine-item {
+    display: flex;
+    align-items: center;
+    background: white;
+    padding: 16px;
+    border-radius: 16px;
+    box-shadow: var(--ff-card-shadow);
+    transition: transform 0.2s;
+}
+
+.ff-routine-item:active {
+    transform: scale(0.98);
+}
+
+.ff-routine-checkbox {
+    width: 24px;
+    height: 24px;
+    border: 2px solid #E2E8F0;
+    border-radius: 6px;
+    margin-right: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+
+.ff-routine-item.completed .ff-routine-checkbox {
+    background: var(--ff-success);
+    border-color: var(--ff-success);
+}
+
+.ff-routine-checkbox::after {
+    content: "✓";
+    color: white;
+    font-size: 14px;
+    font-weight: 900;
+    display: none;
+}
+
+.ff-routine-item.completed .ff-routine-checkbox::after {
+    display: block;
+}
+
+.ff-routine-text {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #1A1A2E;
+    transition: color 0.2s;
+}
+
+.ff-routine-item.completed .ff-routine-text {
+    color: #9CA3AF;
+    text-decoration: line-through;
+}
+
+.btn-ff-skip {
+    width: 100%;
+    height: 44px;
+    background: none;
+    border: none;
+    color: #9CA3AF;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.ff-bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: var(--ff-nav-height);
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 0 10px;
+    border-top: 1px solid var(--ff-border);
+    z-index: 100;
+}
+
+.ff-nav-tab {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: none;
+    border: none;
+    color: var(--ff-text-secondary);
+    font-size: 0.65rem;
+    font-weight: 600;
+    gap: 4px;
+    width: 25%;
+    position: relative;
+    cursor: pointer;
+}
+
+.ff-nav-tab.active {
+    color: var(--ff-primary);
+}
+
+.ff-nav-dot {
+    width: 4px;
+    height: 4px;
+    background: var(--ff-primary);
+    border-radius: 50%;
+    margin-top: 2px;
+}
 
 /* 💡 핵심: iOS에서 바디가 밀리는 것을 방지 */
 html,
@@ -15,6 +819,9 @@ body {
     /* iOS 스크롤 방지 핵심 */
     overflow: hidden;
     -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
     /* 텍스트 선택 방지 */
     touch-action: none;
     /* 브라우저 기본 제스처 차단 */
@@ -827,6 +1634,9 @@ body {
     /* iOS 스크롤 방지 핵심 */
     overflow: hidden;
     -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
     /* 텍스트 선택 방지 */
     touch-action: none;
     /* 브라우저 기본 제스처 차단 */
@@ -2083,22 +2893,30 @@ label {
 /* 🚨 Emergency Mode Styles */
 .fab-emergency {
     position: fixed;
-    bottom: 24px;
-    right: 24px;
-    width: 56px;
-    height: 56px;
+    z-index: 100;
+    right: 20px;
+    bottom: 88px;
+    width: 52px;
+    height: 52px;
     border-radius: 50%;
-    background: #ef4444;
-    color: white;
-    font-size: 1.5rem;
     border: none;
-    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
-    z-index: 9999;
-    cursor: pointer;
+    background: linear-gradient(135deg, #FF6B6B, #E17055);
+    color: white;
+    font-weight: 800;
+    font-size: 0.7rem;
+    letter-spacing: 0.05em;
     display: flex;
-    justify-content: center;
     align-items: center;
-    animation: pulse-red 2s infinite;
+    justify-content: center;
+    box-shadow: 0 4px 16px rgba(255, 107, 107, 0.35);
+    animation: fab-pulse 3s ease-in-out infinite;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: transform 0.2s;
+}
+
+.fab-emergency:active {
+    transform: scale(0.93);
 }
 
 .btn-emergency-home {
@@ -2114,6 +2932,182 @@ label {
     box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
     cursor: pointer;
     animation: pulse-red 2s infinite;
+}
+
+/* Journey Screen Specifics (Step 2) */
+.ff-journey-list {
+    display: flex;
+    flex-direction: column;
+    padding: 0 20px 100px;
+    position: relative;
+}
+
+.ff-journey-list::before {
+    content: "";
+    position: absolute;
+    left: 31px;
+    top: 0;
+    bottom: 100px;
+    width: 2px;
+    background: #F1F5F9;
+}
+
+.ff-journey-entry {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 24px;
+    position: relative;
+}
+
+.ff-entry-marker {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: white;
+    border: 2px solid var(--ff-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1;
+    flex-shrink: 0;
+    margin-top: 4px;
+}
+
+.ff-entry-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--ff-primary);
+}
+
+.ff-entry-card {
+    flex: 1;
+    background: white;
+    border-radius: 16px;
+    padding: 16px;
+    box-shadow: var(--ff-card-shadow);
+    min-width: 0;
+}
+
+.ff-entry-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.ff-entry-time {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #9CA3AF;
+}
+
+.ff-entry-intensity {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--ff-primary);
+    background: var(--ff-primary-light);
+    padding: 2px 8px;
+    border-radius: 9999px;
+}
+
+.ff-entry-mood {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.ff-entry-emoji {
+    font-size: 1.25rem;
+}
+
+.ff-entry-name {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #1A1A2E;
+}
+
+.ff-entry-note {
+    font-size: 0.85rem;
+    color: #4B5563;
+    line-height: 1.4;
+    margin-top: 8px;
+    padding: 10px;
+    background: #F9FAFB;
+    border-radius: 12px;
+}
+
+.ff-entry-photo {
+    width: 100%;
+    border-radius: 12px;
+    margin-top: 10px;
+    object-fit: cover;
+    aspect-ratio: 16 / 9;
+}
+
+.ff-entry-activity {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 10px;
+    padding: 8px 12px;
+    background: #F1F5F9;
+    border-radius: 10px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #475569;
+}
+
+/* Activity Screen Specifics (Phase 3) */
+.ff-activity-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.ff-activity-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 20px 20px;
+    text-align: center;
+}
+
+.ff-activity-icon-large {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: var(--ff-primary-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    margin-bottom: 20px;
+    box-shadow: 0 8px 16px rgba(108, 92, 231, 0.1);
+}
+
+.ff-activity-title {
+    font-size: 1.5rem;
+    font-weight: 850;
+    color: #1A1A2E;
+    margin: 0;
+}
+
+.ff-action-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.ff-activity-footer {
+    padding: 20px 20px 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
 }
 
 #screenEmergency {
@@ -2609,4 +3603,119 @@ label {
         transform: scale(1);
         box-shadow: 0 0 0 0 rgba(251, 146, 60, 0);
     }
+}
+
+/* Emergency & Crisis Screen Specifics (Phase 4) */
+.ff-emergency-screen {
+    background: #1A1A2E !important;
+    color: white;
+}
+
+.ff-emergency-container {
+    display: flex;
+    flex-direction: column;
+    padding: 40px 20px;
+    height: 100%;
+}
+
+.ff-emergency-title {
+    font-size: 1.5rem;
+    font-weight: 850;
+    color: white;
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.ff-emergency-activity {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 24px;
+    margin-bottom: 30px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.ff-crisis-screen {
+    background: #F8FAFC !important;
+}
+
+.ff-crisis-container {
+    padding: 0 20px 40px;
+}
+
+.ff-crisis-header {
+    padding: 24px 0;
+    text-align: center;
+}
+
+.ff-crisis-card {
+    background: white;
+    border-radius: 20px;
+    padding: 20px;
+    margin-bottom: 16px;
+    box-shadow: var(--ff-card-shadow);
+    border: 1px solid #F1F5F9;
+}
+
+.ff-crisis-card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.ff-crisis-card-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+}
+
+.ff-crisis-card-title {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: #1A1A2E;
+}
+
+.ff-crisis-card-title-sub {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #64748B;
+    margin-left: auto;
+}
+
+.ff-crisis-card-desc {
+    font-size: 0.9rem;
+    color: #64748B;
+    line-height: 1.5;
+    margin-bottom: 16px;
+}
+
+.ff-crisis-action-btn {
+    width: 100%;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-weight: 700;
+    text-decoration: none;
+    transition: transform 0.2s;
+    background: #F1F5F9;
+    color: #1A1A2E;
+}
+
+.ff-crisis-action-btn.primary {
+    background: var(--ff-primary);
+    color: white;
+}
+
+.ff-crisis-action-btn:active {
+    transform: scale(0.98);
 }

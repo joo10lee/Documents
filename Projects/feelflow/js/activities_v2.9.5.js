@@ -158,84 +158,110 @@ const Activities = {
         const level = parseInt(intensity) || 5;
         console.log(`🧠 [STRATEGY DEBUG] Input Name: "${emotionName}", Parsed: "${name}", Level: ${level}`);
 
-
         let quests = [];
+
+        // Strategy Metadata for V0 cards
+        const meta = {
+            'Deep Breathing': { desc: 'Breathe in a calming pattern', dur: '2 min' },
+            '5-4-3-2-1 Grounding': { desc: 'Focus on your 5 senses', dur: '3 min' },
+            'Calm Catalog': { desc: 'Look at peaceful photos', dur: '2 min' },
+            'Angry Drawing': { desc: 'Draw how you feel', dur: '5 min' },
+            'Squeeze & Release': { desc: 'Tense and relax your muscles', dur: '3 min' },
+            'Take a Walk': { desc: 'Get some fresh air', dur: '10 min' },
+            'Happy Note': { desc: 'Write a small joy', dur: '1 min' },
+            'Share the joy': { desc: 'Tell someone something good', dur: '2 min' },
+            'Happy Journal': { desc: 'Record your best moments', dur: '5 min' },
+            'Capture the Moment': { desc: 'Take a photo of joy', dur: '2 min' },
+            'Body Scan': { desc: 'Notice feelings in your body', dur: '5 min' },
+            'Comfort Object': { desc: 'Find something soft', dur: '2 min' },
+            'Listen to Music': { desc: 'Soothing sounds for you', dur: '5 min' },
+            'Talk to Someone': { desc: 'Reach out to a friend', dur: '10 min' },
+            'Mindful Moment': { desc: 'Simply be present', dur: '3 min' },
+            'Gratitude': { desc: 'What are you thankful for?', dur: '3 min' },
+            'Drink Water': { desc: 'Hydrate your body', dur: '1 min' },
+            'Fresh Air': { desc: 'Step outside for a moment', dur: '3 min' },
+            'Energy Shake': { desc: 'Move your body! (+30 XP)', dur: '2 min' },
+            'Write it down': { desc: 'Get it out of your head', dur: '5 min' },
+        };
 
         // 💡 [해결] Happy (😊) - 1-2단계(🌱) vs 3단계 이상(✍️) 분기 복구
         if (name.includes('happy') || name.includes('😊')) {
             if (level <= 2) {
                 quests = [
-                    { title: 'Happy Note', icon: '🌱', tier: 'gold', xp: 60, color: '#1e293b', tag: 'SMALL JOY' },
-                    { title: 'Share the joy', icon: '✨', tier: 'silver', xp: 30, color: '#fff' }
+                    { title: 'Happy Note', icon: '🌱', tier: 'gold', xp: 60, tag: 'SMALL JOY' },
+                    { title: 'Share the joy', icon: '✨', tier: 'silver', xp: 30 }
                 ];
             } else {
-                // PRD 일치: Happy Journal, Capture the Moment, Body Scan
                 quests = [
-                    { title: 'Happy Journal', icon: '✍️', tier: 'gold', xp: 60, color: '#1e293b', tag: 'WRITE' },
-                    { title: 'Capture the Moment', icon: '📸', tier: 'silver', xp: 50, color: '#fff' },
-                    { title: 'Body Scan', icon: '🧘', tier: 'silver', xp: 30, color: '#fff', tag: 'AWARENESS' }
+                    { title: 'Happy Journal', icon: '✍️', tier: 'gold', xp: 60, tag: 'WRITE' },
+                    { title: 'Capture the Moment', icon: '📸', tier: 'silver', xp: 50 },
+                    { title: 'Body Scan', icon: '🧘', tier: 'silver', xp: 30, tag: 'AWARENESS' }
                 ];
             }
         }
         else if (name.includes('sad') || name.includes('😢')) {
             quests = [
-                { title: 'Comfort Object', icon: '🧸', tier: 'gold', xp: 60, color: '#1e293b', tag: 'HUG' },
-                { title: 'Listen to Music', icon: '🎵', tier: 'silver', xp: 30, color: '#fff' },
-                { title: 'Talk to Someone', icon: '🗣️', tier: 'silver', xp: 30, color: '#fff' }
+                { title: 'Comfort Object', icon: '🧸', tier: 'gold', xp: 60, tag: 'HUG' },
+                { title: 'Listen to Music', icon: '🎵', tier: 'silver', xp: 30 },
+                { title: 'Talk to Someone', icon: '🗣️', tier: 'silver', xp: 30 }
             ];
         }
         else if (name.includes('anxious') || name.includes('😰')) {
             quests = [
-                { title: 'Deep Breathing', icon: '🌬️', tier: 'gold', xp: 60, color: '#1e293b', tag: 'BREATHE' },
-                { title: '5-4-3-2-1 Grounding', icon: '🖐️', tier: 'silver', xp: 30, color: '#fff', tag: 'SENSES' },
-                { title: 'Calm Catalog', icon: '🌌', tier: 'silver', xp: 30, color: '#fff' } // PRD상 Calm전략이지만 Anxious에도 유용하여 배치됨
+                { title: 'Deep Breathing', icon: '🌬️', tier: 'gold', xp: 60, tag: 'BREATHE' },
+                { title: '5-4-3-2-1 Grounding', icon: '🖐️', tier: 'silver', xp: 30, tag: 'SENSES' },
+                { title: 'Calm Catalog', icon: '🌌', tier: 'silver', xp: 30 }
             ];
         }
         else if (name.includes('angry') || name.includes('😠')) {
             quests = [
-                { title: 'Angry Drawing', icon: '🖍️', tier: 'gold', xp: 60, color: '#ef4444', tag: 'SCRIBBLE' },
-                { title: 'Squeeze & Release', icon: '✊', tier: 'silver', xp: 30, color: '#fff' },
-                { title: 'Take a Walk', icon: '🚶', tier: 'silver', xp: 30, color: '#fff' }
+                { title: 'Angry Drawing', icon: '🖍️', tier: 'gold', xp: 60, tag: 'SCRIBBLE' },
+                { title: 'Squeeze & Release', icon: '✊', tier: 'silver', xp: 30 },
+                { title: 'Take a Walk', icon: '🚶', tier: 'silver', xp: 30 }
             ];
         }
         else if (name.includes('calm') || name.includes('😌')) {
             quests = [
-                { title: 'Mindful Moment', icon: '🧘', tier: 'gold', xp: 60, color: '#1e293b', tag: 'MEDITATE' },
-                { title: 'Gratitude', icon: '🙏', tier: 'silver', xp: 50, color: '#fff' },
-                { title: 'Calm Catalog', icon: '📸', tier: 'silver', xp: 30, color: '#fff', tag: 'PHOTO' } // Photo version
+                { title: 'Mindful Moment', icon: '🧘', tier: 'gold', xp: 60, tag: 'MEDITATE' },
+                { title: 'Gratitude', icon: '🙏', tier: 'silver', xp: 50 },
+                { title: 'Calm Catalog', icon: '📸', tier: 'silver', xp: 30, tag: 'PHOTO' }
             ];
         }
         else if (name.includes('tired') || name.includes('😫')) {
             quests = [
-                { title: 'Drink Water', icon: '💧', tier: 'gold', xp: 60, color: '#1e293b', tag: 'HYDRATE' },
-                { title: 'Fresh Air', icon: '🍃', tier: 'silver', xp: 40, color: '#fff' },
-                { title: 'Energy Shake', icon: '⚡', tier: 'silver', xp: 40, color: '#fff' }
+                { title: 'Drink Water', icon: '💧', tier: 'gold', xp: 60, tag: 'HYDRATE' },
+                { title: 'Fresh Air', icon: '🍃', tier: 'silver', xp: 40 },
+                { title: 'Energy Shake', icon: '⚡', tier: 'silver', xp: 40 }
             ];
         }
         else {
             quests = [
-                { title: 'Deep Breathing', icon: '🌬️', tier: 'gold', xp: 60, color: '#1e293b', tag: 'BREATHE' },
-                { title: 'Write it down', icon: '✍️', tier: 'silver', xp: 30, color: '#fff' }
+                { title: 'Deep Breathing', icon: '🌬️', tier: 'gold', xp: 60, tag: 'BREATHE' },
+                { title: 'Write it down', icon: '✍️', tier: 'silver', xp: 30 }
             ];
         }
 
-        container.className = `strategy-grid grid-${quests.length}`;
-        container.innerHTML = `
-            <!-- 💡 Title removed to avoid duplication -->
-            ${quests.map((q, idx) => `
-                <button class="bento-card ${q.tier}-tier ${idx === 0 ? 'hero-card' : ''}" 
-                        onclick="Activities.setupActivity('${q.title}')" 
-                        style="background:${q.color}; ${q.tier === 'gold' ? 'color:white;' : ''}">
-                    <span class="quest-icon">${q.icon}</span>
-                    <div class="quest-info" style="text-align:left;">
-                        <div class="quest-title" style="font-weight:850; font-size: ${idx === 0 ? '1.2rem' : '0.95rem'};">${q.title}</div>
-                        <div class="quest-reward" style="font-weight:700; font-size:0.8rem; color:${q.tier === 'gold' ? '#FFD700' : '#7c3aed'}">
-                            ✨ +${q.xp} XP
+        const emotionColor = currentEmotion.color || '#6C5CE7';
+
+        container.innerHTML = quests.map((q, idx) => {
+            const d = meta[q.title] || { desc: 'A calming activity', dur: '5 min' };
+            return `
+                <button class="ff-strategy-card" onclick="Activities.setupActivity('${q.title}', '${q.icon}')">
+                    <div class="ff-strategy-icon-circle" style="background: ${emotionColor}15;">
+                        <span>${q.icon}</span>
+                    </div>
+                    <div class="ff-strategy-info">
+                        <p class="ff-strategy-title">${q.title}</p>
+                        <p class="ff-strategy-desc">${d.desc}</p>
+                        <div class="ff-strategy-meta">
+                            <span class="ff-strategy-duration" style="background: ${emotionColor}12; color: ${emotionColor}">${d.dur}</span>
+                            <span class="ff-strategy-tag">${q.tag || 'Strategy'}</span>
                         </div>
                     </div>
-                    ${q.tag ? `<div class="recommend-tag">${q.tag}</div>` : ''}
+                    <svg style="color: #9CA3AF; flex-shrink: 0;" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
                 </button>
-            `).join('')}`;
+            `;
+        }).join('');
     },
 
     // 4. 활동 디스패처 (실제 퀘스트 매핑)

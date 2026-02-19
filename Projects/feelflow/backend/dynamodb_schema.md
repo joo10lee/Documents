@@ -9,8 +9,10 @@
 | `emotion` | String | - | e.g. "Happy", "Sad" |
 | `intensity` | Number | - | 1-10 |
 | `notes` | String | - | Optional text note |
-| `photo` | String | - | Base64 string or S3 URL (Future) |
-| `strategies` | List | - | List of strategies used |
+| `afterIntensity` | Number | - | Re-measurement result (1-10) |
+| `triggers` | List | - | List of trigger tags (e.g. ["School", "Friends"]) |
+| `photo` | String | - | Base64 string or S3 URL |
+| `activityData` | Map/List | - | Details from strategies (e.g. grounding steps) |
 
 ## Access Patterns
 
