@@ -536,6 +536,15 @@ const Guardian = {
             this.checkAlerts();
             this.renderGoalManager();
             this.renderContextBar();
+
+            // 날짜 표시
+            const summaryDateEl = document.getElementById('guardianSummaryDate');
+            if (summaryDateEl) {
+                const now = new Date();
+                const dayName = now.toLocaleDateString('en-US', { weekday: 'long' });
+                const monthDay = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                summaryDateEl.textContent = `📊 ${dayName}, ${monthDay}`;
+            }
             // Routine and Context rendered when settings opened, but we can init data here
         } catch (e) {
             console.error("Guardian Init Error:", e);
@@ -593,18 +602,9 @@ const Guardian = {
 
     // 💡 Routine Management
     renderRoutineManager() {
-        // Create Container if not exists
-        let container = document.getElementById('guardianRoutineManager');
-        if (!container) {
-            // Inject after Goal Management
-            const goalCard = document.getElementById('guardianActiveGoal').parentNode;
-            container = document.createElement('div');
-            container.id = 'guardianRoutineManager';
-            container.className = 'ff-card';
-            container.style.padding = '20px';
-            container.style.marginBottom = '24px';
-            goalCard.parentNode.insertBefore(container, goalCard.nextSibling);
-        }
+        // Target the container in Settings screen
+        let container = document.getElementById('settingsRoutineContent');
+        if (!container) return;
 
         const renderList = (slot) => {
             const list = DailyRoutines[slot] || [];
@@ -766,11 +766,11 @@ const Guardian = {
         }
 
         container.innerHTML = todayTags.map(t => `
-            <div style="display:flex; align-items:center; gap:6px; background:#eff6ff; padding:4px 10px; border-radius:20px; border:1px solid #bfdbfe; margin-bottom:4px;">
-                <span style="font-size:0.9rem;">${t.icon}</span>
-                <span style="font-size:0.75rem; font-weight:700; color:#1e40af;">${t.tag}</span>
-                ${t.note ? `<span style="font-size:0.7rem; color:#60a5fa;">(${t.note})</span>` : ''}
-                <button onclick="Guardian.deleteContextTag('${t.id}')" style="background:none; border:none; color:#93c5fd; font-size:0.75rem; padding:0 2px;">✕</button>
+            <div style="display:flex; align-items:center; gap:8px; background:#eff6ff; padding:6px 14px; border-radius:20px; border:1px solid #bfdbfe; margin-bottom:4px; max-width: 100%;">
+                <span style="font-size:1rem;">${t.icon}</span>
+                <span style="font-size:0.75rem; font-weight:700; color:#1e40af; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${t.tag}</span>
+                ${t.note ? `<span style="font-size:0.7rem; color:#60a5fa; margin-right: 4px;">(${t.note})</span>` : ''}
+                <button onclick="Guardian.deleteContextTag('${t.id}')" style="background:none; border:none; color:#93c5fd; font-size:1rem; padding:4px; cursor:pointer; display: flex; align-items: center; justify-content: center; margin-left: auto;">✕</button>
             </div>
         `).join('');
     },
@@ -950,7 +950,7 @@ const Guardian = {
 
         modal.innerHTML = `
             <div class="ff-card" style="width:100%; max-width:600px; padding:32px; background:white; margin:auto; position:relative;">
-                <button onclick="document.getElementById('reportModal').remove()" style="position:absolute; top:16px; right:16px; background:none; border:none; font-size:1.5rem;">✕</button>
+                <button onclick="document.getElementById('reportModal').remove()" style="position:absolute; top:12px; right:12px; background:#f1f5f9; border:none; border-radius:50%; width:36px; height:36px; display:flex; align-items:center; justify-content:center; font-size:1.2rem; cursor:pointer; z-index:10;">✕</button>
                 
                 <h1 style="font-size:1.5rem; font-weight:900; color:#1e293b; text-align:center; margin-bottom:4px;">${title}</h1>
                 <p style="text-align:center; color:#64748b; margin-bottom:24px;">${range} • Jason Lee</p>
@@ -1484,7 +1484,11 @@ const Guardian = {
                         <div style="font-size:0.7rem; color:#94A3B8;">${new Date(h.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
                     </div>
                 </div>
-                <div style="font-weight:800; color:${this.emotionColors[h.emotion]}; font-family:var(--ff-font-mono);">Lvl ${h.intensity}</div>
+                <div style="font-weight:800; color:${this.emotionColors[h.emotion]}; font-family:var(--ff-font-mono);">
+                    ${(h.afterIntensity !== undefined && h.afterIntensity !== h.intensity)
+                ? `<span style="font-size:0.7rem; color: ${h.afterIntensity < h.intensity ? '#10B981' : '#EF4444'}">${h.intensity}→${h.afterIntensity}${h.afterIntensity < h.intensity ? '↓' : '↑'}</span>`
+                : `Lv.${h.intensity}`}
+                </div>
             </div>
         `).join('');
 
@@ -1967,7 +1971,6 @@ function selectEmotion(name, emoji, color) {
 }
 
 function renderTriggerScreen() {
-    // 1. DOM Elements
     const emojiDisplay = document.getElementById('triggerEmojiDisplay');
     const nameDisplay = document.getElementById('triggerNameDisplay');
     const container = document.getElementById('triggerTagContainer');
@@ -1979,19 +1982,114 @@ function renderTriggerScreen() {
     if (countDisplay) countDisplay.textContent = "0/3 selected";
     if (nextBtn) nextBtn.disabled = true;
 
-    // 2. Define Triggers
-    const triggers = [
-        { id: 'school', text: '🏫 Homework' },
+    if (!container) return;
+
+    // Reset scroll
+    container.scrollTop = 0;
+
+    // 2. Define Triggers — 감정별 매핑
+    const triggerMap = {
+        'Happy': [
+            { id: 'friends', text: '👫 Fun with Friends' },
+            { id: 'family', text: '👨👩👦 Family Time' },
+            { id: 'reward', text: '🎁 Got Reward' },
+            { id: 'grade', text: '📝 Good Grade' },
+            { id: 'task', text: '✅ Completed Task' },
+            { id: 'play', text: '🎮 Free Time' },
+            { id: 'food', text: '🍕 Good Food' },
+            { id: 'music', text: '🎵 Music' },
+            { id: 'nature', text: '🌳 Outside Time' },
+            { id: 'other', text: '✏️ Other' }
+        ],
+        'Sad': [
+            { id: 'lonely', text: '🧍 Feeling Lonely' },
+            { id: 'missing', text: '💭 Missing Someone' },
+            { id: 'grade', text: '📉 Bad Grade' },
+            { id: 'leftout', text: '😔 Left Out' },
+            { id: 'tired', text: '😴 Tired' },
+            { id: 'argument', text: '💬 Argument' },
+            { id: 'bored', text: '😑 Bored' },
+            { id: 'family', text: '👨👩👦 Family' },
+            { id: 'school', text: '🏫 School' },
+            { id: 'other', text: '✏️ Other' }
+        ],
+        'Anxious': [
+            { id: 'presentation', text: '📊 Presentation' },
+            { id: 'test', text: '📝 Test / Exam' },
+            { id: 'noise', text: '🔊 Too Loud' },
+            { id: 'routine', text: '🔄 Change in Plan' },
+            { id: 'new', text: '🆕 New Situation' },
+            { id: 'crowd', text: '👥 Crowded Place' },
+            { id: 'school', text: '🏫 School' },
+            { id: 'friends', text: '👫 Classmates' },
+            { id: 'waiting', text: '⏳ Waiting' },
+            { id: 'other', text: '✏️ Other' }
+        ],
+        'Angry': [
+            { id: 'argument', text: '💬 Argument' },
+            { id: 'unfair', text: '⚖️ Unfair' },
+            { id: 'friends', text: '👫 Classmates' },
+            { id: 'noise', text: '🔊 Too Loud' },
+            { id: 'waiting', text: '⏳ Waiting Too Long' },
+            { id: 'misunderstood', text: '🤷 Misunderstood' },
+            { id: 'rules', text: '🚫 Rules / Limits' },
+            { id: 'family', text: '👨👩👦 Family' },
+            { id: 'school', text: '🏫 School' },
+            { id: 'other', text: '✏️ Other' }
+        ],
+        'Calm': [
+            { id: 'rest', text: '😌 Resting' },
+            { id: 'music', text: '🎵 Music' },
+            { id: 'nature', text: '🌳 Outside Time' },
+            { id: 'family', text: '👨👩👦 Family Time' },
+            { id: 'play', text: '🎮 Free Time' },
+            { id: 'food', text: '🍕 Good Food' },
+            { id: 'exercise', text: '🏃 Exercise' },
+            { id: 'reading', text: '📖 Reading' },
+            { id: 'breathing', text: '🫁 After Breathing' },
+            { id: 'other', text: '✏️ Other' }
+        ],
+        'Tired': [
+            { id: 'sleep', text: '😴 Bad Sleep' },
+            { id: 'school', text: '🏫 Long School Day' },
+            { id: 'overstim', text: '🌀 Overstimulated' },
+            { id: 'exercise', text: '🏃 Physical Activity' },
+            { id: 'bored', text: '😑 Bored' },
+            { id: 'hungry', text: '🍽️ Hungry' },
+            { id: 'late', text: '🌙 Stayed Up Late' },
+            { id: 'screen', text: '📱 Too Much Screen' },
+            { id: 'sick', text: '🤒 Not Feeling Well' },
+            { id: 'other', text: '✏️ Other' }
+        ]
+    };
+
+    // Fallback: 매핑에 없는 감정이면 범용 트리거
+    const defaultTriggers = [
+        { id: 'school', text: '🏫 School' },
         { id: 'friends', text: '👫 Classmates' },
-        { id: 'family', text: '👨‍👩‍👦 Family' },
+        { id: 'family', text: '👨👩👦 Family' },
         { id: 'noise', text: '🔊 Too Loud' },
         { id: 'routine', text: '🔄 Change in Plan' },
-        { id: 'presentation', text: '📝 Presentation' },
+        { id: 'presentation', text: '📊 Presentation' },
         { id: 'tired', text: '😴 Tired' },
         { id: 'hungry', text: '🍽️ Hungry' },
         { id: 'argument', text: '💬 Argument' },
         { id: 'other', text: '✏️ Other' }
     ];
+
+    const triggers = triggerMap[currentEmotion.name] || defaultTriggers;
+
+    // 감정별 질문 텍스트
+    const questionEl = document.getElementById('triggerQuestion');
+    const questionMap = {
+        'Happy': "What made you happy?",
+        'Sad': "What's making you sad?",
+        'Anxious': "What's worrying you?",
+        'Angry': "What made you angry?",
+        'Calm': "What helped you feel calm?",
+        'Tired': "Why do you feel tired?"
+    };
+    if (questionEl) questionEl.textContent = questionMap[currentEmotion.name] || "What happened?";
 
     // 3. Render Tags
     if (container) {

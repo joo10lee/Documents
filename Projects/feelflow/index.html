@@ -459,7 +459,8 @@
             </div>
 
             <div style="padding: 12px 20px 8px;">
-                <h1 style="font-size: 1.4rem; font-weight: 800; color: #1A1A2E; line-height: 1.2;">What
+                <h1 id="triggerQuestion" style="font-size: 1.4rem; font-weight: 800; color: #1A1A2E; line-height: 1.2;">
+                    What
                     happened?</h1>
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
                     <p style="font-size: 0.9rem; color: #9CA3AF; margin: 0;">Pick up to 3</p>
@@ -912,7 +913,7 @@
 
             <!-- GROUP 2: Today's Summary -->
             <div class="ff-card" style="margin-bottom: 20px; padding: 20px;">
-                <h3 class="ff-section-title">📊 Today's Summary</h3>
+                <h3 class="ff-section-title" id="guardianSummaryDate">📊 Today's Summary</h3>
 
                 <!-- Stats Row -->
                 <div class="ff-stats-row" id="guardianStatsRow">
@@ -922,17 +923,20 @@
                 <!-- Most Frequent -->
                 <div id="guardianMostFrequent" style="margin: 12px 0;"></div>
 
-                <!-- NEW: Today's Context -->
+                <!-- Today's Context — Guardian 입력 전용 -->
                 <div style="margin-top: 16px; padding-top: 12px; border-top: 1px solid #F1F5F9;">
                     <div
-                        style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                        style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
                         <h4 style="font-size: 0.85rem; font-weight: 800; color: #1A1A2E; margin: 0;">📌 Today's Context
                         </h4>
                         <button onclick="Guardian.openContextModal()"
                             style="background: var(--ff-primary, #6C5CE7); color: white; border: none; border-radius: 99px; padding: 4px 12px; font-size: 0.75rem; font-weight: 700; cursor: pointer; min-height: 32px;">
-                            + Add Tag
+                            + Add
                         </button>
                     </div>
+                    <p style="font-size: 0.7rem; color: #9CA3AF; margin: 0 0 10px;">
+                        Add background info that may affect Jason's emotions today
+                    </p>
                     <div id="clinicalTagsContainer" style="display: flex; flex-wrap: wrap; gap: 6px;">
                         <!-- JS renders clinical tags here -->
                     </div>

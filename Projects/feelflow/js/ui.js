@@ -253,22 +253,12 @@ const UI = {
             const dateStr = date.toLocaleDateString([], { month: 'short', day: 'numeric' });
             const color = entry.color || '#6C5CE7';
 
-            // Intensity Change
-            let intensityHTML = `<span style="font-weight:700; color:${color}">Lv.${entry.intensity}</span>`;
-            if (entry.afterIntensity) {
-                const drop = entry.intensity - entry.afterIntensity;
-                const dropColor = drop > 0 ? '#10B981' : (drop < 0 ? '#EF4444' : '#94A3B8');
-                intensityHTML = `
-                    <div style="display:flex; align-items:center; gap:6px; font-size:0.85rem;">
-                        <span style="color:#64748B">Before: <b>${entry.intensity}</b></span>
-                        <span>→</span>
-                        <span style="color:#64748B">After: <b>${entry.afterIntensity}</b></span>
-                        <span style="color:${dropColor}; font-weight:700; font-size:0.75rem; background:${dropColor}15; padding:2px 6px; border-radius:4px;">
-                            ${drop > 0 ? '↓' : (drop < 0 ? '↑' : '-')}${Math.abs(drop)}
-                        </span>
-                    </div>
-                `;
-            }
+            const intensityHTML = (entry.afterIntensity !== undefined && entry.afterIntensity !== entry.intensity)
+                ? `<span class="ff-entry-delta" style="color: ${entry.afterIntensity < entry.intensity ? '#10B981' : '#EF4444'}">
+                    ${entry.intensity} → ${entry.afterIntensity}
+                    ${entry.afterIntensity < entry.intensity ? '↓' : entry.afterIntensity > entry.intensity ? '↑' : ''}
+                   </span>`
+                : `<span class="ff-entry-intensity" style="background: ${color}15; color: ${color}">Lv.${entry.intensity}</span>`;
 
             // Triggers
             let triggersHTML = '';
