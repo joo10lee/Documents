@@ -2130,6 +2130,93 @@ const Activities = {
     safeVibrate(pattern) {
         if (!navigator.vibrate) return;
         try { navigator.vibrate(pattern); } catch (e) { }
+    },
+
+    // 💡 Music Engine (Synthesized)
+    playMusicTrack(type) {
+        this.initAudio();
+        if (this.currentAudioSource) { try { this.currentAudioSource.stop(); } catch (e) { } }
+        if (this.currentGainNode) { try { this.currentGainNode.disconnect(); } catch (e) { } }
+
+        // Update UI
+        document.querySelectorAll('.music-card').forEach(b => b.classList.remove('active'));
+        const btnId = type === 'Nature' ? 'btnNature' : type === 'Lo-fi' ? 'btnLofi' : type === 'White Noise' ? 'btnWhite' : 'btnClassic';
+        const btn = document.getElementById(btnId);
+        if (btn) btn.classList.add('active');
+
+        this.musicState.type = type;
+
+        // Create Source
+        const gain = audioCtx.createGain();
+        gain.gain.value = this.musicState.volume || 0.5;
+        gain.connect(audioCtx.destination);
+        this.currentGainNode = gain;
+
+        if (type === 'White Noise' || type === 'Nature' || type === 'Lo-fi') {
+            const bufferSize = 2 * audioCtx.sampleRate;
+            const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            const data = buffer.getChannelData(0);
+
+            for (let i = 0; i < bufferSize; i++) {
+                // White noise
+                let noise = Math.random() * 2 - 1;
+                // Brown/Pink approx for Nature/Lo-fi
+                if (type !== 'White Noise') {
+                    noise = (Math.random() + Math.random()) - 1; // Softer
+                }
+                data[i] = noise;
+            }
+
+            const noiseSrc = audioCtx.createBufferSource();
+            noiseSrc.buffer = buffer;
+            noiseSrc.loop = true;
+
+            if (type === 'Nature') {
+                // Lowpass filter for wind sound
+                const filter = audioCtx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.value = 400;
+                noiseSrc.connect(filter);
+                filter.connect(gain);
+            } else {
+                noiseSrc.connect(gain);
+            }
+            noiseSrc.start();
+            this.currentAudioSource = noiseSrc;
+        }
+        else if (type === 'Classical') {
+            // Simple Drone Chord (C Major)
+            const osc1 = audioCtx.createOscillator(); osc1.frequency.value = 261.63; // C4
+            const osc2 = audioCtx.createOscillator(); osc2.frequency.value = 329.63; // E4
+            const osc3 = audioCtx.createOscillator(); osc3.frequency.value = 392.00; // G4
+
+            osc1.connect(gain); osc2.connect(gain); osc3.connect(gain);
+            osc1.start(); osc2.start(); osc3.start();
+
+            this.currentAudioSource = { stop: () => { osc1.stop(); osc2.stop(); osc3.stop(); } };
+        }
+    },
+
+    setMusicVolume(val) {
+        this.musicState.volume = parseFloat(val);
+        if (this.currentGainNode) this.currentGainNode.gain.setValueAtTime(this.musicState.volume, audioCtx.currentTime);
+    },
+
+    setMusicTimer(min) {
+        if (this.musicState.timer) clearTimeout(this.musicState.timer);
+        const btns = document.querySelectorAll('.timer-btn');
+        btns.forEach(b => b.classList.remove('active'));
+
+        // Simple visual toggle (assumes 3,5,10 order)
+        if (min === 3) btns[0].classList.add('active');
+        if (min === 5) btns[1].classList.add('active');
+        if (min === 10) btns[2].classList.add('active');
+
+        this.musicState.timerDuration = min;
+        this.musicState.timer = setTimeout(() => {
+            this.stopAll();
+            alert("Music session ended.");
+        }, min * 60 * 1000);
     }
 };
 

@@ -24,20 +24,17 @@ const UI = {
 
         const target = document.getElementById('screen' + cleanId) || document.getElementById(cleanId);
 
+        // FAB visibility
+        const fab = document.getElementById('btnEmergencyFAB');
+        const hideFab = ['Landing', 'Login', 'Signup', 'Emergency', 'Crisis', 'Activity'];
+        if (fab) fab.style.display = hideFab.includes(cleanId) ? 'none' : 'flex';
+
         // 💡 Phase 2: Header Logic
         const headerTitle = document.getElementById('headerTitle');
-        const homeBtn = document.getElementById('navHomeBtn');
-        const hamburgerBtn = document.querySelector('.hamburger-trigger');
-        const appHeader = document.querySelector('.app-header');
 
         // 💡 Hide Navigation Elements on Landing & Auth Screens
         if (cleanId === 'Landing' || cleanId === 'Login' || cleanId === 'Signup') {
-            if (hamburgerBtn) hamburgerBtn.style.display = 'none';
-            if (homeBtn) homeBtn.style.display = 'none';
-            if (appHeader) appHeader.style.display = 'none'; // Hide header too for clean look
         } else {
-            if (hamburgerBtn) hamburgerBtn.style.display = 'flex';
-            if (appHeader) appHeader.style.display = 'flex';
 
             // Home Screen Specifics
             if (cleanId === '1') {
@@ -49,10 +46,8 @@ const UI = {
                 else if (hour >= 18) greeting = "Good Evening,<br>Jason! 🌙";
 
                 if (headerTitle) headerTitle.innerHTML = greeting;
-                if (homeBtn) homeBtn.style.display = 'none';
             } else {
                 if (headerTitle) headerTitle.textContent = title || "FeelFlow";
-                if (homeBtn) homeBtn.style.display = 'block';
             }
         }
 
@@ -123,16 +118,11 @@ const UI = {
         }
     },
 
-    updateNavActive(navId) {
-        document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
-        const activeBtn = document.getElementById(navId);
-        if (activeBtn) activeBtn.classList.add('active');
-    },
 
     // 2. 7일 트렌드 차트 렌더링 (Chart.js 연동)
     renderEmotionChart(history) {
         setTimeout(() => {
-            const ctx = document.getElementById('emotionChart');
+            const ctx = document.getElementById('guardianChart');
             if (!ctx || !window.Chart || !history) return;
 
             const toISODate = (d) => new Date(d).toISOString().split('T')[0];
@@ -172,56 +162,206 @@ const UI = {
         }, 300);
     },
 
-    // 3. 감정 기록 리스트 렌더링
-    renderHistory(history) {
-        const container = document.getElementById('historyList');
+    // 3. 감정 기록 리스트 렌더링 (Enhanced Journey)
+    renderHistory(history, containerId = 'historyList') {
+        const container = document.getElementById(containerId);
         if (!container) return;
 
+        // 💡 Guardian Mode Check
+        const isGuardian = typeof currentUser !== 'undefined' && currentUser === 'guardian';
+
         if (!history || history.length === 0) {
-            container.innerHTML = '<div style="text-align:center; padding:40px; color:#9CA3AF;">No check-ins yet! 📝</div>';
+            container.innerHTML = '<div style="text-align:center; padding:40px; color:#9CA3AF;">No check-ins yet! 📝<br>Check in to see your journey.</div>';
             return;
         }
 
-        const sorted = [...history].sort((a, b) => new Date(b.timestamp || b.createdAt) - new Date(a.timestamp || a.createdAt));
+        // 💡 1. Weekly Summary Card
+        const weeklyStats = window.getWeeklyStats ? window.getWeeklyStats(history) : null;
+        let summaryHTML = '';
+        if (weeklyStats) {
+            summaryHTML = `
+                <div class="ff-summary-card">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
+                        <div>
+                            <div style="font-size:0.75rem; color:#64748B; font-weight:700; text-transform:uppercase;">This Week</div>
+                            <div style="font-size:1.5rem; font-weight:800; color:#1E293B;">${weeklyStats.checkins} Check-ins</div>
+                        </div>
+                        <div style="text-align:right;">
+                            <div style="font-size:0.75rem; color:#64748B; font-weight:700; text-transform:uppercase;">Streak</div>
+                            <div style="font-size:1.5rem; font-weight:800; color:#F59E0B;">🔥 ${weeklyStats.streak} Days</div>
+                        </div>
+                    </div>
+                    <div style="display:flex; gap:12px; align-items:center; background:#F8FAFC; padding:10px; border-radius:12px;">
+                        <div style="font-size:2rem;">${weeklyStats.topEmotion.emoji}</div>
+                        <div>
+                            <div style="font-size:0.8rem; font-weight:700; color:#334155;">Most Frequent</div>
+                            <div style="font-size:0.9rem; color:#64748B;">${weeklyStats.topEmotion.name} (${weeklyStats.topEmotion.count})</div>
+                        </div>
+                    </div>
+                    <!-- Mini Bar Chart -->
+                    <div style="display:flex; align-items:flex-end; height:40px; gap:4px; margin-top:16px;">
+                        ${weeklyStats.distribution.map(d => `
+                            <div style="flex:1; background:${d.color}; height:${d.percent}%; border-radius:4px; opacity:0.8;" title="${d.name}"></div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
 
-        container.innerHTML = sorted.map(entry => {
+        // 💡 2. Filter Row
+        const currentFilter = window.historyFilter || { emotion: 'all', trigger: null };
+        const emotions = ['Happy', 'Sad', 'Anxious', 'Angry', 'Calm', 'Tired'];
+        const emojimap = { 'Happy': '😊', 'Sad': '😢', 'Anxious': '😰', 'Angry': '😠', 'Calm': '😌', 'Tired': '😫' };
+
+        let filterHTML = `
+            <div class="ff-filter-row">
+                <button class="ff-filter-btn ${currentFilter.emotion === 'all' ? 'active' : ''}" onclick="toggleEmotionFilter('all')">All</button>
+                ${emotions.map(e => `
+                    <button class="ff-filter-btn ${currentFilter.emotion === e ? 'active' : ''}" onclick="toggleEmotionFilter('${e}')">${emojimap[e]}</button>
+                `).join('')}
+            </div>
+        `;
+
+        // 💡 3. What Works For Me (Insights)
+        let insightHTML = '';
+        const insights = window.getStrategyInsights ? window.getStrategyInsights(history) : [];
+        if (insights.length > 0) {
+            insightHTML = `
+                <div class="ff-insight-card">
+                    <div style="font-size:0.9rem; font-weight:800; color:#4F46E5; margin-bottom:8px;">💡 What Works For You</div>
+                    ${insights.map(i => `
+                        <div style="font-size:0.85rem; color:#1E293B; margin-bottom:4px;">
+                            When you feel <b>${i.emotion}</b>, <br>
+                            <b>${i.strategy}</b> helps best (Avg ↓${i.drop.toFixed(1)})
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+
+        // 💡 4. Timeline Cards
+        // Filter logic should be in app.js, assuming passed 'history' is already filtered or valid
+        // But let's apply client-side filter here if window.filterHistory is not used yet
+        const displayHistory = window.filterHistory ? window.filterHistory(history) : history;
+
+        const sorted = [...displayHistory].sort((a, b) => new Date(b.timestamp || b.createdAt) - new Date(a.timestamp || a.createdAt));
+
+        const listHTML = sorted.map(entry => {
             const date = new Date(entry.timestamp || entry.createdAt);
             const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             const dateStr = date.toLocaleDateString([], { month: 'short', day: 'numeric' });
             const color = entry.color || '#6C5CE7';
 
-            const noteHtml = entry.note
-                ? `<div class="ff-entry-note">${entry.note}</div>`
-                : '';
+            // Intensity Change
+            let intensityHTML = `<span style="font-weight:700; color:${color}">Lv.${entry.intensity}</span>`;
+            if (entry.afterIntensity) {
+                const drop = entry.intensity - entry.afterIntensity;
+                const dropColor = drop > 0 ? '#10B981' : (drop < 0 ? '#EF4444' : '#94A3B8');
+                intensityHTML = `
+                    <div style="display:flex; align-items:center; gap:6px; font-size:0.85rem;">
+                        <span style="color:#64748B">Before: <b>${entry.intensity}</b></span>
+                        <span>→</span>
+                        <span style="color:#64748B">After: <b>${entry.afterIntensity}</b></span>
+                        <span style="color:${dropColor}; font-weight:700; font-size:0.75rem; background:${dropColor}15; padding:2px 6px; border-radius:4px;">
+                            ${drop > 0 ? '↓' : (drop < 0 ? '↑' : '-')}${Math.abs(drop)}
+                        </span>
+                    </div>
+                `;
+            }
 
-            const activityHtml = entry.activityData
-                ? `<div class="ff-entry-activity">
-                    <span>${entry.activityData.icon || '✨'}</span>
-                    <span style="margin-left:4px;">${entry.activityData.detail}</span>
-                   </div>`
-                : '';
+            // Triggers
+            let triggersHTML = '';
+            if (entry.triggers && entry.triggers.length > 0) {
+                triggersHTML = `
+                    <div style="display:flex; flex-wrap:wrap; gap:4px; margin-top:8px;">
+                        ${entry.triggers.map(t => `<span class="ff-hist-trigger">${t}</span>`).join('')}
+                    </div>
+                `;
+            }
+
+            // Strategy
+            let strategyHTML = '';
+            if (entry.activityData && entry.activityData.detail) {
+                strategyHTML = `
+                    <div class="ff-hist-strategy">
+                        <span>${entry.activityData.icon || '🧩'}</span>
+                        <span style="font-weight:600;">${entry.activityData.detail}</span>
+                    </div>
+                `;
+            }
+
+            // Creative Content (Privacy Check)
+            let creativeHTML = '';
+            if (isGuardian) {
+                // Guardian View: Privacy Mode
+                if (entry.note) creativeHTML += `<div class="ff-privacy-tag">📝 Journal Written</div>`;
+                if (entry.photo) creativeHTML += `<div class="ff-privacy-tag">📸 Photo Captured</div>`;
+                if (entry.drawing) creativeHTML += `<div class="ff-privacy-tag">🎨 Drawing Created</div>`;
+                if (creativeHTML) creativeHTML = `<div style="display:flex; gap:6px; margin-top:10px;">${creativeHTML}</div>`;
+            } else {
+                // Child View: Full Content
+                if (entry.note) creativeHTML += `<div class="ff-entry-note">${entry.note}</div>`;
+                if (entry.photo) creativeHTML += `<img src="${entry.photo}" class="ff-entry-photo" onclick="UI.showFullScreenImage('${entry.photo}')">`;
+                // Add drawing if exists (assuming it's in activityData or separate field, adapting schema)
+                if (entry.activityData && entry.activityData.drawing) {
+                    creativeHTML += `<img src="${entry.activityData.drawing}" class="ff-entry-photo" style="border:2px solid #E2E8F0;">`;
+                }
+            }
+
+            // Badges
+            let badges = [];
+            if (entry.emergency) badges.push('<span class="ff-badge-alert">🆘 Crisis</span>');
+            if (entry.fromRoutine) badges.push('<span class="ff-badge-routine">📋 Routine</span>');
+            if (entry.earnedXP) badges.push(`<span class="ff-badge-xp">+${entry.earnedXP} XP</span>`);
 
             return `
-                <div class="ff-journey-entry">
-                    <div class="ff-entry-marker" style="border-color: ${color}">
-                        <div class="ff-entry-dot" style="background: ${color}"></div>
+                <div class="ff-history-card">
+                    <div class="ff-hist-header">
+                        <span class="ff-hist-time">${dateStr} · ${timeStr}</span>
+                        <button onclick="deleteHistoryEntry('${entry.timestamp || entry.createdAt}')" class="ff-hist-delete">🗑️</button>
                     </div>
-                    <div class="ff-entry-card">
-                        <div class="ff-entry-header">
-                            <span class="ff-entry-time">${dateStr} · ${timeStr}</span>
-                            <span class="ff-entry-intensity" style="background: ${color}15; color: ${color}">Lv.${entry.intensity}</span>
+                    
+                    <div class="ff-hist-body">
+                        <div style="display:flex; justify-content:space-between; align-items:start;">
+                            <div class="ff-entry-mood">
+                                <span class="ff-entry-emoji">${entry.emoji || '✨'}</span>
+                                <span class="ff-entry-name">${entry.emotion}</span>
+                            </div>
+                            ${intensityHTML}
                         </div>
-                        <div class="ff-entry-mood">
-                            <span class="ff-entry-emoji">${entry.emoji || '✨'}</span>
-                            <span class="ff-entry-name">${entry.emotion}</span>
-                        </div>
-                        ${noteHtml}
-                        ${activityHtml}
-                        ${entry.photo ? `<img src="${entry.photo}" class="ff-entry-photo">` : ''}
+                        
+                        ${triggersHTML}
+                        ${strategyHTML}
+                        
+                        ${creativeHTML}
+                        
+                        ${badges.length > 0 ? `<div style="display:flex; gap:6px; margin-top:12px;">${badges.join('')}</div>` : ''}
                     </div>
                 </div>
             `;
         }).join('');
+
+        container.innerHTML = summaryHTML + filterHTML + insightHTML + listHTML;
+    },
+
+    // Helper for Full Screen Image
+    showFullScreenImage(src) {
+        const overlay = document.createElement('div');
+        overlay.style.position = 'fixed';
+        overlay.style.top = '0';
+        overlay.style.left = '0';
+        overlay.style.width = '100%';
+        overlay.style.height = '100%';
+        overlay.style.background = 'rgba(0,0,0,0.9)';
+        overlay.style.zIndex = '10000';
+        overlay.style.display = 'flex';
+        overlay.style.justifyContent = 'center';
+        overlay.style.alignItems = 'center';
+        overlay.onclick = () => overlay.remove();
+
+        overlay.innerHTML = `<img src="${src}" style="max-width:95%; max-height:95%; border-radius:8px;">`;
+        document.body.appendChild(overlay);
     },
 
     // 4. 날씨 정보 표시
